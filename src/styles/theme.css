@@ -1,0 +1,15 @@
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #25283b;
+  background: #f8f7f4;
+  font-synthesis: none;
+  --brand: #6f5cec;
+  --brand-dark: #5440d2;
+  --muted: #8b8d9b;
+  --surface: #fff;
+  --van-primary-color: #6f5cec;
+  --van-button-primary-background: #6f5cec;
+  --van-button-primary-border-color: #6f5cec;
+}
+body, page { background: #f8f7f4; }
+.app-shell { min-height: 100vh; }

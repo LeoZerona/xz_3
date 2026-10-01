@@ -1,0 +1,5 @@
+[
+  { "id": "plan", "title": "写下今天的三个重点", "detail": "用 5 分钟明确最重要的事", "time": "09:00", "icon": "notes-o", "tone": "lavender" },
+  { "id": "focus", "title": "专注完成一项工作", "detail": "给自己一段不受打扰的时间", "time": "10:30", "icon": "clock-o", "tone": "peach" },
+  { "id": "pause", "title": "起身喝水，放松一下", "detail": "短暂休息，也是在向前走", "time": "15:00", "icon": "flower-o", "tone": "mint" }
+]
