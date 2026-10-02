@@ -1,15 +1,41 @@
 :root {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #25283b;
-  background: #f8f7f4;
   font-synthesis: none;
-  --brand: #6f5cec;
-  --brand-dark: #5440d2;
-  --muted: #8b8d9b;
-  --surface: #fff;
-  --van-primary-color: #6f5cec;
-  --van-button-primary-background: #6f5cec;
-  --van-button-primary-border-color: #6f5cec;
+  color-scheme: light;
+  --color-primary: #1755e9;
+  --color-primary-strong: #1045c6;
+  --color-primary-soft: #e7edff;
+  --color-on-primary: #fff;
+  --color-page: #fff;
+  --color-topbar: #fafafa;
+  --color-surface: #fff;
+  --color-surface-muted: #f7f8fa;
+  --color-text: #20242d;
+  --color-text-secondary: #66707e;
+  --color-text-muted: #9aa3af;
+  --color-border: #edf0f4;
+  --color-selection: #e6efff;
+  --color-progress: #90b5ff;
+  --color-cover-one: #17b684;
+  --color-cover-two: #4476e8;
+  --color-shadow: #20242d0d;
+  --brand: var(--color-primary);
+  --brand-dark: var(--color-primary-strong);
+  --muted: var(--color-text-muted);
+  --surface: var(--color-surface);
+  --van-primary-color: var(--color-primary);
+  --van-button-primary-background: var(--color-primary);
+  --van-button-primary-border-color: var(--color-primary);
+  color: var(--color-text);
+  background: var(--color-page);
 }
-body, page { background: #f8f7f4; }
-.app-shell { min-height: 100vh; }
+
+:root[data-theme-mode='dark'] { color-scheme: dark; }
+
+html, body, page { background: var(--color-page); }
+body { transition: background-color .2s ease, color .2s ease; }
+.app-shell { min-height: 100vh; background: var(--color-page); color: var(--color-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}
