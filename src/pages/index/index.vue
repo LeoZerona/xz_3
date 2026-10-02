@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+
+function showPlaceholder(label: string) {
+  uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
+}
+</script>
+
 <template>
   <view class="home">
     <view class="topbar">
@@ -32,21 +40,11 @@
       </view>
     </view>
 
-    <view class="tabs" role="navigation">
-      <view class="tab active"><van-icon name="desktop-o" size="23" aria-hidden="true" /><text>学习</text></view>
-      <view class="tab"><van-icon name="edit" size="23" aria-hidden="true" /><text>单字练习</text></view>
-      <view class="tab"><van-icon name="notes-o" size="23" aria-hidden="true" /><text>对照阅读</text></view>
-      <navigator class="tab" url="/pages/profile/index" hover-class="none" aria-label="我">
-        <view class="tab-content">
-          <van-icon name="contact-o" size="23" aria-hidden="true" />
-          <text>我</text>
-        </view>
-      </navigator>
-    </view>
+    <AppBottomNavigation active-tab="study" @unavailable="showPlaceholder" />
   </view>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .home { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; background: var(--color-page); color: var(--color-text); }
 .topbar { height: calc(64px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 20px 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: var(--color-topbar); }
 .icon-button { width: 38px; height: 38px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--color-text); }
@@ -72,10 +70,5 @@
 .action-button { width: 100%; min-width: 0; height: 64px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 9px; font-size: 21px; font-weight: 600; line-height: 1; }
 .action-primary { background: var(--color-primary); color: var(--color-on-primary); }
 .action-secondary { background: var(--color-primary-soft); color: var(--color-primary); }
-.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 78px; margin-top: auto; padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--color-border); background: var(--color-surface); }
-.tab { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--color-text-muted); font-size: 11px; }
-.tab-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
-.tab.active { color: var(--color-primary); }
-.tab text { white-space: nowrap; }
 @media (max-width: 360px) { .font-row { min-height: 100px; } .font-cover { width: 55px; height: 72px; } .stat-label { font-size: 12px; } .stat-value { font-size: 24px; } .stat-time { font-size: 19px; } }
 </style>

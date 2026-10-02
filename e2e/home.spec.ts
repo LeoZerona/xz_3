@@ -20,7 +20,17 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await expect(page.getByRole('button', { name: '学习', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '复习', exact: true })).toBeVisible()
   await expect(page.getByText('功能切换')).toHaveCount(0)
-  await expect(page.locator('.tab')).toHaveCount(4)
+  const navigationItems = page.locator('.navigation-item')
+  await expect(navigationItems).toHaveCount(4)
+  const hasStackedNavigationContent = await page.locator('.navigation-content').evaluateAll((items) => (
+    items.every((item) => {
+      const icon = item.querySelector('.van-icon')
+      const label = item.querySelector('.navigation-label')
+      if (!icon || !label) return false
+      return icon.getBoundingClientRect().bottom <= label.getBoundingClientRect().top
+    })
+  ))
+  expect(hasStackedNavigationContent).toBe(true)
   await expect(page.getByText('单字练习')).toBeVisible()
   await expect(page.getByText('对照阅读')).toBeVisible()
   await expect(page.getByText('我', { exact: true })).toBeVisible()
@@ -141,6 +151,15 @@ test('我的页面按区块展示菜单并支持滚动', async ({ page }) => {
   await expect(page.getByText('关于我们')).toBeVisible()
   const after = await page.evaluate(() => document.scrollingElement?.scrollTop ?? 0)
   expect(after).toBeGreaterThan(before)
-  await expect(page.locator('.bottom-tabs')).toHaveCSS('position', 'fixed')
+  await expect(page.locator('.bottom-navigation')).toHaveCSS('position', 'fixed')
+  const hasStackedNavigationContent = await page.locator('.navigation-content').evaluateAll((items) => (
+    items.every((item) => {
+      const icon = item.querySelector('.van-icon')
+      const label = item.querySelector('.navigation-label')
+      if (!icon || !label) return false
+      return icon.getBoundingClientRect().bottom <= label.getBoundingClientRect().top
+    })
+  ))
+  expect(hasStackedNavigationContent).toBe(true)
   await page.screenshot({ path: 'artifacts/profile-mobile.png', fullPage: true })
 })

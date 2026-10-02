@@ -1,3 +1,50 @@
+<script setup lang="ts">
+import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+
+type MenuItem = {
+  label: string
+  icon: string
+  url?: string
+  note?: string
+}
+
+const menuSections: MenuItem[][] = [
+  [
+    { label: '我的日历', icon: 'calendar-o' },
+    { label: '我的学习', icon: 'play-circle-o' },
+    { label: '我的词汇量', icon: 'chart-trending-o' },
+  ],
+  [
+    { label: '我的收藏', icon: 'star-o' },
+    { label: '我的图书', icon: 'orders-o' },
+  ],
+  [
+    { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
+    { label: '学习提醒', icon: 'clock-o' },
+    { label: '数据与隐私', icon: 'shield-o' },
+  ],
+  [
+    { label: '帮助与反馈', icon: 'question-o' },
+    { label: '关于我们', icon: 'info-o' },
+  ],
+]
+
+function showPlaceholder(label: string) {
+  uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
+}
+
+function handleMenu(item: MenuItem) {
+  if (item.url) {
+    uni.navigateTo({
+      url: item.url,
+      fail: () => showPlaceholder(item.label),
+    })
+    return
+  }
+  showPlaceholder(item.label)
+}
+</script>
+
 <template>
   <view class="profile-page">
     <view class="profile-scroll">
@@ -58,70 +105,15 @@
       <text class="scroll-hint">已经到底啦</text>
     </view>
 
-    <view class="bottom-tabs" role="navigation" aria-label="主导航">
-      <navigator class="bottom-tab" url="/pages/index/index" open-type="reLaunch" hover-class="none">
-        <van-icon name="desktop-o" size="23" aria-hidden="true" />
-        <text>学习</text>
-      </navigator>
-      <view class="bottom-tab" role="button" @click="showPlaceholder('单字练习')">
-        <van-icon name="edit" size="23" aria-hidden="true" />
-        <text>单字练习</text>
-      </view>
-      <view class="bottom-tab" role="button" @click="showPlaceholder('对照阅读')">
-        <van-icon name="notes-o" size="23" aria-hidden="true" />
-        <text>对照阅读</text>
-      </view>
-      <view class="bottom-tab is-active" aria-current="page">
-        <van-icon name="contact-o" size="23" aria-hidden="true" />
-        <text>我</text>
-      </view>
-    </view>
+    <AppBottomNavigation
+      active-tab="profile"
+      fixed
+      @unavailable="showPlaceholder"
+    />
   </view>
 </template>
 
-<script setup lang="ts">
-type MenuItem = {
-  label: string
-  icon: string
-  url?: string
-  note?: string
-}
-
-const menuSections: MenuItem[][] = [
-  [
-    { label: '我的日历', icon: 'calendar-o' },
-    { label: '我的学习', icon: 'play-circle-o' },
-    { label: '我的词汇量', icon: 'chart-trending-o' },
-  ],
-  [
-    { label: '我的收藏', icon: 'star-o' },
-    { label: '我的图书', icon: 'orders-o' },
-  ],
-  [
-    { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
-    { label: '学习提醒', icon: 'clock-o' },
-    { label: '数据与隐私', icon: 'shield-o' },
-  ],
-  [
-    { label: '帮助与反馈', icon: 'question-o' },
-    { label: '关于我们', icon: 'info-o' },
-  ],
-]
-
-function showPlaceholder(label: string) {
-  uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
-}
-
-function handleMenu(item: MenuItem) {
-  if (item.url) {
-    uni.navigateTo({ url: item.url })
-    return
-  }
-  showPlaceholder(item.label)
-}
-</script>
-
-<style scoped>
+<style scoped lang="scss">
 .profile-page {
   width: min(100%, 560px);
   min-height: 100vh;
@@ -287,33 +279,6 @@ function handleMenu(item: MenuItem) {
   font-size: 12px;
   text-align: center;
 }
-.bottom-tabs {
-  position: fixed;
-  z-index: 10;
-  right: max(0px, calc((100vw - 560px) / 2));
-  bottom: 0;
-  left: max(0px, calc((100vw - 560px) / 2));
-  min-height: 78px;
-  padding-bottom: env(safe-area-inset-bottom);
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-  box-shadow: 0 -4px 16px var(--color-shadow);
-}
-.bottom-tab {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  cursor: pointer;
-}
-.bottom-tab.is-active { color: var(--color-primary); }
-.bottom-tab text { white-space: nowrap; }
 @supports not (color: color-mix(in srgb, black, white)) {
   .avatar { border-color: var(--color-surface); }
   .avatar-head, .avatar-body { background: var(--color-primary); opacity: .28; }
