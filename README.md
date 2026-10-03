@@ -1,6 +1,6 @@
-# 晨间计划（uni-app H5）
+# 字体学习（uni-app H5 / App）
 
-一个可在手机浏览器打开的 uni-app 首页，采用 Vue 3、TypeScript、Pinia、Vant、SVG、Canvas 和本地持久化。
+一个可在手机浏览器或 Android HBuilderX 真机运行基座中打开的 uni-app 应用，采用 Vue 3、TypeScript、Pinia、Vant 和本地持久化。
 
 ## 环境要求
 
@@ -16,6 +16,8 @@ npm install -g pnpm@11
 
 ## 安装与启动
 
+本项目固定使用 pnpm 11，并由 `pnpm-lock.yaml` 管理依赖。不要在现有目录中运行 `npm install`，npm 无法安全复用 pnpm 的 `node_modules/.pnpm` 链接结构，也会尝试生成与项目不一致的 `package-lock.json`。
+
 ```bash
 pnpm install
 pnpm dev:h5
@@ -26,11 +28,21 @@ pnpm dev:h5
 常用命令：
 
 ```bash
+pnpm dev:app      # 生成 App 调试产物（供 HBuilderX/基座使用）
+pnpm build:app    # 生成 dist/build/app App 资源
 pnpm type-check   # TypeScript 类型检查
 pnpm test         # Vitest 单元测试
 pnpm test:e2e     # Playwright 手机视口测试（使用本机 Google Chrome）
 pnpm build:h5     # 生成 dist/build/h5
 ```
+
+## HBuilderX Android 真机运行
+
+1. 在 HBuilderX 中打开本仓库根目录（包含 `package.json` 的目录），不要只打开 `src` 或 `dist/build/app`。
+2. 先在终端执行 `pnpm install`。项目必须安装与其他 DCloud 编译包完全同版本的 `@dcloudio/uni-app-plus`，否则 `uni build -p app` 会错误地产生 H5 的 `index.html/assets`，HBuilderX 无法向真机基座同步 App 资源。
+3. 手机开启开发者模式与 USB 调试，连接电脑，并允许这台电脑进行 USB 调试。
+4. 在 HBuilderX 选择“运行 → 运行到手机或模拟器 → 运行到 Android App 基座”，选择检测到的设备。必须从 HBuilderX 发起运行；直接点击手机上的“HTML5+ Runtime”基座只会显示“本应用无法独立运行”的提示页，这是基座的正常行为。
+5. 若手机仍停留在提示页，停止运行后删除手机上的旧基座，再从 HBuilderX 重新安装并运行；同时确认 HBuilderX 控制台出现编译完成与应用资源同步成功信息。
 
 ## 创建与安装过程
 
@@ -43,4 +55,4 @@ pnpm build:h5     # 生成 dist/build/h5
 
 ## 平台范围
 
-Vant 4 是移动网页 UI 库，因此本项目当前按 **uni-app H5** 配置和验证，手机上通过浏览器预览。原生 App 和小程序若也需要发布，应改用相应平台兼容的 UI 组件，并分别安装、验证对应平台依赖。
+项目已配置 **uni-app H5** 与 **App（Android App-vue）** 编译。Vant 4 和当前页面中的部分 DOM 交互依赖 App-vue 的 WebView 渲染，不支持切换为 nvue/uvue 页面，也不能据此宣称兼容小程序；新增平台仍需分别安装对应编译包并验证。

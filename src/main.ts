@@ -1,6 +1,6 @@
 import { createSSRApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Button, Icon, Progress } from 'vant'
+import { Button, Icon, Progress, Switch } from 'vant'
 import 'vant/lib/index.css'
 import './styles/reset.css'
 import './styles/theme.css'
@@ -14,6 +14,7 @@ export function createApp() {
   app.use(Button)
   app.use(Icon)
   app.use(Progress)
+  app.use(Switch)
   useThemeStore(pinia).initialize()
   return { app }
 }

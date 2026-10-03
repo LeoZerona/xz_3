@@ -86,7 +86,7 @@ function handleUnavailable(item: NavigationItem) {
 
 <style scoped lang="scss">
 .bottom-navigation {
-  min-height: 78px;
+  min-height: 72px;
   margin-top: auto;
   padding-bottom: env(safe-area-inset-bottom);
   display: grid;
@@ -108,19 +108,19 @@ function handleUnavailable(item: NavigationItem) {
 .navigation-item {
   min-width: 0;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 9px;
   cursor: pointer;
 }
 
 .navigation-content {
   width: 100%;
   height: 100%;
-  min-height: 78px;
+  min-height: 72px;
   display: grid;
   grid-template-rows: 23px auto;
   align-content: center;
   justify-items: center;
-  row-gap: 5px;
+  row-gap: 4px;
 }
 
 .navigation-item.is-active {

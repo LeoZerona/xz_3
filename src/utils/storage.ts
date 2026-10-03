@@ -9,6 +9,7 @@ function openDatabase(): Promise<IDBDatabase> {
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
+    request.onblocked = () => reject(new Error('IndexedDB upgrade is blocked'))
   })
 }
 
@@ -18,8 +19,15 @@ async function readIndexedDB<T>(key: string): Promise<T | null> {
     const transaction = db.transaction(STORE, 'readonly')
     const request = transaction.objectStore(STORE).get(key)
     request.onsuccess = () => resolve((request.result as T | undefined) ?? null)
-    request.onerror = () => reject(request.error)
+    request.onerror = () => {
+      db.close()
+      reject(request.error)
+    }
     transaction.oncomplete = () => db.close()
+    transaction.onabort = () => {
+      db.close()
+      reject(transaction.error)
+    }
   })
 }
 
@@ -30,6 +38,7 @@ async function writeIndexedDB<T>(key: string, value: T): Promise<void> {
     transaction.objectStore(STORE).put(value, key)
     transaction.oncomplete = () => { db.close(); resolve() }
     transaction.onerror = () => { db.close(); reject(transaction.error) }
+    transaction.onabort = () => { db.close(); reject(transaction.error) }
   })
 }
 

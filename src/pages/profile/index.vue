@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+import { useProfileStore } from '../../stores/profile'
 
 type MenuItem = {
   label: string
@@ -7,6 +10,11 @@ type MenuItem = {
   url?: string
   note?: string
 }
+
+const profileStore = useProfileStore()
+const { profile } = storeToRefs(profileStore)
+
+onMounted(() => { void profileStore.initialize() })
 
 const menuSections: MenuItem[][] = [
   [
@@ -43,6 +51,20 @@ function handleMenu(item: MenuItem) {
   }
   showPlaceholder(item.label)
 }
+
+function openSettings() {
+  uni.navigateTo({
+    url: '/pages/settings/index',
+    fail: () => uni.showToast({ title: '暂时无法打开设置', icon: 'none' }),
+  })
+}
+
+function openPersonalProfile() {
+  uni.navigateTo({
+    url: '/pages/personal-profile/index',
+    fail: () => uni.showToast({ title: '暂时无法打开个人资料', icon: 'none' }),
+  })
+}
 </script>
 
 <template>
@@ -53,21 +75,28 @@ function handleMenu(item: MenuItem) {
           <button class="header-action" aria-label="扫一扫" @click="showPlaceholder('扫一扫')">
             <van-icon name="scan" size="24" aria-hidden="true" />
           </button>
-          <button class="header-action" aria-label="个人设置" @click="showPlaceholder('个人设置')">
+          <button class="header-action" role="button" aria-label="个人设置" @click="openSettings">
             <van-icon name="setting-o" size="24" aria-hidden="true" />
           </button>
         </view>
 
-        <view class="identity" role="button" tabindex="0" aria-label="查看个人资料" @click="showPlaceholder('个人资料')">
+        <view
+          class="identity"
+          role="button"
+          tabindex="0"
+          aria-label="查看个人资料"
+          @click="openPersonalProfile"
+          @keydown.enter="openPersonalProfile"
+          @keydown.space.prevent="openPersonalProfile"
+        >
           <view class="avatar" aria-hidden="true">
             <view class="avatar-head" />
             <view class="avatar-body" />
           </view>
           <view class="identity-copy">
-            <text class="user-name">试用17908178540418472</text>
+            <text class="user-name">{{ profile.nickname }}</text>
             <view class="user-meta">
               <text>BczID: 1835661333</text>
-              <text class="grade">初三</text>
             </view>
           </view>
           <van-icon class="identity-arrow" name="arrow" size="18" aria-hidden="true" />
@@ -125,10 +154,10 @@ function handleMenu(item: MenuItem) {
 .profile-scroll {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(94px + env(safe-area-inset-bottom));
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
 .profile-header {
-  padding: calc(12px + env(safe-area-inset-top)) 20px 24px;
+  padding: calc(8px + var(--app-top-safe-area)) 20px 18px;
   background: var(--color-topbar);
 }
 .header-actions {
@@ -153,11 +182,15 @@ function handleMenu(item: MenuItem) {
 .header-action::after { border: 0; }
 .identity {
   min-width: 0;
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   cursor: pointer;
+}
+.identity:focus-visible, .menu-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 .avatar {
   position: relative;
@@ -193,34 +226,30 @@ function handleMenu(item: MenuItem) {
 .user-name {
   display: block;
   overflow: hidden;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -.02em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .user-meta {
-  margin-top: 7px;
+  margin-top: 5px;
   display: flex;
   align-items: center;
   gap: 9px;
   color: var(--color-text-secondary);
-  font-size: 13px;
-}
-.grade {
-  padding-left: 9px;
-  border-left: 1px solid var(--color-border);
+  font-size: 11px;
 }
 .identity-arrow { flex: none; color: var(--color-text-muted); }
 .study-summary {
-  min-height: 78px;
+  min-height: 70px;
   padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
 }
 .study-summary strong { font-weight: 800; }
@@ -240,7 +269,7 @@ function handleMenu(item: MenuItem) {
 }
 .summary-chart i:nth-child(2) { height: 22px; opacity: .7; }
 .summary-chart i:nth-child(3) { height: 17px; opacity: 1; }
-.menu-area { padding: 12px 12px 4px; }
+.menu-area { padding: 10px 12px 3px; }
 .menu-section {
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -248,9 +277,9 @@ function handleMenu(item: MenuItem) {
   background: var(--color-surface);
   box-shadow: 0 3px 12px var(--color-shadow);
 }
-.menu-section + .menu-section { margin-top: 12px; }
+.menu-section + .menu-section { margin-top: 10px; }
 .menu-item {
-  min-height: 64px;
+  min-height: 58px;
   margin: 0 18px;
   display: flex;
   align-items: center;
@@ -265,18 +294,18 @@ function handleMenu(item: MenuItem) {
   align-items: center;
   color: var(--color-primary);
 }
-.menu-label { flex: 1; font-size: 17px; font-weight: 500; }
+.menu-label { flex: 1; font-size: 15px; font-weight: 500; }
 .menu-note {
   margin-right: 7px;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 10px;
 }
 .menu-arrow { flex: none; color: var(--color-text-muted); }
 .scroll-hint {
   display: block;
-  padding: 18px 0 12px;
+  padding: 14px 0 10px;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 10px;
   text-align: center;
 }
 @supports not (color: color-mix(in srgb, black, white)) {
@@ -287,7 +316,7 @@ function handleMenu(item: MenuItem) {
   .profile-header { padding-right: 16px; padding-left: 16px; }
   .identity { gap: 12px; }
   .avatar { width: 62px; height: 62px; }
-  .user-name { font-size: 18px; }
-  .user-meta { font-size: 12px; }
+  .user-name { font-size: 16px; }
+  .user-meta { font-size: 10px; }
 }
 </style>

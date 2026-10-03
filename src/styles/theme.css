@@ -19,6 +19,7 @@
   --color-cover-one: #17b684;
   --color-cover-two: #4476e8;
   --color-shadow: #20242d0d;
+  --app-top-safe-area: max(30px, env(safe-area-inset-top));
   --brand: var(--color-primary);
   --brand-dark: var(--color-primary-strong);
   --muted: var(--color-text-muted);
@@ -26,6 +27,10 @@
   --van-primary-color: var(--color-primary);
   --van-button-primary-background: var(--color-primary);
   --van-button-primary-border-color: var(--color-primary);
+  --van-font-size-xs: 8px;
+  --van-font-size-sm: 10px;
+  --van-font-size-md: 12px;
+  --van-font-size-lg: 14px;
   color: var(--color-text);
   background: var(--color-page);
 }
@@ -33,6 +38,7 @@
 :root[data-theme-mode='dark'] { color-scheme: dark; }
 
 html, body, page { background: var(--color-page); }
+body, page, .app-shell { font-size: 14px; }
 body { transition: background-color .2s ease, color .2s ease; }
 .app-shell { min-height: 100vh; background: var(--color-page); color: var(--color-text); }
 

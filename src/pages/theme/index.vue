@@ -82,15 +82,15 @@ function goBack() {
 
 <style scoped>
 .theme-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
-.theme-nav { height: calc(64px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
-.back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 42px; font-weight: 300; line-height: 38px; cursor: pointer; }
-.nav-title { font-size: 18px; font-weight: 700; text-align: center; }
-.theme-content { padding: 28px 16px calc(32px + env(safe-area-inset-bottom)); }
-.theme-heading { margin-bottom: 24px; }
-.theme-title { display: block; font-size: 22px; font-weight: 700; }
-.theme-description { display: block; margin-top: 8px; color: var(--color-text-secondary); font-size: 14px; }
-.theme-list { display: flex; flex-direction: column; gap: 14px; }
-.theme-card { width: 100%; min-height: 118px; margin: 0; padding: 14px; display: flex; align-items: center; gap: 15px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-text); text-align: left; box-shadow: 0 4px 16px var(--color-shadow); cursor: pointer; }
+.theme-nav { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 40px; font-weight: 300; line-height: 38px; cursor: pointer; }
+.nav-title { font-size: 16px; font-weight: 700; text-align: center; }
+.theme-content { padding: 22px 16px calc(26px + env(safe-area-inset-bottom)); }
+.theme-heading { margin-bottom: 18px; }
+.theme-title { display: block; font-size: 20px; font-weight: 700; }
+.theme-description { display: block; margin-top: 6px; color: var(--color-text-secondary); font-size: 12px; }
+.theme-list { display: flex; flex-direction: column; gap: 12px; }
+.theme-card { width: 100%; min-height: 108px; margin: 0; padding: 10px 12px; display: flex; align-items: center; gap: 13px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-text); text-align: left; box-shadow: 0 4px 16px var(--color-shadow); cursor: pointer; }
 .theme-card.is-active { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-soft); }
 .theme-card:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .theme-preview { flex: none; width: 82px; height: 88px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--preview-text) 12%, transparent); border-radius: 8px; background: var(--preview-page); }
@@ -103,9 +103,9 @@ function goBack() {
 .preview-actions div + div { background: var(--preview-soft); }
 .theme-copy { min-width: 0; flex: 1; }
 .theme-name-row { display: flex; align-items: center; gap: 7px; }
-.theme-name { font-size: 17px; font-weight: 700; }
-.seasonal-label { padding: 2px 6px; border-radius: 10px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 10px; }
-.theme-card-description { display: block; margin-top: 7px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.45; }
+.theme-name { font-size: 15px; font-weight: 700; }
+.seasonal-label { padding: 2px 6px; border-radius: 10px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 8px; }
+.theme-card-description { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 11px; line-height: 1.45; }
 .choice-dot { flex: none; width: 20px; height: 20px; padding: 4px; border: 1.5px solid var(--color-text-muted); border-radius: 50%; }
 .choice-dot-fill { width: 100%; height: 100%; border-radius: 50%; background: var(--color-primary); opacity: 0; transform: scale(.35); transition: opacity .15s ease, transform .15s ease; }
 .theme-card.is-active .choice-dot { border-color: var(--color-primary); }

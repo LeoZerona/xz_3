@@ -5,6 +5,13 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   page.on('pageerror', (error) => pageErrors.push(error.message))
   await page.goto('/')
 
+  await expect(page.locator('.topbar')).toHaveCSS('padding-top', '30px')
+  await expect(page.locator('body')).toHaveCSS('font-size', '14px')
+  await expect(page.locator('.font-title').first()).toHaveCSS('font-size', '16px')
+  await expect(page.locator('.navigation-item').first()).toHaveCSS('font-size', '9px')
+  await expect(page.locator('.font-row').first()).toHaveCSS('min-height', '102px')
+  await expect(page.locator('.action-button').first()).toHaveCSS('height', '58px')
+  await expect(page.locator('.bottom-navigation')).toHaveCSS('min-height', '72px')
   await expect(page.getByRole('button', { name: '搜索' })).toBeVisible()
   await expect(page.getByRole('button', { name: '消息提示' })).toBeVisible()
   await expect(page.getByRole('button', { name: '主题设置' })).toHaveCount(0)
@@ -47,6 +54,8 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await page.getByRole('button', { name: '修改' }).click()
   await expect(page.getByText('修改计划', { exact: true })).toBeVisible()
   await expect(page.locator('.plan-wheel')).toBeVisible()
+  await expect(page.locator('.picker-row').first()).toHaveCSS('height', '54px')
+  await expect(page.locator('.save-button').first()).toHaveCSS('height', '52px')
   await expect(page.locator('uni-picker-view')).toHaveCount(0)
   await expect(page.locator('uni-radio')).toHaveCount(0)
   const wheel = page.locator('.plan-wheel')
@@ -143,6 +152,7 @@ test('我的页面按区块展示菜单并支持滚动', async ({ page }) => {
   await expect(page.getByText('我的学习设备')).toHaveCount(0)
   await expect(page.getByText('我的铜板')).toHaveCount(0)
   await expect(page.locator('.menu-section')).toHaveCount(4)
+  await expect(page.locator('.menu-item').first()).toHaveCSS('min-height', '58px')
   await expect(page.getByRole('button', { name: '主题配色' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true)
 
@@ -162,4 +172,95 @@ test('我的页面按区块展示菜单并支持滚动', async ({ page }) => {
   ))
   expect(hasStackedNavigationContent).toBe(true)
   await page.screenshot({ path: 'artifacts/profile-mobile.png', fullPage: true })
+})
+
+test('个人设置齿轮打开设置页并沿用主题配色', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  await page.goto('/#/pages/profile/index')
+
+  await page.getByRole('button', { name: '个人设置' }).click()
+  await expect(page.getByText('设置', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '账号管理' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '显示设置' })).toBeVisible()
+  await expect(page.getByRole('switch', { name: '长辈版' })).toHaveAttribute('aria-checked', 'false')
+  await expect(page.getByRole('button', { name: '退出登录' })).toBeVisible()
+  await expect(page.locator('.setting-row').first()).toHaveCSS('min-height', '70px')
+
+  await page.getByRole('switch', { name: '长辈版' }).click()
+  await expect(page.getByRole('switch', { name: '长辈版' })).toHaveAttribute('aria-checked', 'true')
+  await page.reload()
+  await expect(page.getByRole('switch', { name: '长辈版' })).toHaveAttribute('aria-checked', 'true')
+
+  await page.getByRole('button', { name: '显示设置' }).click()
+  await expect(page.getByText('主题设置', { exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: /青竹绿/ }).click()
+  await page.getByRole('button', { name: '返回' }).click()
+  await expect(page.getByText('设置', { exact: true })).toBeVisible()
+  await expect(page.locator('.settings-page')).toHaveCSS('color', 'rgb(32, 52, 46)')
+
+  await page.screenshot({ path: 'artifacts/settings-mobile.png', fullPage: true })
+  expect(pageErrors).toEqual([])
+})
+
+test('个人资料可编辑并在刷新后保留', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error') pageErrors.push(message.text())
+  })
+  await page.goto('/#/pages/profile/index')
+
+  await page.getByRole('button', { name: '查看个人资料' }).click()
+  await expect(page.getByText('个人资料', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '编辑头像' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '编辑昵称' })).toContainText('试用17908178540418472')
+  await expect(page.getByRole('button', { name: '编辑性别' })).toContainText('保密')
+  await expect(page.getByRole('button', { name: '编辑出生' })).toContainText('未填写')
+  await expect(page.getByRole('button', { name: '编辑位置' })).toContainText('未填写')
+  await expect(page.getByText('学校', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('年级', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('福建', { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: '编辑昵称' }).click()
+  await expect(page.getByText('修改昵称', { exact: true })).toBeVisible()
+  const nicknameInput = page.getByRole('textbox', { name: '昵称' })
+  await nicknameInput.fill('林同学')
+  await expect(nicknameInput).toHaveText('林同学')
+  await page.getByRole('button', { name: '保存昵称' }).click()
+  await expect(page.getByText('修改昵称', { exact: true })).toBeHidden()
+  await expect(page.getByRole('button', { name: '编辑昵称' })).toContainText('林同学')
+
+  await page.getByRole('button', { name: '编辑性别' }).click()
+  await expect(page.getByText('选择性别', { exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: '女' }).click()
+  await expect(page.getByRole('button', { name: '编辑性别' })).toContainText('女')
+
+  await page.getByRole('button', { name: '编辑出生' }).click()
+  await expect(page.getByText('选择出生日期', { exact: true })).toBeVisible()
+  await expect(page.locator('.wheel-column')).toHaveCount(3)
+  await page.getByRole('button', { name: '确认出生日期' }).click()
+  await expect(page.getByRole('button', { name: '编辑出生' })).toContainText('2000.01.01')
+
+  await page.getByRole('button', { name: '编辑位置' }).click()
+  await expect(page.getByText('选择地区', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '选择福建省' }).click()
+  await page.getByRole('button', { name: '选择福州市' }).click()
+  await page.getByRole('button', { name: '确定鼓楼区' }).click()
+  await expect(page.getByRole('button', { name: '编辑位置' })).toContainText('福建省 福州市 鼓楼区')
+
+  await page.reload()
+  await expect(page.getByRole('button', { name: '编辑昵称' })).toContainText('林同学')
+  await expect(page.getByRole('button', { name: '编辑性别' })).toContainText('女')
+  await expect(page.getByRole('button', { name: '编辑出生' })).toContainText('2000.01.01')
+  await expect(page.getByRole('button', { name: '编辑位置' })).toContainText('福建省 福州市 鼓楼区')
+
+  await page.goto('/#/pages/theme/index')
+  await page.getByRole('radio', { name: /墨夜/ }).click()
+  await page.goto('/#/pages/personal-profile/index')
+  await expect(page.locator('.personal-profile-page')).toHaveCSS('color', 'rgb(241, 244, 250)')
+  await expect(page.locator('.personal-profile-page')).toHaveCSS('background-color', 'rgb(27, 33, 44)')
+
+  await page.screenshot({ path: 'artifacts/personal-profile-mobile.png', fullPage: true })
+  expect(pageErrors).toEqual([])
 })
