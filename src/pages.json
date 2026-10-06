@@ -15,6 +15,14 @@
       }
     },
     {
+      "path": "pages/study/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "记忆学习",
+        "disableScroll": true
+      }
+    },
+    {
       "path": "pages/theme/index",
       "style": {
         "navigationStyle": "custom",

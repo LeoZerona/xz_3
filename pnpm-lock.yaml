@@ -225,6 +225,9 @@ importers:
       '@vant/use':
         specifier: ^1.6.0
         version: 1.6.0(vue@3.4.21(typescript@5.5.4))
+      '@vue/shared':
+        specifier: 3.4.21
+        version: 3.4.21
       pinia:
         specifier: ^2.3.1
         version: 2.3.1(typescript@5.5.4)(vue@3.4.21(typescript@5.5.4))

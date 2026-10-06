@@ -35,7 +35,13 @@ function showPlaceholder(label: string) {
         <view class="stat"><text class="stat-label">已学习时长</text><text class="stat-value stat-time">xxx min</text></view>
       </view>
       <view class="plan-actions">
-        <button class="action-button action-primary" role="button">学习</button>
+        <navigator
+          class="action-button action-primary"
+          url="/pages/study/index"
+          hover-class="none"
+          role="button"
+          aria-label="开始学习"
+        >开始学习</navigator>
         <button class="action-button action-secondary" role="button">复习</button>
       </view>
     </view>

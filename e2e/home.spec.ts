@@ -24,7 +24,7 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await expect(page.getByText('已学习时长')).toBeVisible()
   await expect(page.getByText('x/y')).toHaveCount(2)
   await expect(page.getByText('xxx min')).toBeVisible()
-  await expect(page.getByRole('button', { name: '学习', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '开始学习', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '复习', exact: true })).toBeVisible()
   await expect(page.getByText('功能切换')).toHaveCount(0)
   const navigationItems = page.locator('.navigation-item')
@@ -75,6 +75,34 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await page.screenshot({ path: 'artifacts/plan-mobile.png', fullPage: true })
   await page.getByRole('button', { name: '保存计划' }).click()
   await expect(page.getByText('今日计划')).toBeVisible()
+  expect(pageErrors).toEqual([])
+})
+
+test('开始学习后进入英文选择模式并可完成释义选择', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error') pageErrors.push(message.text())
+  })
+  await page.goto('/')
+
+  await page.getByRole('button', { name: '开始学习' }).click()
+  await expect(page.getByText('选择模式')).toBeVisible()
+  await expect(page.getByRole('button', { name: '搜索' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '收藏' })).toBeVisible()
+  await expect(page.locator('.topbar-actions').getByRole('button')).toHaveCount(2)
+  await expect(page.getByText('今日新学')).toBeVisible()
+  await expect(page.getByText('property', { exact: true })).toBeVisible()
+  await expect(page.getByText('Glitter is one of the properties of gold.')).toBeVisible()
+  await expect(page.locator('.option-card')).toHaveCount(4)
+  await expect(page.getByRole('button', { name: 'adv. 正确地；适当地' })).toBeVisible()
+  await page.screenshot({ path: 'artifacts/study-memory-mobile.png', fullPage: true })
+
+  await page.getByRole('button', { name: 'n. 贫困；贫穷；贫乏' }).click()
+  await expect(page.getByText('再想想，重新选择')).toBeVisible()
+  await page.getByRole('button', { name: 'n. 特性；财产；房产' }).click()
+  await expect(page.getByText('回答正确')).toBeVisible()
+  await expect(page.getByText('1/15')).toBeVisible()
   expect(pageErrors).toEqual([])
 })
 
