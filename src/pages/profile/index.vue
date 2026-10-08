@@ -226,7 +226,7 @@ function openPersonalProfile() {
 .user-name {
   display: block;
   overflow: hidden;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -.02em;
   text-overflow: ellipsis;
@@ -238,7 +238,7 @@ function openPersonalProfile() {
   align-items: center;
   gap: 9px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 9px;
 }
 .identity-arrow { flex: none; color: var(--color-text-muted); }
 .study-summary {
@@ -249,7 +249,7 @@ function openPersonalProfile() {
   gap: 12px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
 }
 .study-summary strong { font-weight: 800; }
@@ -294,18 +294,18 @@ function openPersonalProfile() {
   align-items: center;
   color: var(--color-primary);
 }
-.menu-label { flex: 1; font-size: 15px; font-weight: 500; }
+.menu-label { flex: 1; font-size: 13px; font-weight: 500; }
 .menu-note {
   margin-right: 7px;
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: 8px;
 }
 .menu-arrow { flex: none; color: var(--color-text-muted); }
 .scroll-hint {
   display: block;
   padding: 14px 0 10px;
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: 8px;
   text-align: center;
 }
 @supports not (color: color-mix(in srgb, black, white)) {
@@ -316,7 +316,7 @@ function openPersonalProfile() {
   .profile-header { padding-right: 16px; padding-left: 16px; }
   .identity { gap: 12px; }
   .avatar { width: 62px; height: 62px; }
-  .user-name { font-size: 16px; }
-  .user-meta { font-size: 10px; }
+  .user-name { font-size: 14px; }
+  .user-meta { font-size: 8px; }
 }
 </style>

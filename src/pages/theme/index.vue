@@ -2,7 +2,7 @@
   <div class="theme-page">
     <div class="theme-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">‹</div>
-      <span class="nav-title">主题设置</span>
+      <span aria-hidden="true" />
       <div class="nav-space"></div>
     </div>
 
@@ -84,11 +84,10 @@ function goBack() {
 .theme-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
 .theme-nav { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 40px; font-weight: 300; line-height: 38px; cursor: pointer; }
-.nav-title { font-size: 16px; font-weight: 700; text-align: center; }
 .theme-content { padding: 22px 16px calc(26px + env(safe-area-inset-bottom)); }
 .theme-heading { margin-bottom: 18px; }
-.theme-title { display: block; font-size: 20px; font-weight: 700; }
-.theme-description { display: block; margin-top: 6px; color: var(--color-text-secondary); font-size: 12px; }
+.theme-title { display: block; font-size: 18px; font-weight: 700; }
+.theme-description { display: block; margin-top: 6px; color: var(--color-text-secondary); font-size: 10px; }
 .theme-list { display: flex; flex-direction: column; gap: 12px; }
 .theme-card { width: 100%; min-height: 108px; margin: 0; padding: 10px 12px; display: flex; align-items: center; gap: 13px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-text); text-align: left; box-shadow: 0 4px 16px var(--color-shadow); cursor: pointer; }
 .theme-card.is-active { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-soft); }
@@ -103,9 +102,9 @@ function goBack() {
 .preview-actions div + div { background: var(--preview-soft); }
 .theme-copy { min-width: 0; flex: 1; }
 .theme-name-row { display: flex; align-items: center; gap: 7px; }
-.theme-name { font-size: 15px; font-weight: 700; }
-.seasonal-label { padding: 2px 6px; border-radius: 10px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 8px; }
-.theme-card-description { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 11px; line-height: 1.45; }
+.theme-name { font-size: 13px; font-weight: 700; }
+.seasonal-label { padding: 2px 6px; border-radius: 10px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 6px; }
+.theme-card-description { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 9px; line-height: 1.45; }
 .choice-dot { flex: none; width: 20px; height: 20px; padding: 4px; border: 1.5px solid var(--color-text-muted); border-radius: 50%; }
 .choice-dot-fill { width: 100%; height: 100%; border-radius: 50%; background: var(--color-primary); opacity: 0; transform: scale(.35); transition: opacity .15s ease, transform .15s ease; }
 .theme-card.is-active .choice-dot { border-color: var(--color-primary); }

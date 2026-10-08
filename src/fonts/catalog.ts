@@ -6,9 +6,9 @@ export const DEFAULT_ADDED_FONT_IDS = [DEFAULT_FONT_ID, 'font-two']
 export const fontCatalog: LearningFont[] = [
   {
     id: DEFAULT_FONT_ID,
-    name: '字体一',
+    name: '楷体',
     description: '端正规整，笔画舒展，适合日常书写入门。',
-    sample: '一',
+    sample: '永',
     fontFamily: "KaiTi, STKaiti, 'Kaiti SC', serif",
     coverTone: 'green',
     dailyCount: 15,
@@ -19,9 +19,9 @@ export const fontCatalog: LearningFont[] = [
   },
   {
     id: 'font-two',
-    name: '字体二',
+    name: '微软雅黑',
     description: '清晰利落，结构均衡，适合进阶临摹练习。',
-    sample: '二',
+    sample: '永',
     fontFamily: "'Microsoft YaHei', 'PingFang SC', sans-serif",
     coverTone: 'blue',
     dailyCount: 15,

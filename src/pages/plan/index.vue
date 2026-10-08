@@ -24,7 +24,7 @@
           @keydown.space.prevent="showSection('fonts')"
         >修改字体</div>
       </div>
-      <div v-else class="nav-title">选择字体</div>
+      <div v-else aria-hidden="true" />
       <div class="nav-space" />
     </div>
 
@@ -87,6 +87,7 @@ import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
+import { normalizeStudyModes, STUDY_MODES } from '../../study/modes'
 import FontCatalog from './components/FontCatalog.vue'
 import FontManager from './components/FontManager.vue'
 
@@ -102,15 +103,12 @@ const planOptions = Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
   return { count, days: Math.ceil(300 / count) }
 })
-const modeOptions = [
-  '查看学习字体选择对照字体',
-  '查看对照字体选择学习字体',
-  '查看学习字体输入对照字体',
-]
+const modeOptions = STUDY_MODES
 
 const saved = uni.getStorageSync(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
 const initialDailyCount = saved?.dailyCount && planOptions.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
-const initialModes = Array.isArray(saved?.modes) ? saved.modes.filter((mode) => modeOptions.includes(mode)) : []
+const savedModes = normalizeStudyModes(saved?.modes)
+const initialModes = savedModes.length > 0 ? savedModes : [...STUDY_MODES]
 const initialPlan = planOptions.find((item) => item.count === initialDailyCount) ?? planOptions[1]
 const initialPlanIndex = Math.max(0, planOptions.findIndex((item) => item.count === initialDailyCount))
 let dailyCount = initialDailyCount
@@ -148,7 +146,7 @@ function showSection(section: Section) {
 }
 
 function changeModes(event: { detail: { value: string[] } }) {
-  selectedModes = event.detail.value
+  selectedModes = normalizeStudyModes(event.detail.value)
 }
 
 function returnToPrevious() {
@@ -171,6 +169,10 @@ function handleBack() {
 }
 
 function savePlan() {
+  if (selectedModes.length === 0) {
+    uni.showToast({ title: '请至少选择一种学习模式', icon: 'none' })
+    return
+  }
   uni.setStorageSync(STORAGE_KEY, { dailyCount, modes: selectedModes })
   returnToPrevious()
 }
@@ -188,34 +190,33 @@ onMounted(() => {
 .back-button { align-self: center; }
 .back-button::after, .nav-tab::after, .save-button::after { border: 0; }
 .nav-tabs { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
-.nav-title { display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
-.nav-tab { position: relative; min-width: 0; height: 100%; margin: 0; padding: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 0; color: var(--color-text); background: transparent; font-size: 16px; font-weight: 600; line-height: 1; white-space: nowrap; }
+.nav-tab { position: relative; min-width: 0; height: 100%; margin: 0; padding: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 0; color: var(--color-text); background: transparent; font-size: 14px; font-weight: 600; line-height: 1; white-space: nowrap; }
 .nav-tab.is-active { color: var(--color-primary); }
 .nav-tab.is-active::before { content: ''; position: absolute; right: 18px; bottom: 0; left: 18px; height: 3px; border-radius: 3px 3px 0 0; background: var(--color-primary); }
 .font-summary { min-height: 132px; padding: 20px 18px; display: flex; align-items: center; gap: 20px; }
 .font-copy { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-.font-name { font-size: 17px; font-weight: 700; }
-.font-description { color: var(--color-text-secondary); font-size: 11px; line-height: 1.45; }
-.font-meta { color: var(--color-text-secondary); font-size: 12px; }
+.font-name { font-size: 15px; font-weight: 700; }
+.font-description { color: var(--color-text-secondary); font-size: 9px; line-height: 1.45; }
+.font-meta { color: var(--color-text-secondary); font-size: 10px; }
 .schedule { padding: 20px 18px 14px; background: var(--color-surface-muted); }
-.schedule-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
+.schedule-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--color-text-secondary); font-size: 10px; white-space: nowrap; }
 .accent { color: var(--color-primary); }
 .plan-picker { margin-top: 18px; overflow: hidden; border-radius: 6px; background: var(--color-surface); }
 .picker-head, .picker-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; text-align: center; }
-.picker-head { height: 54px; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+.picker-head { height: 54px; border-bottom: 1px solid var(--color-border); font-size: 12px; }
 .wheel-stage { position: relative; height: 162px; overflow: hidden; }
 .wheel-highlight { position: absolute; z-index: 0; top: 54px; right: 0; left: 0; height: 54px; background: var(--color-selection); pointer-events: none; }
 .plan-wheel { position: relative; z-index: 1; width: 100%; height: 162px; overflow-x: hidden; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; mask-image: linear-gradient(to bottom, rgba(0,0,0,.38), #000 38%, #000 62%, rgba(0,0,0,.38)); }
 .plan-wheel::-webkit-scrollbar { display: none; }
 .wheel-spacer { height: 54px; }
-.picker-row { position: relative; z-index: 1; width: 100%; height: 54px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; color: var(--color-text-muted); font-size: 14px; line-height: 1; text-align: center; scroll-snap-align: center; scroll-snap-stop: always; }
+.picker-row { position: relative; z-index: 1; width: 100%; height: 54px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; color: var(--color-text-muted); font-size: 12px; line-height: 1; text-align: center; scroll-snap-align: center; scroll-snap-stop: always; }
 .picker-row.is-selected { color: var(--color-text); }
 .choice-control { transform: scale(.82); }
-.mode-title { display: block; margin: 24px 0 12px; font-size: 17px; font-weight: 700; }
+.mode-title { display: block; margin: 24px 0 12px; font-size: 15px; font-weight: 700; }
 .mode-list { display: flex; flex-direction: column; gap: 10px; }
-.mode-card { width: 100%; min-height: 56px; margin: 0; padding: 10px 14px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 13px; font-weight: 400; line-height: 1.45; text-align: left; cursor: pointer; }
+.mode-card { width: 100%; min-height: 56px; margin: 0; padding: 10px 14px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 11px; font-weight: 400; line-height: 1.45; text-align: left; cursor: pointer; }
 .mode-card:has(.uni-checkbox-input svg) { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); }
 .save-wrap { position: fixed; z-index: 2; right: 0; bottom: 0; left: 0; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); background: var(--color-surface); box-shadow: 0 -5px 18px var(--color-shadow); }
-.save-button { width: min(calc(100% - 36px), 524px); height: 52px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 16px; line-height: 1; }
-@media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 14px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 12px; } }
+.save-button { width: min(calc(100% - 36px), 524px); height: 52px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 14px; line-height: 1; }
+@media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 12px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 10px; } }
 </style>

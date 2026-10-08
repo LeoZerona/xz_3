@@ -52,18 +52,18 @@ function handleAdd(fontId: string) {
 <style scoped>
 .catalog-page { height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); padding-bottom: calc(28px + env(safe-area-inset-bottom)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: var(--color-page); -webkit-overflow-scrolling: touch; }
 .catalog-intro { padding: 22px 18px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
-.catalog-title { display: block; font-size: 18px; font-weight: 700; }
-.catalog-description { display: block; max-width: 430px; margin-top: 7px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.55; }
+.catalog-title { display: block; font-size: 16px; font-weight: 700; }
+.catalog-description { display: block; max-width: 430px; margin-top: 7px; color: var(--color-text-secondary); font-size: 10px; line-height: 1.55; }
 .catalog-list { padding: 4px 16px 0; }
 .catalog-item { min-height: 112px; display: flex; align-items: center; gap: 18px; border-bottom: 1px solid var(--color-border); cursor: pointer; }
 .catalog-item.is-added { opacity: .58; }
 .catalog-copy { min-width: 0; flex: 1; }
 .catalog-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.font-name { font-size: 16px; font-weight: 700; }
-.added-label, .add-label { flex: none; font-size: 11px; }
+.font-name { font-size: 14px; font-weight: 700; }
+.added-label, .add-label { flex: none; font-size: 9px; }
 .added-label { color: var(--color-text-muted); }
 .add-label { color: var(--color-primary); }
-.font-description { display: block; margin-top: 7px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.45; }
-.font-total { display: block; margin-top: 6px; color: var(--color-text-muted); font-size: 11px; }
+.font-description { display: block; margin-top: 7px; color: var(--color-text-secondary); font-size: 10px; line-height: 1.45; }
+.font-total { display: block; margin-top: 6px; color: var(--color-text-muted); font-size: 9px; }
 @media (max-width: 360px) { .catalog-list { padding-right: 12px; padding-left: 12px; } .catalog-item { gap: 14px; } }
 </style>

@@ -108,7 +108,7 @@ function handleUnavailable(item: NavigationItem) {
 .navigation-item {
   min-width: 0;
   color: var(--color-text-muted);
-  font-size: 9px;
+  font-size: 7px;
   cursor: pointer;
 }
 

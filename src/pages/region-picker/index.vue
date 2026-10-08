@@ -102,7 +102,7 @@ function goToProfile() {
   <div class="region-page">
     <header class="region-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack"><span class="back-glyph" aria-hidden="true">‹</span></div>
-      <span class="nav-title">选择地区</span><span aria-hidden="true" />
+      <span aria-hidden="true" /><span aria-hidden="true" />
     </header>
     <section class="selection-summary">
       <span class="summary-label">当前选择</span>
@@ -128,10 +128,9 @@ function goToProfile() {
 .back-button { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--color-text); }
 .back-glyph { margin-top: -3px; font-size: 36px; font-weight: 300; line-height: 1; }
 .back-button:active { background: var(--color-primary-soft); }
-.nav-title { font-size: 18px; font-weight: 700; text-align: center; }
 .selection-summary { position: sticky; z-index: 2; top: calc(58px + var(--app-top-safe-area)); padding: 12px 20px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); box-shadow: 0 4px 12px var(--color-shadow); }
-.summary-label { display: block; color: var(--color-text-muted); font-size: 10px; }
-.breadcrumb-row { min-height: 24px; margin-top: 4px; display: flex; align-items: center; gap: 7px; color: var(--color-text-muted); font-size: 13px; }
+.summary-label { display: block; color: var(--color-text-muted); font-size: 8px; }
+.breadcrumb-row { min-height: 24px; margin-top: 4px; display: flex; align-items: center; gap: 7px; color: var(--color-text-muted); font-size: 11px; }
 .breadcrumb-value { color: var(--color-text); font-weight: 600; }
 .breadcrumb-arrow { font-size: 18px; line-height: 1; }
 .breadcrumb-prompt { color: var(--color-primary); }
@@ -141,7 +140,7 @@ function goToProfile() {
 .region-row:last-child { border-bottom: 0; border-radius: 0 0 12px 12px; }
 .region-row:only-child { border-radius: 12px; }
 .region-row:active { background: var(--color-primary-soft); color: var(--color-primary); }
-.region-name { min-width: 0; flex: 1; color: var(--color-text); font-size: 14px; }
+.region-name { min-width: 0; flex: 1; color: var(--color-text); font-size: 12px; }
 .region-action { flex: none; color: var(--color-text-muted); font-size: 22px; line-height: 1; }
 .back-button:focus-visible, .region-row:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 </style>

@@ -4,21 +4,21 @@
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "学习"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/plan/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "修改计划"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/study-preview/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "今日文字预览",
+        "navigationBarTitleText": "",
         "disableScroll": true
       }
     },
@@ -26,7 +26,7 @@
       "path": "pages/study/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "记忆学习",
+        "navigationBarTitleText": "",
         "disableScroll": true
       }
     },
@@ -34,14 +34,14 @@
       "path": "pages/character-detail/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "文字详情"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/search/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "搜索",
+        "navigationBarTitleText": "",
         "disableScroll": true
       }
     },
@@ -49,42 +49,42 @@
       "path": "pages/theme/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "主题设置"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/settings/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "设置"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/personal-profile/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "个人资料"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/region-picker/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "选择地区"
+        "navigationBarTitleText": ""
       }
     },
     {
       "path": "pages/profile/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "我的",
+        "navigationBarTitleText": "",
         "disableScroll": false
       }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "学习",
+    "navigationBarTitleText": "",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#ffffff"
   }

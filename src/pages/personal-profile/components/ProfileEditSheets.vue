@@ -241,16 +241,16 @@ defineExpose({ openNickname, openGender, openBirth })
 .sheet-overlay { position: fixed; z-index: 100; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: #0007; }
 .bottom-sheet { width: min(100%, 560px); overflow: hidden; border-radius: 18px 18px 0 0; background: var(--color-surface); color: var(--color-text); box-shadow: 0 -8px 30px var(--color-shadow); padding-bottom: env(safe-area-inset-bottom); }
 .sheet-toolbar { height: 54px; padding: 0 6px; display: grid; grid-template-columns: 72px 1fr 72px; align-items: center; border-bottom: 1px solid var(--color-border); }
-.sheet-title { font-size: 15px; font-weight: 700; text-align: center; }
-.toolbar-action { min-width: 0; padding: 12px; border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 13px; text-align: center; }
+.sheet-title { font-size: 13px; font-weight: 700; text-align: center; }
+.toolbar-action { min-width: 0; padding: 12px; border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 11px; text-align: center; }
 .toolbar-action.is-confirm { color: var(--color-primary); font-weight: 600; }
 .nickname-field { min-height: 52px; margin: 14px 16px 0; padding: 0 12px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-muted); }
 .nickname-field:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-soft); }
-.field-label { flex: none; font-size: 13px; }
-.field-input { min-width: 0; min-height: 24px; flex: 1; overflow: hidden; color: var(--color-text); font-size: 14px; line-height: 24px; outline: 0; white-space: nowrap; }
-.editor-hint { display: block; min-height: 66px; padding: 8px 16px 18px; color: var(--color-text-muted); font-size: 10px; }
+.field-label { flex: none; font-size: 11px; }
+.field-input { min-width: 0; min-height: 24px; flex: 1; overflow: hidden; color: var(--color-text); font-size: 12px; line-height: 24px; outline: 0; white-space: nowrap; }
+.editor-hint { display: block; min-height: 66px; padding: 8px 16px 18px; color: var(--color-text-muted); font-size: 8px; }
 .gender-options { padding: 4px 20px 16px; }
-.gender-option { width: 100%; min-height: 54px; padding: 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; color: var(--color-text); font: inherit; font-size: 15px; text-align: left; }
+.gender-option { width: 100%; min-height: 54px; padding: 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; color: var(--color-text); font: inherit; font-size: 13px; text-align: left; }
 .gender-option:last-child { border-bottom: 0; }
 .gender-option[aria-checked='true'] { color: var(--color-primary); font-weight: 600; }
 .selected-mark { font-size: 20px; }
@@ -258,7 +258,7 @@ defineExpose({ openNickname, openGender, openBirth })
 .wheel-column { position: relative; z-index: 1; height: 242px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-behavior: smooth; scroll-snap-type: y mandatory; }
 .wheel-column::-webkit-scrollbar { display: none; }
 .wheel-column::before, .wheel-column::after { content: ''; display: block; height: 99px; }
-.picker-option { height: 44px; display: flex; align-items: center; justify-content: center; color: var(--color-text); font-size: 16px; scroll-snap-align: center; }
+.picker-option { height: 44px; display: flex; align-items: center; justify-content: center; color: var(--color-text); font-size: 14px; scroll-snap-align: center; }
 .wheel-indicator { position: absolute; z-index: 0; top: 99px; right: 10px; left: 10px; height: 44px; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--color-primary-soft); pointer-events: none; }
 .toolbar-action:focus-visible, .gender-option:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 @media (prefers-reduced-motion: reduce) { .wheel-column { scroll-behavior: auto; } }

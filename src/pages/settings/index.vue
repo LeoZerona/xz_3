@@ -78,7 +78,7 @@ function saveSeniorMode(nextValue: boolean) {
       <button class="back-button" role="button" aria-label="返回" @click="goBack">
         <van-icon name="arrow-left" size="24" aria-hidden="true" />
       </button>
-      <text class="nav-title">设置</text>
+      <view aria-hidden="true" />
       <view aria-hidden="true" />
     </view>
 
@@ -177,7 +177,6 @@ function saveSeniorMode(nextValue: boolean) {
 }
 
 .back-button:active { background: var(--color-primary-soft); }
-.nav-title { font-size: 17px; font-weight: 700; text-align: center; }
 
 .settings-content {
   padding: 10px 0 calc(24px + env(safe-area-inset-bottom));
@@ -213,8 +212,8 @@ function saveSeniorMode(nextValue: boolean) {
   outline-offset: -2px;
 }
 
-.setting-label { min-width: 0; flex: 1; font-size: 15px; font-weight: 500; }
-.setting-note { color: var(--color-text-muted); font-size: 10px; }
+.setting-label { min-width: 0; flex: 1; font-size: 13px; font-weight: 500; }
+.setting-note { color: var(--color-text-muted); font-size: 8px; }
 .setting-arrow { flex: none; color: var(--color-text-muted); }
 
 .account-row { min-height: 70px; }
@@ -244,13 +243,13 @@ function saveSeniorMode(nextValue: boolean) {
   border-radius: 12px;
   background: var(--color-primary-soft);
   color: var(--color-primary);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .logout-button:active { background: var(--color-selection); }
 .settings-page.is-senior-mode .setting-label,
-.settings-page.is-senior-mode .logout-button { font-size: 18px; }
+.settings-page.is-senior-mode .logout-button { font-size: 16px; }
 .settings-page.is-senior-mode .setting-row { min-height: 68px; }
 
 @supports not (color: color-mix(in srgb, black, white)) {

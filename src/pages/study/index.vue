@@ -1,63 +1,161 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { fontCatalog } from '../../fonts/catalog'
+import type { LearningFont } from '../../fonts/types'
+import characterTable from '../../static/character_table/first-level.json'
+import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
 import { useFontStore } from '../../stores/fonts'
+import { INPUT_STUDY_MODE, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
+import type { StudyMode } from '../../study/modes'
+import type { StudyCharacterEntry } from '../../study/types'
+import StudyQuestionCard from './components/StudyQuestionCard.vue'
 
-type ChoiceOption = {
-  id: string
-  label: string
+interface StoredLearningPlan {
+  dailyCount?: number
+  modes?: string[]
 }
 
-type WordQuestion = {
-  id: string
-  word: string
-  accent: string
-  pronunciation: string
-  example: string
-  correctOptionId: string
-  options: ChoiceOption[]
+interface StudyQuestion {
+  mode: StudyMode
+  position: number
+  character: StudyCharacterEntry
+  options: StudyCharacterEntry[]
+  promptFont: LearningFont
+  answerFont: LearningFont
+  learningFont: LearningFont
+  referenceFont: LearningFont
 }
 
 const PLAN_STORAGE_KEY = 'font-learning-plan'
+const DEFAULT_DAILY_COUNT = 15
 const REVIEW_TARGET = 20
-const { currentFont } = storeToRefs(useFontStore())
-const CURRENT_QUESTION: WordQuestion = {
-  id: 'property',
-  word: 'property',
-  accent: '美',
-  pronunciation: '/ˈprɑːpərti/',
-  example: 'Glitter is one of the properties of gold.',
-  correctOptionId: 'property',
-  options: [
-    { id: 'property', label: 'n. 特性；财产；房产' },
-    { id: 'preference', label: 'n. 嗜好；习性；倾向' },
-    { id: 'poverty', label: 'n. 贫困；贫穷；贫乏' },
-    { id: 'properly', label: 'adv. 正确地；适当地' },
-  ],
-}
 
-const savedPlan = uni.getStorageSync(PLAN_STORAGE_KEY) as { dailyCount?: number } | undefined
-const dailyTarget = savedPlan?.dailyCount ?? 15
+const fontStore = useFontStore()
+const preferencesStore = useCharacterPreferencesStore()
+const { addedFonts, currentFont } = storeToRefs(fontStore)
+const savedPlan = uni.getStorageSync(PLAN_STORAGE_KEY) as StoredLearningPlan | undefined
+const configuredDailyCount = typeof savedPlan?.dailyCount === 'number' ? savedPlan.dailyCount : DEFAULT_DAILY_COUNT
+const configuredModes = normalizeStudyModes(savedPlan?.modes)
+const activeModes = configuredModes.length > 0 ? configuredModes : [...STUDY_MODES]
+const availableCharacters: StudyCharacterEntry[] = characterTable.chars.filter((entry) => !preferencesStore.isExcluded(entry.id))
+const dailyCharacters = availableCharacters.slice(0, Math.max(1, Math.trunc(configuredDailyCount)))
+const dailyTarget = dailyCharacters.length
 
+const currentIndex = ref(0)
 const learnedCount = ref(0)
 const reviewedCount = ref(0)
-const selectedOptionId = ref<string | null>(null)
+const selectedAnswer = ref<string | null>(null)
+const inputAnswer = ref('')
+const hasAttempted = ref(false)
 const hasAnswered = ref(false)
 
-const currentQuestion = CURRENT_QUESTION
+const referenceFont = computed(() => (
+  addedFonts.value.find((font) => font.id !== currentFont.value.id)
+  ?? fontCatalog.find((font) => font.id !== currentFont.value.id)
+  ?? currentFont.value
+))
+const activeMode = computed(() => activeModes[currentIndex.value % activeModes.length] ?? STUDY_MODES[0])
+const currentCharacter = computed(() => dailyCharacters[currentIndex.value] ?? dailyCharacters[0])
+const isInputMode = computed(() => activeMode.value === INPUT_STUDY_MODE)
+const isInputAnswerCorrect = computed(() => {
+  if (!currentCharacter.value) return false
+  const answer = inputAnswer.value.trim()
+  const expected = currentCharacter.value.script_forms
+  return answer === expected.simplified || answer === expected.traditional
+})
+const isCorrect = computed(() => {
+  if (isInputMode.value) return hasAttempted.value && isInputAnswerCorrect.value
+  return Boolean(currentCharacter.value && selectedAnswer.value === currentCharacter.value.script_forms.simplified)
+})
+const isLastQuestion = computed(() => currentIndex.value >= dailyCharacters.length - 1)
 const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget))
-const isCorrect = computed(() => selectedOptionId.value === currentQuestion.correctOptionId)
-
-function selectOption(optionId: string) {
-  selectedOptionId.value = optionId
-  if (optionId === currentQuestion.correctOptionId && !hasAnswered.value) {
-    hasAnswered.value = true
-    learnedCount.value += 1
+const choiceOptions = computed(() => buildChoiceOptions(availableCharacters, currentIndex.value))
+const currentQuestion = computed<StudyQuestion | null>(() => {
+  if (!currentCharacter.value) return null
+  const isReverseChoice = activeMode.value === '查看对照字体选择学习字体'
+  return {
+    mode: activeMode.value,
+    position: currentIndex.value + 1,
+    character: currentCharacter.value,
+    options: choiceOptions.value,
+    promptFont: isReverseChoice ? referenceFont.value : currentFont.value,
+    answerFont: isReverseChoice ? currentFont.value : referenceFont.value,
+    learningFont: currentFont.value,
+    referenceFont: referenceFont.value,
   }
+})
+
+function buildChoiceOptions(entries: StudyCharacterEntry[], index: number): StudyCharacterEntry[] {
+  const choices: StudyCharacterEntry[] = []
+  for (let offset = 0; choices.length < 4 && offset < entries.length; offset += 1) {
+    const candidate = entries[(index + offset) % entries.length]
+    if (candidate && !choices.some((choice) => choice.id === candidate.id)) choices.push(candidate)
+  }
+  const shift = choices.length > 0 ? (index * 3 + 1) % choices.length : 0
+  return [...choices.slice(shift), ...choices.slice(0, shift)]
+}
+
+function markCorrectAnswer() {
+  if (hasAnswered.value || !isCorrect.value) return
+  hasAnswered.value = true
+  learnedCount.value += 1
+}
+
+function handleChoiceAnswer(character: string) {
+  if (isCorrect.value) return
+  selectedAnswer.value = character
+  hasAttempted.value = true
+  markCorrectAnswer()
+}
+
+function handleInputAnswer(value: string) {
+  inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
+  hasAttempted.value = false
+}
+
+function submitInputAnswer(value: string) {
+  inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
+  if (!inputAnswer.value || hasAnswered.value) return
+  hasAttempted.value = true
+  const expected = currentCharacter.value?.script_forms
+  if (!expected) return
+  if (inputAnswer.value !== expected.simplified && inputAnswer.value !== expected.traditional) return
+  hasAnswered.value = true
+  learnedCount.value += 1
+}
+
+function resetQuestionState() {
+  selectedAnswer.value = null
+  inputAnswer.value = ''
+  hasAttempted.value = false
+  hasAnswered.value = false
+}
+
+function handleNext() {
+  if (!isCorrect.value) return
+  if (isLastQuestion.value) {
+    uni.showModal({
+      title: '今日学习完成',
+      content: `已完成 ${dailyTarget} 个文字练习`,
+      showCancel: false,
+      success: () => uni.reLaunch({ url: '/pages/index/index' }),
+    })
+    return
+  }
+  currentIndex.value += 1
+  resetQuestionState()
 }
 
 function openSearch() {
   uni.navigateTo({ url: '/pages/search/index' })
+}
+
+function toggleFavorite() {
+  const character = currentCharacter.value
+  if (!character) return
+  preferencesStore.toggleFavorite(character.id)
+  uni.showToast({ title: preferencesStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' })
 }
 
 onMounted(() => {
@@ -71,14 +169,14 @@ onMounted(() => {
       <navigator class="topbar-button" url="/pages/index/index" open-type="reLaunch" hover-class="none" role="button" aria-label="返回">
         <span class="back-icon" aria-hidden="true">←</span>
       </navigator>
-      <view class="mode-label">选择模式</view>
+      <view class="header-space" aria-hidden="true" />
       <view class="topbar-actions">
-        <div class="topbar-button" role="button" tabindex="0" aria-label="搜索" @click="openSearch" @keydown.enter="openSearch" @keydown.space.prevent="openSearch">
+        <button class="topbar-button" role="button" aria-label="搜索" @click="openSearch">
           <span class="search-icon" aria-hidden="true" />
-        </div>
-        <div class="topbar-button" role="button" tabindex="0" aria-label="收藏">
-          <span class="favorite-icon" aria-hidden="true">☆</span>
-        </div>
+        </button>
+        <button class="topbar-button" role="button" :aria-label="currentCharacter && preferencesStore.isFavorite(currentCharacter.id) ? '取消收藏当前文字' : '收藏当前文字'" @click="toggleFavorite">
+          <span class="favorite-icon" aria-hidden="true">{{ currentCharacter && preferencesStore.isFavorite(currentCharacter.id) ? '★' : '☆' }}</span>
+        </button>
       </view>
     </view>
 
@@ -97,115 +195,55 @@ onMounted(() => {
       </view>
     </view>
 
-    <view class="choice-study" role="main" aria-live="polite">
-      <view class="word-summary">
-        <text class="current-font-label">当前字体：{{ currentFont.name }}</text>
-        <text class="word" :style="{ fontFamily: currentFont.fontFamily }">{{ currentQuestion.word }}</text>
-        <view class="pronunciation">
-          <text class="accent">{{ currentQuestion.accent }}</text>
-          <text>{{ currentQuestion.pronunciation }}</text>
-          <van-icon name="volume-o" size="18" color="var(--color-primary)" aria-hidden="true" />
-        </view>
-        <text class="example">{{ currentQuestion.example }}</text>
-      </view>
-
-      <view class="option-list" role="group" aria-label="请选择正确释义">
-        <div
-          v-for="option in currentQuestion.options"
-          :key="option.id"
-          class="option-card"
-          :class="{
-            'is-selected': selectedOptionId === option.id,
-            'is-correct': selectedOptionId === option.id && option.id === currentQuestion.correctOptionId,
-            'is-wrong': selectedOptionId === option.id && option.id !== currentQuestion.correctOptionId,
-          }"
-          role="button"
-          tabindex="0"
-          :aria-label="option.label"
-          :aria-pressed="selectedOptionId === option.id"
-          @click="selectOption(option.id)"
-          @keydown.enter="selectOption(option.id)"
-          @keydown.space.prevent="selectOption(option.id)"
-        >
-          <text>{{ option.label }}</text>
-        </div>
-      </view>
-
-      <view v-if="selectedOptionId" class="answer-feedback" :class="{ 'is-correct': isCorrect }">
-        <text>{{ isCorrect ? '回答正确' : '再想想，重新选择' }}</text>
-      </view>
+    <StudyQuestionCard
+      v-if="currentQuestion"
+      :key="currentQuestion.position"
+      :question="currentQuestion"
+      :selected-answer="selectedAnswer"
+      :input-answer="inputAnswer"
+      :has-attempted="hasAttempted"
+      :is-correct="isCorrect"
+      :is-last-question="isLastQuestion"
+      @answer-choice="handleChoiceAnswer"
+      @update:input-answer="handleInputAnswer"
+      @submit-input="submitInputAnswer"
+      @next="handleNext"
+    />
+    <view v-else class="empty-study" role="status">
+      <text class="empty-study-title">暂无可学习文字</text>
+      <text class="empty-study-description">可在文字详情页恢复已斩掉的文字</text>
     </view>
   </view>
 </template>
 
 <style scoped lang="scss">
-.study-page {
-  width: min(100%, 560px);
-  min-height: 100vh;
-  min-height: 100dvh;
-  margin: 0 auto;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  color: var(--color-text);
-  background:
-    radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%),
-    linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%);
-}
-
-.study-topbar {
-  min-height: calc(68px + var(--app-top-safe-area));
-  padding: var(--app-top-safe-area) 14px 8px;
-  display: grid;
-  grid-template-columns: 88px 1fr 88px;
-  align-items: center;
-}
-
-.mode-label { color: var(--color-text-secondary); font-size: 13px; text-align: center; }
+.study-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; color: var(--color-text); background: radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%), linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%); }
+.study-topbar { min-height: calc(64px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 14px 4px; display: grid; grid-template-columns: 88px 1fr 88px; align-items: center; }
 .topbar-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; color: var(--color-text); line-height: 1; }
+.topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--color-text); line-height: 1; }
+.topbar-button::after { border: 0; }
 .back-icon, .favorite-icon, .search-icon { pointer-events: none; }
 .back-icon { font-size: 27px; font-weight: 300; }
 .favorite-icon { font-size: 31px; line-height: 1; }
 .search-icon { position: relative; width: 21px; height: 21px; border: 2px solid currentColor; border-radius: 50%; }
 .search-icon::after { content: ''; position: absolute; right: -5px; bottom: -3px; width: 8px; height: 2px; border-radius: 2px; background: currentColor; transform: rotate(48deg); transform-origin: left center; }
-.topbar-button::after { border: 0; }
-
-.progress-card { margin: 4px 16px 0; padding: 18px 12px 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--color-surface) 86%, transparent); box-shadow: 0 8px 24px var(--color-shadow); }
-.progress-item { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-.progress-label { color: var(--color-text-muted); font-size: 12px; }
-.progress-value { font-size: 20px; font-weight: 700; letter-spacing: -.04em; }
-.progress-value small { margin-left: 2px; font-size: 12px; font-weight: 600; }
-
-.choice-study { min-height: 0; padding: clamp(28px, 5vh, 48px) 16px calc(24px + env(safe-area-inset-bottom)); flex: 1; display: flex; flex-direction: column; }
-.word-summary { padding: 0 2px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.current-font-label { margin-bottom: 8px; color: var(--color-text-muted); font-size: 11px; }
-.word { font-size: clamp(34px, 9vw, 46px); font-weight: 800; line-height: 1.1; letter-spacing: -.03em; }
-.pronunciation { margin-top: 12px; display: flex; align-items: center; gap: 7px; color: var(--color-text-muted); font-size: 15px; }
-.accent { padding: 2px 5px; border-radius: 3px; background: var(--color-surface-muted); font-size: 11px; }
-.example { margin-top: 18px; color: var(--color-text); font-size: 16px; line-height: 1.5; }
-.option-list { margin-top: clamp(42px, 7vh, 70px); display: flex; flex-direction: column; gap: 12px; }
-.option-card { min-height: 68px; padding: 16px 20px; display: flex; align-items: center; border: 1.5px solid transparent; border-radius: 10px; background: var(--color-surface); box-shadow: 0 8px 24px var(--color-shadow); color: var(--color-text); font-size: 16px; line-height: 1.45; cursor: pointer; }
-.option-card.is-selected { border-color: var(--color-primary); background: var(--color-primary-soft); }
-.option-card.is-wrong { border-color: #e88455; background: color-mix(in srgb, #e88455 10%, var(--color-surface)); }
-.option-card.is-correct { color: var(--color-primary-strong); }
-.answer-feedback { min-height: 44px; margin-top: 12px; padding: 0 4px; display: flex; align-items: center; color: #d16d3c; font-size: 13px; }
-.answer-feedback.is-correct { color: var(--color-primary); }
+.progress-card { margin: 2px 16px 0; padding: 15px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent); border-radius: 18px; background: var(--color-surface); box-shadow: 0 10px 28px color-mix(in srgb, var(--color-shadow) 88%, transparent); }
+.progress-item { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.progress-label { color: var(--color-text-muted); font-size: 10px; }
+.progress-value { font-size: 17px; font-weight: 700; letter-spacing: -.04em; }
+.progress-value small { margin-left: 2px; font-size: 10px; font-weight: 600; }
+.empty-study { min-height: 0; padding: 30px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.empty-study-title { font-size: 15px; font-weight: 700; }
+.empty-study-description { color: var(--color-text-muted); font-size: 11px; }
 
 @media (max-height: 720px) {
-  .study-topbar { min-height: calc(58px + var(--app-top-safe-area)); }
-  .progress-card { padding-top: 13px; padding-bottom: 12px; }
-  .choice-study { padding-top: 20px; }
-  .word { font-size: 32px; }
-  .example { margin-top: 12px; font-size: 14px; }
-  .option-list { margin-top: 28px; gap: 9px; }
-  .option-card { min-height: 56px; padding: 12px 16px; font-size: 14px; }
+  .study-topbar { min-height: calc(56px + var(--app-top-safe-area)); }
+  .progress-card { padding-top: 10px; padding-bottom: 10px; }
 }
 
 @media (max-width: 360px) {
   .study-topbar { grid-template-columns: 82px 1fr 82px; padding-right: 10px; padding-left: 10px; }
   .progress-card { margin-right: 12px; margin-left: 12px; }
-  .progress-label { font-size: 11px; }
-  .option-card { padding-right: 14px; padding-left: 14px; }
+  .progress-label { font-size: 9px; }
 }
 </style>

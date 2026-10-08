@@ -72,7 +72,7 @@ function showIpExplanation() {
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">
         <span class="back-glyph" aria-hidden="true">‹</span>
       </div>
-      <span class="nav-title">个人资料</span>
+      <span aria-hidden="true" />
       <span aria-hidden="true" />
     </header>
 
@@ -125,7 +125,6 @@ function showIpExplanation() {
 .back-button { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--color-text); }
 .back-glyph { margin-top: -3px; font-size: 36px; font-weight: 300; line-height: 1; }
 .back-button:active { background: var(--color-primary-soft); }
-.nav-title { font-size: 18px; font-weight: 700; text-align: center; }
 .profile-content { padding-bottom: calc(26px + env(safe-area-inset-bottom)); }
 .profile-section { padding: 0 20px; background: var(--color-surface); }
 .profile-section + .profile-section { margin-top: 10px; }
@@ -133,8 +132,8 @@ function showIpExplanation() {
 .profile-row[role='button']:active { background: var(--color-primary-soft); }
 .profile-row + .profile-row { border-top: 1px solid var(--color-border); }
 .avatar-row { min-height: 94px; }
-.row-label { flex: none; font-size: 16px; font-weight: 600; }
-.row-value { min-width: 0; flex: 1; overflow: hidden; color: var(--color-text-muted); font-size: 15px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.row-label { flex: none; font-size: 14px; font-weight: 600; }
+.row-value { min-width: 0; flex: 1; overflow: hidden; color: var(--color-text-muted); font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
 .row-arrow { flex: none; color: var(--color-text-muted); font-size: 26px; font-weight: 300; line-height: 1; }
 .profile-avatar { position: relative; width: 62px; height: 62px; margin-left: auto; overflow: hidden; border: 2px solid var(--color-surface); border-radius: 50%; background: var(--color-primary-soft); box-shadow: 0 2px 8px var(--color-shadow); }
 .avatar-head { position: absolute; top: 11px; left: 50%; width: 21px; height: 21px; transform: translateX(-50%); border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface)); }
@@ -144,5 +143,5 @@ function showIpExplanation() {
 .info-button span { width: 18px; height: 18px; display: grid; place-items: center; border: 1.5px solid currentColor; border-radius: 50%; font-size: 10px; font-weight: 700; font-style: normal; }
 .back-button:focus-visible, .profile-row:focus-visible, .info-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 @supports not (color: color-mix(in srgb, black, white)) { .avatar-head, .avatar-body { background: var(--color-primary); opacity: .28; } }
-@media (max-width: 370px) { .profile-section { padding-right: 16px; padding-left: 16px; } .row-label { font-size: 15px; } .row-value { font-size: 14px; } }
+@media (max-width: 370px) { .profile-section { padding-right: 16px; padding-left: 16px; } .row-label { font-size: 13px; } .row-value { font-size: 12px; } }
 </style>
