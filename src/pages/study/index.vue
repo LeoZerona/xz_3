@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useFontStore } from '../../stores/fonts'
 
 type ChoiceOption = {
   id: string
@@ -18,6 +20,7 @@ type WordQuestion = {
 
 const PLAN_STORAGE_KEY = 'font-learning-plan'
 const REVIEW_TARGET = 20
+const { currentFont } = storeToRefs(useFontStore())
 const CURRENT_QUESTION: WordQuestion = {
   id: 'property',
   word: 'property',
@@ -53,6 +56,10 @@ function selectOption(optionId: string) {
   }
 }
 
+function openSearch() {
+  uni.navigateTo({ url: '/pages/search/index' })
+}
+
 onMounted(() => {
   uni.pageScrollTo({ scrollTop: 0, duration: 0 })
 })
@@ -66,7 +73,7 @@ onMounted(() => {
       </navigator>
       <view class="mode-label">选择模式</view>
       <view class="topbar-actions">
-        <div class="topbar-button" role="button" tabindex="0" aria-label="搜索">
+        <div class="topbar-button" role="button" tabindex="0" aria-label="搜索" @click="openSearch" @keydown.enter="openSearch" @keydown.space.prevent="openSearch">
           <span class="search-icon" aria-hidden="true" />
         </div>
         <div class="topbar-button" role="button" tabindex="0" aria-label="收藏">
@@ -92,7 +99,8 @@ onMounted(() => {
 
     <view class="choice-study" role="main" aria-live="polite">
       <view class="word-summary">
-        <text class="word">{{ currentQuestion.word }}</text>
+        <text class="current-font-label">当前字体：{{ currentFont.name }}</text>
+        <text class="word" :style="{ fontFamily: currentFont.fontFamily }">{{ currentQuestion.word }}</text>
         <view class="pronunciation">
           <text class="accent">{{ currentQuestion.accent }}</text>
           <text>{{ currentQuestion.pronunciation }}</text>
@@ -171,6 +179,7 @@ onMounted(() => {
 
 .choice-study { min-height: 0; padding: clamp(28px, 5vh, 48px) 16px calc(24px + env(safe-area-inset-bottom)); flex: 1; display: flex; flex-direction: column; }
 .word-summary { padding: 0 2px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.current-font-label { margin-bottom: 8px; color: var(--color-text-muted); font-size: 11px; }
 .word { font-size: clamp(34px, 9vw, 46px); font-weight: 800; line-height: 1.1; letter-spacing: -.03em; }
 .pronunciation { margin-top: 12px; display: flex; align-items: center; gap: 7px; color: var(--color-text-muted); font-size: 15px; }
 .accent { padding: 2px 5px; border-radius: 3px; background: var(--color-surface-muted); font-size: 11px; }

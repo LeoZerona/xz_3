@@ -1,26 +1,34 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+import FontCover from '../../components/FontCover.vue'
+import { useFontStore } from '../../stores/fonts'
+
+const { addedFonts } = storeToRefs(useFontStore())
 
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
+}
+
+function openSearch() {
+  uni.navigateTo({ url: '/pages/search/index' })
 }
 </script>
 
 <template>
   <view class="home">
     <view class="topbar">
-      <button class="icon-button" role="button" aria-label="搜索"><van-icon name="search" size="24" aria-hidden="true" /></button>
+      <button class="icon-button" role="button" aria-label="搜索" @click="openSearch"><van-icon name="search" size="24" aria-hidden="true" /></button>
       <button class="icon-button" role="button" aria-label="消息提示"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
     </view>
 
     <view class="font-list">
-      <view class="font-row">
-        <view class="font-cover font-cover-one" aria-hidden="true" />
-        <view class="font-detail"><text class="font-title">字体一</text><text class="font-placeholder">。。。</text></view>
-      </view>
-      <view class="font-row">
-        <view class="font-cover font-cover-two" aria-hidden="true" />
-        <view class="font-detail"><text class="font-title">字体二</text><text class="font-placeholder">。。。</text></view>
+      <view v-for="font in addedFonts" :key="font.id" class="font-row">
+        <FontCover :font="font" />
+        <view class="font-detail">
+          <text class="font-title">{{ font.name }}</text>
+          <text class="font-description">{{ font.description }}</text>
+        </view>
       </view>
     </view>
 
@@ -57,12 +65,9 @@ function showPlaceholder(label: string) {
 .icon-button::after, .action-button::after { border: 0; }
 .font-list { padding: 8px 16px 0; }
 .font-row { min-height: 102px; display: flex; align-items: center; gap: 18px; border-bottom: 1px solid var(--color-border); }
-.font-cover { flex: none; width: 63px; height: 82px; border-radius: 3px; box-shadow: inset 4px 0 0 #ffffff50, 0 2px 3px var(--color-shadow); }
-.font-cover-one { background: var(--color-cover-one); }
-.font-cover-two { background: var(--color-cover-two); }
-.font-detail { display: flex; flex-direction: column; gap: 8px; }
+.font-detail { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 .font-title { font-size: 16px; font-weight: 600; }
-.font-placeholder { color: var(--color-text-muted); font-size: 12px; }
+.font-description { color: var(--color-text-secondary); font-size: 12px; line-height: 1.45; }
 .plan { padding: 22px 16px 28px; }
 .section-title { display: block; font-size: 17px; font-weight: 700; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; }
@@ -76,5 +81,5 @@ function showPlaceholder(label: string) {
 .action-button { width: 100%; min-width: 0; height: 58px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 9px; font-size: 19px; font-weight: 600; line-height: 1; }
 .action-primary { background: var(--color-primary); color: var(--color-on-primary); }
 .action-secondary { background: var(--color-primary-soft); color: var(--color-primary); }
-@media (max-width: 360px) { .font-row { min-height: 92px; } .font-cover { width: 55px; height: 72px; } .stat-label { font-size: 10px; } .stat-value { font-size: 22px; } .stat-time { font-size: 17px; } }
+@media (max-width: 360px) { .font-row { min-height: 98px; gap: 14px; } .stat-label { font-size: 10px; } .stat-value { font-size: 22px; } .stat-time { font-size: 17px; } }
 </style>

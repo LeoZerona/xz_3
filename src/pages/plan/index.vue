@@ -1,8 +1,8 @@
 <template>
-  <div class="plan-page" :class="`show-${activeSection}`">
+  <div class="plan-page">
     <div class="nav-bar">
-      <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="returnToPrevious" @keydown.enter="returnToPrevious" @keydown.space.prevent="returnToPrevious">‹</div>
-      <div class="nav-tabs" role="tablist" aria-label="计划设置">
+      <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="handleBack" @keydown.enter="handleBack" @keydown.space.prevent="handleBack">‹</div>
+      <div v-if="activeSection !== 'catalog'" class="nav-tabs" role="tablist" aria-label="计划设置">
         <div
           class="nav-tab"
           :class="{ 'is-active': activeSection === 'plan' }"
@@ -24,14 +24,16 @@
           @keydown.space.prevent="showSection('fonts')"
         >修改字体</div>
       </div>
+      <div v-else class="nav-title">选择字体</div>
       <div class="nav-space" />
     </div>
 
-    <div class="plan-content">
+    <div v-if="activeSection === 'plan'" class="plan-content">
       <div class="font-summary">
-        <div class="font-cover" :class="currentFont.coverClass" aria-hidden="true"><span>{{ currentFont.shortName }}</span></div>
+        <FontCover :font="currentFont" size="large" />
         <div class="font-copy">
           <span class="font-name">学习字体：{{ currentFont.name }}</span>
+          <span class="font-description">{{ currentFont.description }}</span>
           <span class="font-meta">每日学习 {{ initialPlan.count }} 个，完成 {{ initialPlan.days }} 天</span>
         </div>
       </div>
@@ -70,75 +72,32 @@
       </view>
     </div>
 
-    <div class="font-library">
-      <div
-        v-for="font in fontItems"
-        :key="font.id"
-        class="font-card"
-        :class="{ 'is-current': font.id === currentFontId }"
-        role="button"
-        :aria-label="`选择${font.name}`"
-        @click="selectFont(font.id)"
-      >
-        <div class="font-card-cover" :class="font.coverClass" aria-hidden="true">
-          <span class="font-card-mark">{{ font.shortName }}</span>
-          <span class="font-card-sample">永</span>
-        </div>
-        <div class="font-card-body">
-          <div class="font-card-head">
-            <span class="font-card-title">{{ font.name }}</span>
-            <span v-if="font.id === currentFontId" class="current-label">当前在学</span>
-            <div v-else class="delete-button" role="button" tabindex="0" :aria-label="`删除${font.name}`" @click.stop="deleteFont(font.id)" @keydown.enter.stop="deleteFont(font.id)" @keydown.space.stop.prevent="deleteFont(font.id)">删除</div>
-          </div>
-          <span class="font-card-meta">每日 {{ font.dailyCount }} 个，剩余 {{ font.remainingDays }} 天</span>
-          <div class="font-progress" aria-hidden="true"><div class="font-progress-value" :style="{ width: `${font.progress}%` }" /></div>
-          <div class="font-card-foot">
-            <span><span class="progress-dot">•</span> 已学 {{ font.learned }}</span>
-            <span>{{ font.total }}字</span>
-          </div>
-        </div>
-      </div>
-      <div v-if="fontItems.length === 0" class="empty-fonts">还没有添加字体</div>
-    </div>
+    <FontManager v-else-if="activeSection === 'fonts'" @browse="showSection('catalog')" />
+    <FontCatalog v-else />
 
-    <div class="save-wrap">
+    <div v-if="activeSection === 'plan'" class="save-wrap">
       <div class="save-button plan-action" role="button" tabindex="0" @click="savePlan" @keydown.enter="savePlan" @keydown.space.prevent="savePlan">保存计划</div>
-      <div class="save-button font-action" role="button" tabindex="0" @click="addFont" @keydown.enter="addFont" @keydown.space.prevent="addFont">添加字体</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import FontCover from '../../components/FontCover.vue'
+import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
+import FontCatalog from './components/FontCatalog.vue'
+import FontManager from './components/FontManager.vue'
 
 const { currentTheme } = storeToRefs(useThemeStore())
+const { currentFont } = storeToRefs(useFontStore())
 
 const STORAGE_KEY = 'font-learning-plan'
-const FONT_STORAGE_KEY = 'font-learning-current'
 const ROW_HEIGHT = 54
-type Section = 'plan' | 'fonts'
-type FontItem = {
-  id: string
-  name: string
-  shortName: string
-  dailyCount: number
-  remainingDays: number
-  learned: number
-  total: number
-  progress: number
-  coverClass: string
-}
+type Section = 'plan' | 'fonts' | 'catalog'
 
 const activeSection = ref<Section>('plan')
-const fontItems = ref<FontItem[]>([
-  { id: 'font-one', name: '字体一', shortName: '字一', dailyCount: 15, remainingDays: 20, learned: 45, total: 345, progress: 13, coverClass: 'cover-green' },
-  { id: 'font-two', name: '字体二', shortName: '字二', dailyCount: 15, remainingDays: 30, learned: 0, total: 450, progress: 0, coverClass: 'cover-blue' },
-])
-const storedFontId = uni.getStorageSync(FONT_STORAGE_KEY) as string | undefined
-const currentFontId = ref(fontItems.value.some((font) => font.id === storedFontId) ? storedFontId! : 'font-one')
-const currentFont = computed(() => fontItems.value.find((font) => font.id === currentFontId.value) ?? fontItems.value[0])
 const planOptions = Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
   return { count, days: Math.ceil(300 / count) }
@@ -188,19 +147,6 @@ function showSection(section: Section) {
   if (section === 'plan') nextTick(initialiseWheel)
 }
 
-function selectFont(id: string) {
-  currentFontId.value = id
-  uni.setStorageSync(FONT_STORAGE_KEY, id)
-}
-
-function deleteFont(id: string) {
-  fontItems.value = fontItems.value.filter((font) => font.id !== id)
-}
-
-function addFont() {
-  uni.showToast({ title: '更多字体即将上线', icon: 'none' })
-}
-
 function changeModes(event: { detail: { value: string[] } }) {
   selectedModes = event.detail.value
 }
@@ -216,6 +162,14 @@ function returnToPrevious() {
   uni.reLaunch({ url: '/pages/index/index' })
 }
 
+function handleBack() {
+  if (activeSection.value === 'catalog') {
+    activeSection.value = 'fonts'
+    return
+  }
+  returnToPrevious()
+}
+
 function savePlan() {
   uni.setStorageSync(STORAGE_KEY, { dailyCount, modes: selectedModes })
   returnToPrevious()
@@ -227,21 +181,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.plan-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; padding-bottom: calc(90px + env(safe-area-inset-bottom)); background: var(--color-page); color: var(--color-text); }
-.plan-page.show-plan .font-library, .plan-page.show-plan .font-action { display: none; }
-.plan-page.show-fonts .plan-content, .plan-page.show-fonts .plan-action { display: none; }
+.plan-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
+.plan-content { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
 .nav-bar { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: stretch; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 40px; font-weight: 300; line-height: 38px; }
 .back-button { align-self: center; }
-.back-button::after, .nav-tab::after, .delete-button::after, .save-button::after { border: 0; }
+.back-button::after, .nav-tab::after, .save-button::after { border: 0; }
 .nav-tabs { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+.nav-title { display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; }
 .nav-tab { position: relative; min-width: 0; height: 100%; margin: 0; padding: 0 10px; display: flex; align-items: center; justify-content: center; border-radius: 0; color: var(--color-text); background: transparent; font-size: 16px; font-weight: 600; line-height: 1; white-space: nowrap; }
 .nav-tab.is-active { color: var(--color-primary); }
 .nav-tab.is-active::before { content: ''; position: absolute; right: 18px; bottom: 0; left: 18px; height: 3px; border-radius: 3px 3px 0 0; background: var(--color-primary); }
 .font-summary { min-height: 132px; padding: 20px 18px; display: flex; align-items: center; gap: 20px; }
-.font-cover { flex: none; width: 74px; height: 96px; border-radius: 4px; display: flex; align-items: flex-start; padding: 9px 8px; box-shadow: inset 5px 0 0 #ffffff50, 0 2px 4px #00000014; color: #ffffffd9; font-size: 10px; font-weight: 700; }
-.font-copy { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.font-copy { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 .font-name { font-size: 17px; font-weight: 700; }
+.font-description { color: var(--color-text-secondary); font-size: 11px; line-height: 1.45; }
 .font-meta { color: var(--color-text-secondary); font-size: 12px; }
 .schedule { padding: 20px 18px 14px; background: var(--color-surface-muted); }
 .schedule-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
@@ -261,27 +215,7 @@ onMounted(() => {
 .mode-list { display: flex; flex-direction: column; gap: 10px; }
 .mode-card { width: 100%; min-height: 56px; margin: 0; padding: 10px 14px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 13px; font-weight: 400; line-height: 1.45; text-align: left; cursor: pointer; }
 .mode-card:has(.uni-checkbox-input svg) { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); }
-.font-library { min-height: calc(100vh - 58px); min-height: calc(100dvh - 58px); padding: 16px 12px 100px; background: var(--color-surface-muted); }
-.font-card { min-height: 142px; padding: 16px; display: flex; gap: 14px; border: 1px solid transparent; border-radius: 8px; background: var(--color-surface); box-shadow: 0 3px 12px var(--color-shadow); cursor: pointer; }
-.font-card + .font-card { margin-top: 12px; }
-.font-card.is-current { border-color: var(--color-border); }
-.font-card-cover { position: relative; flex: none; width: 64px; height: 96px; padding: 10px 8px; overflow: hidden; border-radius: 3px; box-shadow: inset 4px 0 0 #ffffff50, 0 2px 4px #00000016; color: #ffffffdf; }
-.cover-green { background: var(--color-cover-one); }
-.cover-blue { background: var(--color-cover-two); }
-.font-card-mark { position: relative; z-index: 1; display: block; font-size: 9px; font-weight: 700; }
-.font-card-sample { position: absolute; right: -2px; bottom: -15px; color: #073d3340; font-family: serif; font-size: 65px; font-weight: 700; line-height: 1; }
-.font-card-body { min-width: 0; flex: 1; padding-top: 1px; }
-.font-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.font-card-title { overflow: hidden; font-size: 16px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-.current-label { flex: none; color: var(--color-primary); font-size: 12px; }
-.delete-button { flex: none; min-width: auto; height: auto; margin: 0; padding: 4px 0 4px 10px; border-radius: 0; background: transparent; color: var(--color-text-muted); font-size: 12px; line-height: 1; }
-.font-card-meta { display: block; margin-top: 7px; color: var(--color-text-secondary); font-size: 12px; }
-.font-progress { height: 4px; margin-top: 12px; overflow: hidden; border-radius: 4px; background: var(--color-border); }
-.font-progress-value { height: 100%; border-radius: inherit; background: var(--color-progress); }
-.font-card-foot { margin-top: 6px; display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: 10px; }
-.progress-dot { color: var(--color-progress); font-size: 15px; line-height: 0; }
-.empty-fonts { padding: 64px 0; color: var(--color-text-muted); text-align: center; }
 .save-wrap { position: fixed; z-index: 2; right: 0; bottom: 0; left: 0; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); background: var(--color-surface); box-shadow: 0 -5px 18px var(--color-shadow); }
 .save-button { width: min(calc(100% - 36px), 524px); height: 52px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 16px; line-height: 1; }
-@media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 14px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 12px; } .font-card { padding: 16px; gap: 14px; } }
+@media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 14px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 12px; } }
 </style>

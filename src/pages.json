@@ -23,6 +23,14 @@
       }
     },
     {
+      "path": "pages/search/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "搜索",
+        "disableScroll": true
+      }
+    },
+    {
       "path": "pages/theme/index",
       "style": {
         "navigationStyle": "custom",
