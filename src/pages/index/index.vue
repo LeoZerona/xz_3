@@ -45,7 +45,7 @@ function openSearch() {
       <view class="plan-actions">
         <navigator
           class="action-button action-primary"
-          url="/pages/study/index"
+          url="/pages/study-preview/index"
           hover-class="none"
           role="button"
           aria-label="开始学习"

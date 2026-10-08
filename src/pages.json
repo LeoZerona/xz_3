@@ -15,11 +15,26 @@
       }
     },
     {
+      "path": "pages/study-preview/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "今日文字预览",
+        "disableScroll": true
+      }
+    },
+    {
       "path": "pages/study/index",
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "记忆学习",
         "disableScroll": true
+      }
+    },
+    {
+      "path": "pages/character-detail/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "文字详情"
       }
     },
     {

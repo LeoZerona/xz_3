@@ -78,7 +78,7 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   expect(pageErrors).toEqual([])
 })
 
-test('开始学习后进入英文选择模式并可完成释义选择', async ({ page }) => {
+test('开始学习前可预览、揭示和交换字体并进入文字详情', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   page.on('console', (message) => {
@@ -87,6 +87,35 @@ test('开始学习后进入英文选择模式并可完成释义选择', async ({
   await page.goto('/')
 
   await page.getByRole('button', { name: '开始学习' }).click()
+  await expect(page.getByText('今日文字预览', { exact: true })).toBeVisible()
+  await expect(page.getByText('今日要学 15 个文字')).toBeVisible()
+  await expect(page.getByText(/单词/)).toHaveCount(0)
+  await expect(page.locator('.character-row')).toHaveCount(15)
+
+  const firstCharacterRow = page.locator('.character-row').first()
+  await expect(firstCharacterRow.locator('.character')).toHaveCount(1)
+  await firstCharacterRow.getByRole('button', { name: '显示一的字体二字形' }).click()
+  await expect(firstCharacterRow.locator('.character')).toHaveCount(2)
+
+  await page.getByRole('button', { name: '交换遮盖字体' }).click()
+  await expect(firstCharacterRow.getByRole('button', { name: '显示一的字体一字形' })).toBeVisible()
+
+  await page.getByRole('button', { name: '取消全部遮盖' }).click()
+  await expect(firstCharacterRow.locator('.character')).toHaveCount(2)
+  await expect(page.getByRole('button', { name: '全部遮盖' })).toBeVisible()
+  await page.getByRole('button', { name: '全部遮盖' }).click()
+  await expect(firstCharacterRow.getByRole('button', { name: '显示一的字体一字形' })).toBeVisible()
+  await page.screenshot({ path: 'artifacts/study-preview-mobile.png', fullPage: true })
+
+  await firstCharacterRow.getByRole('button', { name: '查看一的文字详情' }).click()
+  await expect(page.getByText('文字详情', { exact: true })).toBeVisible()
+  await expect(page.getByText('基本释义')).toBeVisible()
+  await expect(page.getByText('数词，最小的正整数')).toBeVisible()
+  await page.screenshot({ path: 'artifacts/character-detail-mobile.png', fullPage: true })
+  await page.getByRole('button', { name: '返回' }).click()
+  await expect(page.getByText('今日文字预览', { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: '开始今日学习' }).click()
   await expect(page.getByText('选择模式')).toBeVisible()
   await expect(page.getByRole('button', { name: '搜索' })).toBeVisible()
   await expect(page.getByRole('button', { name: '收藏' })).toBeVisible()
@@ -189,6 +218,9 @@ test('字体管理可浏览、添加并切换字体', async ({ page }) => {
   await page.getByRole('button', { name: '返回' }).click()
   await expect(page.locator('.font-title').filter({ hasText: '楷书' })).toBeVisible()
   await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  await expect(page.getByText('今日文字预览', { exact: true })).toBeVisible()
+  await expect(page.getByText('楷书', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '开始今日学习' }).click()
   await expect(page.getByText('当前字体：楷书')).toBeVisible()
   expect(consoleErrors).toEqual([])
 })
