@@ -1,0 +1,7756 @@
+{
+  "chars": [
+    {
+      "id": "char-0661",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芙",
+        "traditional": "芙",
+        "seal": "static/chars/char-0661-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fú"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，夫声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "芙蓉也。从艸夫聲。",
+        "translation": "芙，芙蓉。形旁为艸，声旁为夫。"
+      },
+      "semantics": {
+        "definition": "指芙蓉，荷花的别称",
+        "words": ["芙蓉", "芙蕖"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0662",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芜",
+        "traditional": "蕪",
+        "seal": "static/chars/char-0662-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wú"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，无声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "薉也。从艸無聲。",
+        "translation": "芜，荒秽。形旁为艸，声旁为無。"
+      },
+      "semantics": {
+        "definition": "田地荒废，长满野草；杂乱",
+        "words": ["荒芜", "芜杂"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0663",
+      "level": 1,
+      "script_forms": {
+        "simplified": "苇",
+        "traditional": "葦",
+        "seal": "static/chars/char-0663-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wěi"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，韦声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "大葭也。从艸韋聲。",
+        "translation": "苇，大的芦苇。形旁为艸，声旁为韋。"
+      },
+      "semantics": {
+        "definition": "芦苇，多年生草本植物",
+        "words": ["芦苇", "苇席"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0664",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芽",
+        "traditional": "芽",
+        "seal": "static/chars/char-0664-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yá"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，牙声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "萌芽也。从艸牙聲。",
+        "translation": "芽，植物初生的嫩芽。形旁为艸，声旁为牙。"
+      },
+      "semantics": {
+        "definition": "植物初生的嫩芽",
+        "words": ["发芽", "嫩芽", "萌芽"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0665",
+      "level": 1,
+      "script_forms": {
+        "simplified": "花",
+        "traditional": "花",
+        "seal": "static/chars/char-0665-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "huā"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，化声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "華也。从艸化聲。",
+        "translation": "花，花朵。形旁为艸，声旁为化。"
+      },
+      "semantics": {
+        "definition": "种子植物的繁殖器官；观赏植物",
+        "words": ["花朵", "花草", "开花"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0666",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芹",
+        "traditional": "芹",
+        "seal": "static/chars/char-0666-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qín"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，斤声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "楚葵也。从艸斤聲。",
+        "translation": "芹，楚葵。形旁为艸，声旁为斤。"
+      },
+      "semantics": {
+        "definition": "芹菜，蔬菜名",
+        "words": ["芹菜", "水芹"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0667",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芥",
+        "traditional": "芥",
+        "seal": "static/chars/char-0667-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiè"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，介声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "菜也。从艸介聲。",
+        "translation": "芥，蔬菜。形旁为艸，声旁为介。"
+      },
+      "semantics": {
+        "definition": "芥菜；小草，比喻轻微细小的事物",
+        "words": ["芥菜", "草芥", "芥蒂"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0668",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芬",
+        "traditional": "芬",
+        "seal": "static/chars/char-0668-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fēn"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，分声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "艸初生其香分布。从艸分聲。",
+        "translation": "芬，草木初生香气分布。形旁为艸，声旁为分。"
+      },
+      "semantics": {
+        "definition": "香气；芬芳",
+        "words": ["芬芳", "清芬"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0669",
+      "level": 1,
+      "script_forms": {
+        "simplified": "苍",
+        "traditional": "蒼",
+        "seal": "static/chars/char-0669-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cāng"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，仓声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "艸色也。从艸倉聲。",
+        "translation": "苍，草的颜色。形旁为艸，声旁为倉。"
+      },
+      "semantics": {
+        "definition": "青色；灰白色；苍茫",
+        "words": ["苍天", "苍白", "苍茫"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0670",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芳",
+        "traditional": "芳",
+        "seal": "static/chars/char-0670-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fāng"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，方声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "香艸也。从艸方聲。",
+        "translation": "芳，香草。形旁为艸，声旁为方。"
+      },
+      "semantics": {
+        "definition": "花草的香气；美好的",
+        "words": ["芬芳", "芳香", "芳名"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0671",
+      "level": 1,
+      "script_forms": {
+        "simplified": "严",
+        "traditional": "嚴",
+        "seal": "static/chars/char-0671-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yán"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从吅、从厂，表示严厉"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "教命急也。从吅厂聲。",
+        "translation": "严，教令急迫。从吅，厂声。"
+      },
+      "semantics": {
+        "definition": "严厉；严密；严肃",
+        "words": ["严格", "严肃", "严重"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0672",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芦",
+        "traditional": "蘆",
+        "seal": "static/chars/char-0672-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lú"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，卢声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "蘆菔也。从艸盧聲。",
+        "translation": "芦，芦菔。形旁为艸，声旁为盧。"
+      },
+      "semantics": {
+        "definition": "芦苇；葫芦",
+        "words": ["芦苇", "葫芦"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0673",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芯",
+        "traditional": "芯",
+        "seal": "static/chars/char-0673-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xīn"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，心声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "艸也。从艸心聲。",
+        "translation": "芯，草名。形旁为艸，声旁为心。"
+      },
+      "semantics": {
+        "definition": "灯芯草；物体中心部分",
+        "words": ["灯芯", "芯片", "笔芯"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0674",
+      "level": 1,
+      "script_forms": {
+        "simplified": "劳",
+        "traditional": "勞",
+        "seal": "static/chars/char-0674-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "láo"
+      },
+      "structure": {
+        "radical_id": "rad-019",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从力，从荧省，表示劳累"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "劇也。从力，熒省。",
+        "translation": "劳，剧烈用力。从力，荧省声。"
+      },
+      "semantics": {
+        "definition": "劳动；劳累；功劳",
+        "words": ["劳动", "劳累", "功劳"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["力部", "常用"]
+      }
+    },
+    {
+      "id": "char-0675",
+      "level": 1,
+      "script_forms": {
+        "simplified": "克",
+        "traditional": "克",
+        "seal": "static/chars/char-0675-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kè"
+      },
+      "structure": {
+        "radical_id": "rad-010",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从儿从口，表示胜任"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "肩也。象屋下刻木之形。",
+        "translation": "克，胜任。象屋下刻木之形。"
+      },
+      "semantics": {
+        "definition": "能够；战胜；克制",
+        "words": ["克服", "克制", "攻克"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0676",
+      "level": 1,
+      "script_forms": {
+        "simplified": "芭",
+        "traditional": "芭",
+        "seal": "static/chars/char-0676-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bā"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，巴声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "芭蕉也。从艸巴聲。",
+        "translation": "芭，芭蕉。形旁为艸，声旁为巴。"
+      },
+      "semantics": {
+        "definition": "芭蕉；香草名",
+        "words": ["芭蕉", "芭蕾"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0677",
+      "level": 1,
+      "script_forms": {
+        "simplified": "苏",
+        "traditional": "蘇",
+        "seal": "static/chars/char-0677-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "sū"
+      },
+      "structure": {
+        "radical_id": "rad-140",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从艸，稣声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "桂荏也。从艸穌聲。",
+        "translation": "苏，桂荏。形旁为艸，声旁为穌。"
+      },
+      "semantics": {
+        "definition": "苏醒；江苏省简称；紫苏",
+        "words": ["苏醒", "江苏", "紫苏"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0678",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杆",
+        "traditional": "杆",
+        "seal": "static/chars/char-0678-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gān"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，干声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "木也。从木干聲。",
+        "translation": "杆，木材。形旁为木，声旁为干。"
+      },
+      "semantics": {
+        "definition": "细长的木头或类似的东西",
+        "words": ["旗杆", "栏杆", "杆子"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0679",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杠",
+        "traditional": "槓",
+        "seal": "static/chars/char-0679-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gàng"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，工声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "牀前橫木也。从木工聲。",
+        "translation": "杠，床前的横木。形旁为木，声旁为工。"
+      },
+      "semantics": {
+        "definition": "较粗的棍子；体育器械",
+        "words": ["杠杆", "单杠", "双杠"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0680",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杜",
+        "traditional": "杜",
+        "seal": "static/chars/char-0680-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dù"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，土声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "甘棠也。从木土聲。",
+        "translation": "杜，甘棠。形旁为木，声旁为土。"
+      },
+      "semantics": {
+        "definition": "堵塞；杜绝；杜梨",
+        "words": ["杜绝", "杜鹃", "杜撰"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0681",
+      "level": 1,
+      "script_forms": {
+        "simplified": "材",
+        "traditional": "材",
+        "seal": "static/chars/char-0681-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cái"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，才声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "木梃也。从木才聲。",
+        "translation": "材，木干。形旁为木，声旁为才。"
+      },
+      "semantics": {
+        "definition": "木料；材料；才能",
+        "words": ["木材", "材料", "人才"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0682",
+      "level": 1,
+      "script_forms": {
+        "simplified": "村",
+        "traditional": "村",
+        "seal": "static/chars/char-0682-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cūn"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，寸声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "地名。从木寸聲。",
+        "translation": "村，地名。形旁为木，声旁为寸。"
+      },
+      "semantics": {
+        "definition": "村庄；乡村",
+        "words": ["村庄", "农村", "村民"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0683",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杖",
+        "traditional": "杖",
+        "seal": "static/chars/char-0683-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhàng"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，丈声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "持也。从木丈聲。",
+        "translation": "杖，手持的棍棒。形旁为木，声旁为丈。"
+      },
+      "semantics": {
+        "definition": "手杖；棍棒；拿着",
+        "words": ["手杖", "拐杖", "杖责"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0684",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杏",
+        "traditional": "杏",
+        "seal": "static/chars/char-0684-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xìng"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从木从口，表示杏树"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "果也。从木，可省聲。",
+        "translation": "杏，果实。从木，可省声。"
+      },
+      "semantics": {
+        "definition": "杏树；杏子",
+        "words": ["杏花", "杏子", "银杏"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0685",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杉",
+        "traditional": "杉",
+        "seal": "static/chars/char-0685-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shān"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，彡声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "木也。从木彡聲。",
+        "translation": "杉，树名。形旁为木，声旁为彡。"
+      },
+      "semantics": {
+        "definition": "杉树，常绿乔木",
+        "words": ["杉树", "水杉", "杉木"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0686",
+      "level": 1,
+      "script_forms": {
+        "simplified": "巫",
+        "traditional": "巫",
+        "seal": "static/chars/char-0686-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wū"
+      },
+      "structure": {
+        "radical_id": "rad-048",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象巫者起舞之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "祝也。女能事無形，以舞降神者也。",
+        "translation": "巫，祝祷者。能以舞蹈降神的人。"
+      },
+      "semantics": {
+        "definition": "巫师；巫术",
+        "words": ["巫师", "巫术", "女巫"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["工部", "常用"]
+      }
+    },
+    {
+      "id": "char-0687",
+      "level": 1,
+      "script_forms": {
+        "simplified": "极",
+        "traditional": "極",
+        "seal": "static/chars/char-0687-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jí"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，及声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "棟也。从木亟聲。",
+        "translation": "极，栋梁。形旁为木，声旁为亟。"
+      },
+      "semantics": {
+        "definition": "顶点；极限；非常",
+        "words": ["极限", "极点", "积极"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0688",
+      "level": 1,
+      "script_forms": {
+        "simplified": "李",
+        "traditional": "李",
+        "seal": "static/chars/char-0688-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lǐ"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，子声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "果也。从木子聲。",
+        "translation": "李，果实。形旁为木，声旁为子。"
+      },
+      "semantics": {
+        "definition": "李树；李子；姓氏",
+        "words": ["李子", "李树", "桃李"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0689",
+      "level": 1,
+      "script_forms": {
+        "simplified": "杨",
+        "traditional": "楊",
+        "seal": "static/chars/char-0689-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yáng"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，昜声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "木也。从木昜聲。",
+        "translation": "杨，树名。形旁为木，声旁为昜。"
+      },
+      "semantics": {
+        "definition": "杨树；姓氏",
+        "words": ["杨树", "杨柳", "白杨"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0690",
+      "level": 1,
+      "script_forms": {
+        "simplified": "求",
+        "traditional": "求",
+        "seal": "static/chars/char-0690-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qiú"
+      },
+      "structure": {
+        "radical_id": "rad-006",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象兽皮有毛之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "皮衣也。象形。",
+        "translation": "求，皮衣。象形。"
+      },
+      "semantics": {
+        "definition": "请求；寻求；追求",
+        "words": ["要求", "追求", "求助"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0691",
+      "level": 1,
+      "script_forms": {
+        "simplified": "甫",
+        "traditional": "甫",
+        "seal": "static/chars/char-0691-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fǔ"
+      },
+      "structure": {
+        "radical_id": "rad-001",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象田中有苗之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "男子美稱也。从用父。",
+        "translation": "甫，男子的美称。从用，父声。"
+      },
+      "semantics": {
+        "definition": "古代男子美称；刚刚",
+        "words": ["台甫", "甫定"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0692",
+      "level": 1,
+      "script_forms": {
+        "simplified": "匣",
+        "traditional": "匣",
+        "seal": "static/chars/char-0692-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xiá"
+      },
+      "structure": {
+        "radical_id": "rad-023",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从匚，甲声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "匱也。从匚甲聲。",
+        "translation": "匣，匣子。形旁为匚，声旁为甲。"
+      },
+      "semantics": {
+        "definition": "装东西的小盒子",
+        "words": ["匣子", "镜匣", "木匣"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["匚部", "常用"]
+      }
+    },
+    {
+      "id": "char-0693",
+      "level": 1,
+      "script_forms": {
+        "simplified": "更",
+        "traditional": "更",
+        "seal": "static/chars/char-0693-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gèng"
+      },
+      "structure": {
+        "radical_id": "rad-001",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "会意",
+        "liushu_detail": "从攴从丙，表示更改"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "改也。从攴丙聲。",
+        "translation": "更，改变。从攴，丙声。"
+      },
+      "semantics": {
+        "definition": "改变；更加；夜间计时单位",
+        "words": ["更加", "更换", "三更"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0694",
+      "level": 1,
+      "script_forms": {
+        "simplified": "束",
+        "traditional": "束",
+        "seal": "static/chars/char-0694-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shù"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象捆扎木柴之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "縛也。从囗木。",
+        "translation": "束，捆缚。从囗、木。"
+      },
+      "semantics": {
+        "definition": "捆绑；量词；控制",
+        "words": ["束缚", "一束", "结束"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0695",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吾",
+        "traditional": "吾",
+        "seal": "static/chars/char-0695-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wú"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，五声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "我，自稱也。从口五聲。",
+        "translation": "吾，我，自称。形旁为口，声旁为五。"
+      },
+      "semantics": {
+        "definition": "我，第一人称代词",
+        "words": ["吾辈", "吾人", "吾国"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0696",
+      "level": 1,
+      "script_forms": {
+        "simplified": "豆",
+        "traditional": "豆",
+        "seal": "static/chars/char-0696-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dòu"
+      },
+      "structure": {
+        "radical_id": "rad-151",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象古代食器之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "古食肉器也。从口，象形。",
+        "translation": "豆，古代盛肉食的器皿。从口，象形。"
+      },
+      "semantics": {
+        "definition": "豆类植物；古代食器",
+        "words": ["大豆", "豆子", "豆腐"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["豆部", "常用"]
+      }
+    },
+    {
+      "id": "char-0697",
+      "level": 1,
+      "script_forms": {
+        "simplified": "两",
+        "traditional": "兩",
+        "seal": "static/chars/char-0697-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "liǎng"
+      },
+      "structure": {
+        "radical_id": "rad-001",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象两物并立之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "二十四銖為一兩。从一㒳。",
+        "translation": "两，二十四铢为一两。从一，㒳声。"
+      },
+      "semantics": {
+        "definition": "数字二；双方；重量单位",
+        "words": ["两个", "两边", "两全"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0698",
+      "level": 1,
+      "script_forms": {
+        "simplified": "酉",
+        "traditional": "酉",
+        "seal": "static/chars/char-0698-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yǒu"
+      },
+      "structure": {
+        "radical_id": "rad-164",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象酒坛之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "就也。八月黍成，可為酎酒。象古文酉之形。",
+        "translation": "酉，成就。八月黍成熟，可酿酎酒。象古文酉之形。"
+      },
+      "semantics": {
+        "definition": "地支第十位；酒器",
+        "words": ["酉时", "酉鸡"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["酉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0699",
+      "level": 1,
+      "script_forms": {
+        "simplified": "丽",
+        "traditional": "麗",
+        "seal": "static/chars/char-0699-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lì"
+      },
+      "structure": {
+        "radical_id": "rad-001",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从鹿，丽声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "旅行也。鹿之性，見食急則必旅行。从鹿麗聲。",
+        "translation": "丽，成群旅行。鹿的习性，见食物急则必成群旅行。从鹿，麗声。"
+      },
+      "semantics": {
+        "definition": "美丽；附着；成对",
+        "words": ["美丽", "秀丽", "丽日"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0700",
+      "level": 1,
+      "script_forms": {
+        "simplified": "医",
+        "traditional": "醫",
+        "seal": "static/chars/char-0700-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yī"
+      },
+      "structure": {
+        "radical_id": "rad-023",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从匚从矢，表示医者"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "治病工也。从酉，殹聲。",
+        "translation": "医，治病的人。从酉，殹声。"
+      },
+      "semantics": {
+        "definition": "医生；医学；治疗",
+        "words": ["医生", "医院", "医术"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["匚部", "常用"]
+      }
+    },
+    {
+      "id": "char-0701",
+      "level": 1,
+      "script_forms": {
+        "simplified": "辰",
+        "traditional": "辰",
+        "seal": "static/chars/char-0701-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chén"
+      },
+      "structure": {
+        "radical_id": "rad-161",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象蚌壳之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "震也。三月，陽气動，靁電振，民農時也。从乙，象芒達。",
+        "translation": "辰，震动。三月阳气动，雷电振，是农民农耕之时。从乙，象芒达。"
+      },
+      "semantics": {
+        "definition": "地支第五位；时辰；星辰",
+        "words": ["时辰", "生辰", "星辰"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辰部", "常用"]
+      }
+    },
+    {
+      "id": "char-0702",
+      "level": 1,
+      "script_forms": {
+        "simplified": "励",
+        "traditional": "勵",
+        "seal": "static/chars/char-0702-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lì"
+      },
+      "structure": {
+        "radical_id": "rad-019",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从力，厉声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "勉力也。从力厲聲。",
+        "translation": "励，勉力。形旁为力，声旁为厲。"
+      },
+      "semantics": {
+        "definition": "劝勉；激励；磨炼",
+        "words": ["鼓励", "激励", "励志"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["力部", "常用"]
+      }
+    },
+    {
+      "id": "char-0703",
+      "level": 1,
+      "script_forms": {
+        "simplified": "否",
+        "traditional": "否",
+        "seal": "static/chars/char-0703-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fǒu"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从不，表示否定"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "不也。从口从不。",
+        "translation": "否，不。从口，从不。"
+      },
+      "semantics": {
+        "definition": "否定；不然；坏",
+        "words": ["否定", "否认", "是否"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0704",
+      "level": 1,
+      "script_forms": {
+        "simplified": "还",
+        "traditional": "還",
+        "seal": "static/chars/char-0704-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hái"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从辵，不声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "復也。从辵睘聲。",
+        "translation": "还，返回。从辵，睘声。"
+      },
+      "semantics": {
+        "definition": "返回；仍然；更加",
+        "words": ["还有", "归还", "还是"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0705",
+      "level": 1,
+      "script_forms": {
+        "simplified": "尬",
+        "traditional": "尬",
+        "seal": "static/chars/char-0705-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gà"
+      },
+      "structure": {
+        "radical_id": "rad-043",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从尢，介声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "尷尬也。从尢介聲。",
+        "translation": "尬，尴尬。形旁为尢，声旁为介。"
+      },
+      "semantics": {
+        "definition": "尴尬，处境困难",
+        "words": ["尴尬", "尬聊"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["尢部", "常用"]
+      }
+    },
+    {
+      "id": "char-0706",
+      "level": 1,
+      "script_forms": {
+        "simplified": "歼",
+        "traditional": "殲",
+        "seal": "static/chars/char-0706-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiān"
+      },
+      "structure": {
+        "radical_id": "rad-078",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从歹，千声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "微盡也。从歺韱聲。",
+        "translation": "歼，消灭殆尽。形旁为歺，声旁为韱。"
+      },
+      "semantics": {
+        "definition": "歼灭；消灭",
+        "words": ["歼灭", "围歼", "歼敌"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["歹部", "常用"]
+      }
+    },
+    {
+      "id": "char-0707",
+      "level": 1,
+      "script_forms": {
+        "simplified": "来",
+        "traditional": "來",
+        "seal": "static/chars/char-0707-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lái"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象麦子之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "周所受瑞麥來麰。天所來也，故為行來之來。",
+        "translation": "来，周所受瑞麦来麰。天所来，故为行来之来。"
+      },
+      "semantics": {
+        "definition": "到来；未来；将来",
+        "words": ["未来", "出来", "来往"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0708",
+      "level": 1,
+      "script_forms": {
+        "simplified": "连",
+        "traditional": "連",
+        "seal": "static/chars/char-0708-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lián"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从辵从车，表示连接"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "員連也。从辵从車。",
+        "translation": "连，员连。从辵，从车。"
+      },
+      "semantics": {
+        "definition": "连接；连续；联合",
+        "words": ["连接", "连续", "联合"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0709",
+      "level": 1,
+      "script_forms": {
+        "simplified": "轩",
+        "traditional": "軒",
+        "seal": "static/chars/char-0709-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xuān"
+      },
+      "structure": {
+        "radical_id": "rad-159",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从车，干声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "曲輈藩車。从車干聲。",
+        "translation": "轩，曲輈藩车。形旁为車，声旁为干。"
+      },
+      "semantics": {
+        "definition": "古代有围棚的车；高扬；轩昂",
+        "words": ["轩昂", "轩然大波", "轩轾"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["车部", "常用"]
+      }
+    },
+    {
+      "id": "char-0710",
+      "level": 1,
+      "script_forms": {
+        "simplified": "步",
+        "traditional": "步",
+        "seal": "static/chars/char-0710-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bù"
+      },
+      "structure": {
+        "radical_id": "rad-077",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从止从少，表示行走"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "行也。从止少相背。",
+        "translation": "步，行走。从止、少相背。"
+      },
+      "semantics": {
+        "definition": "行走；脚步；步骤",
+        "words": ["步行", "脚步", "步骤"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["止部", "常用"]
+      }
+    },
+    {
+      "id": "char-0711",
+      "level": 1,
+      "script_forms": {
+        "simplified": "卤",
+        "traditional": "鹵",
+        "seal": "static/chars/char-0711-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lǔ"
+      },
+      "structure": {
+        "radical_id": "rad-197",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象盐罐之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "西方鹹地也。从西省，象鹽形。",
+        "translation": "卤，西方的盐碱地。从西省，象盐形。"
+      },
+      "semantics": {
+        "definition": "盐卤；卤水；卤族元素",
+        "words": ["卤水", "卤味", "卤素"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["卤部", "常用"]
+      }
+    },
+    {
+      "id": "char-0712",
+      "level": 1,
+      "script_forms": {
+        "simplified": "坚",
+        "traditional": "堅",
+        "seal": "static/chars/char-0712-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiān"
+      },
+      "structure": {
+        "radical_id": "rad-032",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从土从臤，表示坚固"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "剛也。从臤从土。",
+        "translation": "坚，刚硬。从臤，从土。"
+      },
+      "semantics": {
+        "definition": "坚固；坚强；坚定",
+        "words": ["坚强", "坚定", "坚固"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["土部", "常用"]
+      }
+    },
+    {
+      "id": "char-0713",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肖",
+        "traditional": "肖",
+        "seal": "static/chars/char-0713-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xiào"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从肉，小声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "骨肉相似也。从肉小聲。",
+        "translation": "肖，骨肉相似。从肉，小声。"
+      },
+      "semantics": {
+        "definition": "相似；肖像；姓氏",
+        "words": ["肖像", "生肖", "不肖"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0714",
+      "level": 1,
+      "script_forms": {
+        "simplified": "旱",
+        "traditional": "旱",
+        "seal": "static/chars/char-0714-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hàn"
+      },
+      "structure": {
+        "radical_id": "rad-072",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从日，干声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "不雨也。从日干聲。",
+        "translation": "旱，不下雨。从日，干声。"
+      },
+      "semantics": {
+        "definition": "干旱；陆地",
+        "words": ["干旱", "旱灾", "旱地"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["日部", "常用"]
+      }
+    },
+    {
+      "id": "char-0715",
+      "level": 1,
+      "script_forms": {
+        "simplified": "盯",
+        "traditional": "盯",
+        "seal": "static/chars/char-0715-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dīng"
+      },
+      "structure": {
+        "radical_id": "rad-109",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从目，丁声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "視也。从目丁聲。",
+        "translation": "盯，注视。形旁为目，声旁为丁。"
+      },
+      "semantics": {
+        "definition": "注视；集中视力看",
+        "words": ["盯梢", "盯着", "紧盯"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["目部", "常用"]
+      }
+    },
+    {
+      "id": "char-0716",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呈",
+        "traditional": "呈",
+        "seal": "static/chars/char-0716-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chéng"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，壬声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "平也。从口壬聲。",
+        "translation": "呈，平。从口，壬声。"
+      },
+      "semantics": {
+        "definition": "呈现；呈送；显露",
+        "words": ["呈现", "呈报", "呈请"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0717",
+      "level": 1,
+      "script_forms": {
+        "simplified": "时",
+        "traditional": "時",
+        "seal": "static/chars/char-0717-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shí"
+      },
+      "structure": {
+        "radical_id": "rad-072",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从日，寺声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "四時也。从日寺聲。",
+        "translation": "时，四季。从日，寺声。"
+      },
+      "semantics": {
+        "definition": "时间；时候；时机",
+        "words": ["时间", "时候", "及时"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["日部", "常用"]
+      }
+    },
+    {
+      "id": "char-0718",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吴",
+        "traditional": "吳",
+        "seal": "static/chars/char-0718-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wú"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从夨，表示大声说话"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "姓也。亦郡也。从口夨。",
+        "translation": "吴，姓氏。也是郡名。从口，夨声。"
+      },
+      "semantics": {
+        "definition": "姓氏；古代国名",
+        "words": ["吴国", "吴语", "东吴"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0719",
+      "level": 1,
+      "script_forms": {
+        "simplified": "助",
+        "traditional": "助",
+        "seal": "static/chars/char-0719-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhù"
+      },
+      "structure": {
+        "radical_id": "rad-019",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从力，且声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "左也。从力且聲。",
+        "translation": "助，帮助。形旁为力，声旁为且。"
+      },
+      "semantics": {
+        "definition": "帮助；协助",
+        "words": ["帮助", "助手", "互助"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["力部", "常用"]
+      }
+    },
+    {
+      "id": "char-0720",
+      "level": 1,
+      "script_forms": {
+        "simplified": "县",
+        "traditional": "縣",
+        "seal": "static/chars/char-0720-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xiàn"
+      },
+      "structure": {
+        "radical_id": "rad-120",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从系从县，表示悬挂"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "繫也。从系持倒首。",
+        "translation": "县，悬挂。从系持倒首。"
+      },
+      "semantics": {
+        "definition": "行政区划单位；悬挂",
+        "words": ["县城", "县官", "赤县"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["糸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0721",
+      "level": 1,
+      "script_forms": {
+        "simplified": "里",
+        "traditional": "里",
+        "seal": "static/chars/char-0721-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lǐ"
+      },
+      "structure": {
+        "radical_id": "rad-166",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "会意",
+        "liushu_detail": "从田从土，表示居住之地"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "居也。从田从土。",
+        "translation": "里，居住的地方。从田，从土。"
+      },
+      "semantics": {
+        "definition": "里面；故乡；长度单位",
+        "words": ["里面", "公里", "乡里"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["里部", "常用"]
+      }
+    },
+    {
+      "id": "char-0722",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呆",
+        "traditional": "呆",
+        "seal": "static/chars/char-0722-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dāi"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从木，表示迟钝"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "癡也。从口木聲。",
+        "translation": "呆，痴傻。从口，木声。"
+      },
+      "semantics": {
+        "definition": "迟钝；发愣；停留",
+        "words": ["呆板", "发呆", "呆滞"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0723",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吱",
+        "traditional": "吱",
+        "seal": "static/chars/char-0723-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhī"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，支声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "語也。从口支聲。",
+        "translation": "吱，说话声。形旁为口，声旁为支。"
+      },
+      "semantics": {
+        "definition": "象声词；说话声",
+        "words": ["吱声", "吱吱"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0724",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吠",
+        "traditional": "吠",
+        "seal": "static/chars/char-0724-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fèi"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从犬从口，表示狗叫"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "犬鳴也。从犬口。",
+        "translation": "吠，狗叫。从犬，从口。"
+      },
+      "semantics": {
+        "definition": "狗叫",
+        "words": ["犬吠", "狂吠", "鸡鸣犬吠"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0725",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呕",
+        "traditional": "嘔",
+        "seal": "static/chars/char-0725-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "ǒu"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，区声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "吐也。从口區聲。",
+        "translation": "呕，呕吐。形旁为口，声旁为區。"
+      },
+      "semantics": {
+        "definition": "呕吐；呕心沥血",
+        "words": ["呕吐", "呕心", "作呕"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0726",
+      "level": 1,
+      "script_forms": {
+        "simplified": "园",
+        "traditional": "園",
+        "seal": "static/chars/char-0726-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yuán"
+      },
+      "structure": {
+        "radical_id": "rad-031",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "全包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从囗，元声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "所以樹果也。从囗袁聲。",
+        "translation": "园，种果树的地方。形旁为囗，声旁为袁。"
+      },
+      "semantics": {
+        "definition": "花园；园地；公园",
+        "words": ["花园", "公园", "校园"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["囗部", "常用"]
+      }
+    },
+    {
+      "id": "char-0727",
+      "level": 1,
+      "script_forms": {
+        "simplified": "旷",
+        "traditional": "曠",
+        "seal": "static/chars/char-0727-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kuàng"
+      },
+      "structure": {
+        "radical_id": "rad-072",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从日，广声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "明也。从日廣聲。",
+        "translation": "旷，明朗。形旁为日，声旁为廣。"
+      },
+      "semantics": {
+        "definition": "空旷；开朗；荒废",
+        "words": ["空旷", "旷野", "旷课"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["日部", "常用"]
+      }
+    },
+    {
+      "id": "char-0728",
+      "level": 1,
+      "script_forms": {
+        "simplified": "围",
+        "traditional": "圍",
+        "seal": "static/chars/char-0728-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wéi"
+      },
+      "structure": {
+        "radical_id": "rad-031",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "全包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从囗，韦声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "守也。从囗韋聲。",
+        "translation": "围，守卫。形旁为囗，声旁为韋。"
+      },
+      "semantics": {
+        "definition": "包围；周围；围巾",
+        "words": ["周围", "包围", "围绕"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["囗部", "常用"]
+      }
+    },
+    {
+      "id": "char-0729",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呀",
+        "traditional": "呀",
+        "seal": "static/chars/char-0729-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "ya"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，牙声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "張口也。从口牙聲。",
+        "translation": "呀，张口。形旁为口，声旁为牙。"
+      },
+      "semantics": {
+        "definition": "叹词；语气词",
+        "words": ["哎呀", "呀然"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0730",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吨",
+        "traditional": "噸",
+        "seal": "static/chars/char-0730-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dūn"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，屯声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "重量單位。从口屯聲。",
+        "translation": "吨，重量单位。形旁为口，声旁为屯。"
+      },
+      "semantics": {
+        "definition": "重量单位；吨位",
+        "words": ["吨位", "千吨", "吨公里"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0731",
+      "level": 1,
+      "script_forms": {
+        "simplified": "足",
+        "traditional": "足",
+        "seal": "static/chars/char-0731-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zú"
+      },
+      "structure": {
+        "radical_id": "rad-157",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从止，表示脚"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "人之足也。在下。从止口。",
+        "translation": "足，人的脚。在下。从止，从口。"
+      },
+      "semantics": {
+        "definition": "脚；足够；充足",
+        "words": ["足球", "满足", "充足"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["足部", "常用"]
+      }
+    },
+    {
+      "id": "char-0732",
+      "level": 1,
+      "script_forms": {
+        "simplified": "邮",
+        "traditional": "郵",
+        "seal": "static/chars/char-0732-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yóu"
+      },
+      "structure": {
+        "radical_id": "rad-163",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从邑从垂，表示传递文书"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "境上行書舍。从邑垂。",
+        "translation": "邮，边境上传递文书的舍所。从邑，垂声。"
+      },
+      "semantics": {
+        "definition": "邮寄；邮政；邮票",
+        "words": ["邮政", "邮票", "邮局"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["邑部", "常用"]
+      }
+    },
+    {
+      "id": "char-0733",
+      "level": 1,
+      "script_forms": {
+        "simplified": "男",
+        "traditional": "男",
+        "seal": "static/chars/char-0733-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "nán"
+      },
+      "structure": {
+        "radical_id": "rad-102",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从田从力，表示男子"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "丈夫也。从田从力。言男用力於田也。",
+        "translation": "男，男子。从田，从力。说男子用力于田。"
+      },
+      "semantics": {
+        "definition": "男性；儿子",
+        "words": ["男人", "男性", "男女"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["田部", "常用"]
+      }
+    },
+    {
+      "id": "char-0734",
+      "level": 1,
+      "script_forms": {
+        "simplified": "困",
+        "traditional": "困",
+        "seal": "static/chars/char-0734-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kùn"
+      },
+      "structure": {
+        "radical_id": "rad-031",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "全包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从囗从木，表示困顿"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "故廬也。从木在囗中。",
+        "translation": "困，旧庐。从木在囗中。"
+      },
+      "semantics": {
+        "definition": "困难；困倦；围困",
+        "words": ["困难", "贫困", "困倦"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["囗部", "常用"]
+      }
+    },
+    {
+      "id": "char-0735",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吵",
+        "traditional": "吵",
+        "seal": "static/chars/char-0735-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chǎo"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，少声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "聲也。从口少聲。",
+        "translation": "吵，声音。形旁为口，声旁为少。"
+      },
+      "semantics": {
+        "definition": "吵闹；争吵",
+        "words": ["吵架", "吵闹", "争吵"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0736",
+      "level": 1,
+      "script_forms": {
+        "simplified": "串",
+        "traditional": "串",
+        "seal": "static/chars/char-0736-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chuàn"
+      },
+      "structure": {
+        "radical_id": "rad-001",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象串联之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "穿也。从丨从口。",
+        "translation": "串，贯穿。从丨，从口。"
+      },
+      "semantics": {
+        "definition": "连贯；串通；量词",
+        "words": ["串门", "串联", "一串"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["常用"]
+      }
+    },
+    {
+      "id": "char-0737",
+      "level": 1,
+      "script_forms": {
+        "simplified": "员",
+        "traditional": "員",
+        "seal": "static/chars/char-0737-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yuán"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从贝从口，表示人员"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "物數也。从貝口聲。",
+        "translation": "员，物的数量。从貝，口声。"
+      },
+      "semantics": {
+        "definition": "人员；成员；量词",
+        "words": ["人员", "员工", "队员"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0738",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呐",
+        "traditional": "吶",
+        "seal": "static/chars/char-0738-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "nà"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，内声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "言難也。从口內聲。",
+        "translation": "呐，说话困难。形旁为口，声旁为內。"
+      },
+      "semantics": {
+        "definition": "呐喊；说话迟钝",
+        "words": ["呐喊", "呐呐"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0739",
+      "level": 1,
+      "script_forms": {
+        "simplified": "听",
+        "traditional": "聽",
+        "seal": "static/chars/char-0739-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tīng"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，斤声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "笑貌。从口斤聲。",
+        "translation": "听，笑的样子。形旁为口，声旁为斤。"
+      },
+      "semantics": {
+        "definition": "用耳朵接受声音；听从",
+        "words": ["听见", "听话", "倾听"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0740",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吟",
+        "traditional": "吟",
+        "seal": "static/chars/char-0740-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yín"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，今声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "呻也。从口今聲。",
+        "translation": "吟，呻吟。形旁为口，声旁为今。"
+      },
+      "semantics": {
+        "definition": "吟诵；呻吟；诗歌体裁",
+        "words": ["吟诵", "呻吟", "吟诗"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0741",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吩",
+        "traditional": "吩",
+        "seal": "static/chars/char-0741-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fēn"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，分声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "吩咐也。从口分聲。",
+        "translation": "吩，吩咐。形旁为口，声旁为分。"
+      },
+      "semantics": {
+        "definition": "吩咐，口头指派",
+        "words": ["吩咐", "吩示"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0742",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呛",
+        "traditional": "嗆",
+        "seal": "static/chars/char-0742-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qiāng"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，仓声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "鳥食也。从口倉聲。",
+        "translation": "呛，鸟啄食。形旁为口，声旁为倉。"
+      },
+      "semantics": {
+        "definition": "吃或喝时刺激气管；咳嗽",
+        "words": ["呛水", "呛咳", "呛人"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0743",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吻",
+        "traditional": "吻",
+        "seal": "static/chars/char-0743-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wěn"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，勿声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "口邊也。从口勿聲。",
+        "translation": "吻，嘴唇。形旁为口，声旁为勿。"
+      },
+      "semantics": {
+        "definition": "嘴唇；接吻；吻合",
+        "words": ["亲吻", "吻合", "口吻"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0744",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吹",
+        "traditional": "吹",
+        "seal": "static/chars/char-0744-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chuī"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从欠，表示吹气"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "出气也。从口从欠。",
+        "translation": "吹，出气。从口，从欠。"
+      },
+      "semantics": {
+        "definition": "合拢嘴唇用力出气；吹奏",
+        "words": ["吹牛", "吹风", "吹奏"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0745",
+      "level": 1,
+      "script_forms": {
+        "simplified": "呜",
+        "traditional": "嗚",
+        "seal": "static/chars/char-0745-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wū"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，乌声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "嗚呼也。从口烏聲。",
+        "translation": "呜，呜呼。形旁为口，声旁为烏。"
+      },
+      "semantics": {
+        "definition": "象声词；呜呼",
+        "words": ["呜呼", "呜呜", "呜咽"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0746",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吭",
+        "traditional": "吭",
+        "seal": "static/chars/char-0746-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kēng"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，亢声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "鳥鳴也。从口亢聲。",
+        "translation": "吭，鸟鸣。形旁为口，声旁为亢。"
+      },
+      "semantics": {
+        "definition": "喉咙；出声",
+        "words": ["吭声", "引吭高歌"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0747",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吧",
+        "traditional": "吧",
+        "seal": "static/chars/char-0747-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "ba"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，巴声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "語氣詞。从口巴聲。",
+        "translation": "吧，语气词。形旁为口，声旁为巴。"
+      },
+      "semantics": {
+        "definition": "语气词；酒吧",
+        "words": ["酒吧", "好吧", "吧台"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0748",
+      "level": 1,
+      "script_forms": {
+        "simplified": "邑",
+        "traditional": "邑",
+        "seal": "static/chars/char-0748-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yì"
+      },
+      "structure": {
+        "radical_id": "rad-163",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从囗从卪，表示城邑"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "國也。从囗；先王之制，尊卑有大小，从卪。",
+        "translation": "邑，国。从囗；先王制度，尊卑有大小，从卪。"
+      },
+      "semantics": {
+        "definition": "城市；封地；旧时县",
+        "words": ["城邑", "都邑", "邑人"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["邑部", "常用"]
+      }
+    },
+    {
+      "id": "char-0749",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吼",
+        "traditional": "吼",
+        "seal": "static/chars/char-0749-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hǒu"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，孔声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "牛鳴也。从口孔聲。",
+        "translation": "吼，牛叫。形旁为口，声旁为孔。"
+      },
+      "semantics": {
+        "definition": "兽大声叫；人在愤怒时大声喊",
+        "words": ["怒吼", "吼叫", "咆哮"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0750",
+      "level": 1,
+      "script_forms": {
+        "simplified": "囤",
+        "traditional": "囤",
+        "seal": "static/chars/char-0750-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dùn"
+      },
+      "structure": {
+        "radical_id": "rad-031",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "全包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从囗，屯声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "篅也。从囗屯聲。",
+        "translation": "囤，竹编的盛粮器具。形旁为囗，声旁为屯。"
+      },
+      "semantics": {
+        "definition": "储存粮食的器具；囤积",
+        "words": ["粮囤", "囤积", "囤货"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["囗部", "常用"]
+      }
+    },
+    {
+      "id": "char-0751",
+      "level": 1,
+      "script_forms": {
+        "simplified": "别",
+        "traditional": "別",
+        "seal": "static/chars/char-0751-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bié"
+      },
+      "structure": {
+        "radical_id": "rad-018",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从冎从刀，表示分解"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "分解也。从冎从刀。",
+        "translation": "别，分解。从冎，从刀。"
+      },
+      "semantics": {
+        "definition": "分离；另外；不要",
+        "words": ["别人", "分别", "告别"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["刀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0752",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吮",
+        "traditional": "吮",
+        "seal": "static/chars/char-0752-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shǔn"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，允声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "欶也。从口允聲。",
+        "translation": "吮，吸吮。形旁为口，声旁为允。"
+      },
+      "semantics": {
+        "definition": "聚拢嘴唇吸",
+        "words": ["吮吸", "吸吮", "吮乳"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0753",
+      "level": 1,
+      "script_forms": {
+        "simplified": "岖",
+        "traditional": "嶇",
+        "seal": "static/chars/char-0753-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qū"
+      },
+      "structure": {
+        "radical_id": "rad-046",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从山，区声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "嶇也。从山區聲。",
+        "translation": "岖，崎岖。形旁为山，声旁为區。"
+      },
+      "semantics": {
+        "definition": "崎岖，山路不平",
+        "words": ["崎岖", "岖嵚"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["山部", "常用"]
+      }
+    },
+    {
+      "id": "char-0754",
+      "level": 1,
+      "script_forms": {
+        "simplified": "岗",
+        "traditional": "崗",
+        "seal": "static/chars/char-0754-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gǎng"
+      },
+      "structure": {
+        "radical_id": "rad-046",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从山，冈声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "山脊也。从山岡聲。",
+        "translation": "岗，山脊。形旁为山，声旁为岡。"
+      },
+      "semantics": {
+        "definition": "山脊；岗位；站岗",
+        "words": ["岗位", "站岗", "山岗"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["山部", "常用"]
+      }
+    },
+    {
+      "id": "char-0755",
+      "level": 1,
+      "script_forms": {
+        "simplified": "帐",
+        "traditional": "帳",
+        "seal": "static/chars/char-0755-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhàng"
+      },
+      "structure": {
+        "radical_id": "rad-050",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从巾，长声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "張也。从巾長聲。",
+        "translation": "帐，张开的帷幕。形旁为巾，声旁为長。"
+      },
+      "semantics": {
+        "definition": "帐篷；帐簿；帐目",
+        "words": ["帐篷", "帐目", "蚊帐"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["巾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0756",
+      "level": 1,
+      "script_forms": {
+        "simplified": "财",
+        "traditional": "財",
+        "seal": "static/chars/char-0756-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cái"
+      },
+      "structure": {
+        "radical_id": "rad-154",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从贝，才声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "人所寶也。从貝才聲。",
+        "translation": "财，人所宝爱的。形旁为貝，声旁为才。"
+      },
+      "semantics": {
+        "definition": "钱财；财富；财政",
+        "words": ["财富", "财产", "财政"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["贝部", "常用"]
+      }
+    },
+    {
+      "id": "char-0757",
+      "level": 1,
+      "script_forms": {
+        "simplified": "针",
+        "traditional": "針",
+        "seal": "static/chars/char-0757-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhēn"
+      },
+      "structure": {
+        "radical_id": "rad-167",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从金从十，表示缝纫工具"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "所以縫也。从金咸聲。",
+        "translation": "针，用来缝纫的工具。从金，咸声。"
+      },
+      "semantics": {
+        "definition": "缝纫工具；针状物；注射",
+        "words": ["针线", "打针", "方针"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["金部", "常用"]
+      }
+    },
+    {
+      "id": "char-0758",
+      "level": 1,
+      "script_forms": {
+        "simplified": "钉",
+        "traditional": "釘",
+        "seal": "static/chars/char-0758-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dīng"
+      },
+      "structure": {
+        "radical_id": "rad-167",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从金，丁声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "鍊鉼黃金。从金丁聲。",
+        "translation": "钉，冶炼黄金。形旁为金，声旁为丁。"
+      },
+      "semantics": {
+        "definition": "钉子；钉住；注视",
+        "words": ["钉子", "钉扣子", "钉梢"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["金部", "常用"]
+      }
+    },
+    {
+      "id": "char-0759",
+      "level": 1,
+      "script_forms": {
+        "simplified": "牡",
+        "traditional": "牡",
+        "seal": "static/chars/char-0759-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "mǔ"
+      },
+      "structure": {
+        "radical_id": "rad-093",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从牛从士，表示雄性"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "畜父也。从牛土聲。",
+        "translation": "牡，雄性的牲畜。从牛，土声。"
+      },
+      "semantics": {
+        "definition": "雄性的；牡丹",
+        "words": ["牡丹", "牡牛", "牡蛎"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["牛部", "常用"]
+      }
+    },
+    {
+      "id": "char-0760",
+      "level": 1,
+      "script_forms": {
+        "simplified": "告",
+        "traditional": "告",
+        "seal": "static/chars/char-0760-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gào"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从牛，表示告祭"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "牛觸人，角箸橫木，所以告人也。从口从牛。",
+        "translation": "告，牛触人，角上绑横木，用来告人。从口，从牛。"
+      },
+      "semantics": {
+        "definition": "告诉；报告；宣告",
+        "words": ["告诉", "报告", "公告"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0761",
+      "level": 1,
+      "script_forms": {
+        "simplified": "我",
+        "traditional": "我",
+        "seal": "static/chars/char-0761-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wǒ"
+      },
+      "structure": {
+        "radical_id": "rad-062",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象古代兵器之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "施身自謂也。从戈从手。",
+        "translation": "我，自称。从戈，从手。"
+      },
+      "semantics": {
+        "definition": "第一人称代词",
+        "words": ["我们", "自我", "我国"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["戈部", "常用"]
+      }
+    },
+    {
+      "id": "char-0762",
+      "level": 1,
+      "script_forms": {
+        "simplified": "乱",
+        "traditional": "亂",
+        "seal": "static/chars/char-0762-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "luàn"
+      },
+      "structure": {
+        "radical_id": "rad-005",
+        "radical_extra_strokes": 6,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从乙从𤔔，表示混乱"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "治也。从乙，乙，治之也。",
+        "translation": "乱，治理。从乙，乙表示治理。"
+      },
+      "semantics": {
+        "definition": "混乱；胡乱；战乱",
+        "words": ["混乱", "杂乱", "战乱"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["乙部", "常用"]
+      }
+    },
+    {
+      "id": "char-0763",
+      "level": 1,
+      "script_forms": {
+        "simplified": "利",
+        "traditional": "利",
+        "seal": "static/chars/char-0763-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lì"
+      },
+      "structure": {
+        "radical_id": "rad-018",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从刀从禾，表示锋利"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "銛也。从刀，和然後利，从和省。",
+        "translation": "利，锋利。从刀，和然后利，从和省。"
+      },
+      "semantics": {
+        "definition": "锋利；利益；利润",
+        "words": ["利益", "利润", "顺利"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["刀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0764",
+      "level": 1,
+      "script_forms": {
+        "simplified": "秃",
+        "traditional": "禿",
+        "seal": "static/chars/char-0764-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tū"
+      },
+      "structure": {
+        "radical_id": "rad-115",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "象形",
+        "liushu_detail": "从人从禾，表示发少"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "無髮也。从人，上象禾粟之形。",
+        "translation": "秃，没有头发。从人，上象禾粟之形。"
+      },
+      "semantics": {
+        "definition": "没有头发；光秃；脱落",
+        "words": ["秃头", "光秃", "秃顶"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["禾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0765",
+      "level": 1,
+      "script_forms": {
+        "simplified": "秀",
+        "traditional": "秀",
+        "seal": "static/chars/char-0765-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xiù"
+      },
+      "structure": {
+        "radical_id": "rad-115",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从禾从乃，表示禾吐穗"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "上諱。漢光武帝名也。",
+        "translation": "秀，避讳。汉光武帝的名字。"
+      },
+      "semantics": {
+        "definition": "秀丽；优秀；植物抽穗",
+        "words": ["秀丽", "优秀", "秀气"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["禾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0766",
+      "level": 1,
+      "script_forms": {
+        "simplified": "私",
+        "traditional": "私",
+        "seal": "static/chars/char-0766-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "sī"
+      },
+      "structure": {
+        "radical_id": "rad-115",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从禾，厶声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "禾也。从禾厶聲。北道名禾主人曰私主人。",
+        "translation": "私，禾。从禾，厶声。北道称禾主人为私主人。"
+      },
+      "semantics": {
+        "definition": "私人的；自私；秘密",
+        "words": ["私人", "自私", "私事"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["禾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0767",
+      "level": 1,
+      "script_forms": {
+        "simplified": "每",
+        "traditional": "每",
+        "seal": "static/chars/char-0767-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "měi"
+      },
+      "structure": {
+        "radical_id": "rad-080",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从屮从母，表示草盛"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "艸盛上出也。从屮母聲。",
+        "translation": "每，草茂盛上出。从屮，母声。"
+      },
+      "semantics": {
+        "definition": "每个；每次；常常",
+        "words": ["每天", "每次", "每每"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["毋部", "常用"]
+      }
+    },
+    {
+      "id": "char-0768",
+      "level": 1,
+      "script_forms": {
+        "simplified": "兵",
+        "traditional": "兵",
+        "seal": "static/chars/char-0768-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bīng"
+      },
+      "structure": {
+        "radical_id": "rad-012",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从廾从斤，表示兵器"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "械也。从廾持斤，并力之貌。",
+        "translation": "兵，兵器。从廾持斤，并力的样子。"
+      },
+      "semantics": {
+        "definition": "士兵；军队；武器",
+        "words": ["士兵", "军队", "兵器"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["八部", "常用"]
+      }
+    },
+    {
+      "id": "char-0769",
+      "level": 1,
+      "script_forms": {
+        "simplified": "估",
+        "traditional": "估",
+        "seal": "static/chars/char-0769-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gū"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，古声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "市也。从人古聲。",
+        "translation": "估，市场。从人，古声。"
+      },
+      "semantics": {
+        "definition": "估计；估价；低估",
+        "words": ["估计", "估价", "低估"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0770",
+      "level": 1,
+      "script_forms": {
+        "simplified": "体",
+        "traditional": "體",
+        "seal": "static/chars/char-0770-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tǐ"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，本声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "總十二屬也。从骨豊聲。",
+        "translation": "体，总十二属。从骨，豊声。"
+      },
+      "semantics": {
+        "definition": "身体；物体；体制",
+        "words": ["身体", "物体", "体育"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0771",
+      "level": 1,
+      "script_forms": {
+        "simplified": "何",
+        "traditional": "何",
+        "seal": "static/chars/char-0771-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hé"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，可声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "儋也。从人可聲。",
+        "translation": "何，担负。从人，可声。"
+      },
+      "semantics": {
+        "definition": "疑问代词；多么；姓氏",
+        "words": ["什么", "何时", "何如"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0772",
+      "level": 1,
+      "script_forms": {
+        "simplified": "佐",
+        "traditional": "佐",
+        "seal": "static/chars/char-0772-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zuǒ"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，左声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "手相左助也。从人左聲。",
+        "translation": "佐，用手帮助。从人，左声。"
+      },
+      "semantics": {
+        "definition": "辅助；帮助；佐证",
+        "words": ["佐助", "辅佐", "佐证"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0773",
+      "level": 1,
+      "script_forms": {
+        "simplified": "佑",
+        "traditional": "佑",
+        "seal": "static/chars/char-0773-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yòu"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，右声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "助也。从人右聲。",
+        "translation": "佑，帮助。从人，右声。"
+      },
+      "semantics": {
+        "definition": "保佑；辅助",
+        "words": ["保佑", "佑护", "天佑"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0774",
+      "level": 1,
+      "script_forms": {
+        "simplified": "但",
+        "traditional": "但",
+        "seal": "static/chars/char-0774-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dàn"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，旦声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "裼也。从人旦聲。",
+        "translation": "但，脱衣露出上身。从人，旦声。"
+      },
+      "semantics": {
+        "definition": "但是；只；仅",
+        "words": ["但是", "不但", "但愿"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0775",
+      "level": 1,
+      "script_forms": {
+        "simplified": "伸",
+        "traditional": "伸",
+        "seal": "static/chars/char-0775-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shēn"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，申声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "屈伸。从人申聲。",
+        "translation": "伸，屈伸。从人，申声。"
+      },
+      "semantics": {
+        "definition": "伸展；伸直；伸张",
+        "words": ["伸手", "伸展", "延伸"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0776",
+      "level": 1,
+      "script_forms": {
+        "simplified": "佃",
+        "traditional": "佃",
+        "seal": "static/chars/char-0776-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "diàn"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，田声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "中也。从人田聲。",
+        "translation": "佃，中间。从人，田声。"
+      },
+      "semantics": {
+        "definition": "租种田地；佃户",
+        "words": ["佃户", "佃农", "佃租"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0777",
+      "level": 1,
+      "script_forms": {
+        "simplified": "作",
+        "traditional": "作",
+        "seal": "static/chars/char-0777-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zuò"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，乍声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "起也。从人乍聲。",
+        "translation": "作，起。从人，乍声。"
+      },
+      "semantics": {
+        "definition": "工作；制作；作为",
+        "words": ["工作", "作用", "作业"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0778",
+      "level": 1,
+      "script_forms": {
+        "simplified": "伯",
+        "traditional": "伯",
+        "seal": "static/chars/char-0778-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bó"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，白声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "長也。从人白聲。",
+        "translation": "伯，长者。从人，白声。"
+      },
+      "semantics": {
+        "definition": "伯父；兄弟排行第一；伯爵",
+        "words": ["伯父", "伯仲", "伯爵"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0779",
+      "level": 1,
+      "script_forms": {
+        "simplified": "伶",
+        "traditional": "伶",
+        "seal": "static/chars/char-0779-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "líng"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，令声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "弄也。从人令聲。",
+        "translation": "伶，戏弄。从人，令声。"
+      },
+      "semantics": {
+        "definition": "伶人；伶俐；孤单",
+        "words": ["伶俐", "伶人", "伶仃"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0780",
+      "level": 1,
+      "script_forms": {
+        "simplified": "佣",
+        "traditional": "傭",
+        "seal": "static/chars/char-0780-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yōng"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，用声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "均也。从人庸聲。",
+        "translation": "佣，均等。从人，庸声。"
+      },
+      "semantics": {
+        "definition": "雇佣；佣人；佣金",
+        "words": ["佣人", "雇佣", "佣金"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0781",
+      "level": 1,
+      "script_forms": {
+        "simplified": "低",
+        "traditional": "低",
+        "seal": "static/chars/char-0781-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dī"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，氐声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "下也。从人氐聲。",
+        "translation": "低，低下。从人，氐声。"
+      },
+      "semantics": {
+        "definition": "低矮；低落；低下",
+        "words": ["低头", "高低", "降低"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0782",
+      "level": 1,
+      "script_forms": {
+        "simplified": "你",
+        "traditional": "你",
+        "seal": "static/chars/char-0782-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "nǐ"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，尔声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "汝也。从人爾聲。",
+        "translation": "你，你。从人，爾声。"
+      },
+      "semantics": {
+        "definition": "第二人称代词",
+        "words": ["你们", "你好", "你我"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0783",
+      "level": 1,
+      "script_forms": {
+        "simplified": "住",
+        "traditional": "住",
+        "seal": "static/chars/char-0783-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhù"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，主声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "止也。从人主聲。",
+        "translation": "住，停留。从人，主声。"
+      },
+      "semantics": {
+        "definition": "居住；停止；住手",
+        "words": ["居住", "住宅", "住手"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0784",
+      "level": 1,
+      "script_forms": {
+        "simplified": "位",
+        "traditional": "位",
+        "seal": "static/chars/char-0784-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wèi"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从人从立，表示位置"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "列中庭之左右謂之位。从人立。",
+        "translation": "位，朝廷左右排列的位置。从人，立声。"
+      },
+      "semantics": {
+        "definition": "位置；地位；单位",
+        "words": ["位置", "地位", "单位"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0785",
+      "level": 1,
+      "script_forms": {
+        "simplified": "伴",
+        "traditional": "伴",
+        "seal": "static/chars/char-0785-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bàn"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，半声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "大貌。从人半聲。",
+        "translation": "伴，大的样子。从人，半声。"
+      },
+      "semantics": {
+        "definition": "同伴；陪伴；伴侣",
+        "words": ["同伴", "陪伴", "伙伴"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0786",
+      "level": 1,
+      "script_forms": {
+        "simplified": "身",
+        "traditional": "身",
+        "seal": "static/chars/char-0786-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shēn"
+      },
+      "structure": {
+        "radical_id": "rad-158",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象人身之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "躳也。象人之身。",
+        "translation": "身，身体。象人的身体。"
+      },
+      "semantics": {
+        "definition": "身体；自身；身份",
+        "words": ["身体", "自身", "身份"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["身部", "常用"]
+      }
+    },
+    {
+      "id": "char-0787",
+      "level": 1,
+      "script_forms": {
+        "simplified": "皂",
+        "traditional": "皂",
+        "seal": "static/chars/char-0787-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zào"
+      },
+      "structure": {
+        "radical_id": "rad-106",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "象形",
+        "liushu_detail": "象皂斗之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "皂斗，櫟實也。从艸早聲。",
+        "translation": "皂，皂斗，栎树的果实。从艸，早声。"
+      },
+      "semantics": {
+        "definition": "黑色；肥皂；皂角",
+        "words": ["肥皂", "皂白", "香皂"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["白部", "常用"]
+      }
+    },
+    {
+      "id": "char-0788",
+      "level": 1,
+      "script_forms": {
+        "simplified": "伺",
+        "traditional": "伺",
+        "seal": "static/chars/char-0788-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cì"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，司声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "望也。从人司聲。",
+        "translation": "伺，观察。从人，司声。"
+      },
+      "semantics": {
+        "definition": "观察；伺候；伺机",
+        "words": ["伺候", "伺机", "窥伺"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0789",
+      "level": 1,
+      "script_forms": {
+        "simplified": "佛",
+        "traditional": "佛",
+        "seal": "static/chars/char-0789-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fó"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，弗声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "仿佛也。从人弗聲。",
+        "translation": "佛，仿佛。从人，弗声。"
+      },
+      "semantics": {
+        "definition": "佛陀；佛教；佛像",
+        "words": ["佛教", "佛像", "佛寺"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0790",
+      "level": 1,
+      "script_forms": {
+        "simplified": "囱",
+        "traditional": "囱",
+        "seal": "static/chars/char-0790-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cōng"
+      },
+      "structure": {
+        "radical_id": "rad-031",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "全包围结构",
+        "liushu": "象形",
+        "liushu_detail": "象窗形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "在牆曰牖，在屋曰囱。象形。",
+        "translation": "囱，在墙上的叫牖，在屋顶的叫囱。象形。"
+      },
+      "semantics": {
+        "definition": "烟囱；窗户",
+        "words": ["烟囱", "囱门"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["囗部", "常用"]
+      }
+    },
+    {
+      "id": "char-0791",
+      "level": 1,
+      "script_forms": {
+        "simplified": "近",
+        "traditional": "近",
+        "seal": "static/chars/char-0791-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jìn"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从辵，斤声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "附也。从辵斤聲。",
+        "translation": "近，附近。从辵，斤声。"
+      },
+      "semantics": {
+        "definition": "距离短；接近；亲近",
+        "words": ["附近", "接近", "亲近"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0792",
+      "level": 1,
+      "script_forms": {
+        "simplified": "彻",
+        "traditional": "徹",
+        "seal": "static/chars/char-0792-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chè"
+      },
+      "structure": {
+        "radical_id": "rad-060",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从彳从切，表示通彻"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "通也。从彳从攴从育。",
+        "translation": "彻，通达。从彳，从攴，从育。"
+      },
+      "semantics": {
+        "definition": "彻底；通彻；贯彻",
+        "words": ["彻底", "透彻", "贯彻"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["彳部", "常用"]
+      }
+    },
+    {
+      "id": "char-0793",
+      "level": 1,
+      "script_forms": {
+        "simplified": "役",
+        "traditional": "役",
+        "seal": "static/chars/char-0793-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yì"
+      },
+      "structure": {
+        "radical_id": "rad-060",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从彳从殳，表示服役"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "戍邊也。从殳从彳。",
+        "translation": "役，戍守边疆。从殳，从彳。"
+      },
+      "semantics": {
+        "definition": "役使；兵役；战役",
+        "words": ["服役", "战役", "劳役"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["彳部", "常用"]
+      }
+    },
+    {
+      "id": "char-0794",
+      "level": 1,
+      "script_forms": {
+        "simplified": "返",
+        "traditional": "返",
+        "seal": "static/chars/char-0794-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fǎn"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从辵，反声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "還也。从辵反聲。",
+        "translation": "返，返回。从辵，反声。"
+      },
+      "semantics": {
+        "definition": "返回；归还；往返",
+        "words": ["返回", "往返", "返还"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0795",
+      "level": 1,
+      "script_forms": {
+        "simplified": "余",
+        "traditional": "余",
+        "seal": "static/chars/char-0795-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yú"
+      },
+      "structure": {
+        "radical_id": "rad-009",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从人，舍省声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "語之舒也。从八，舍省聲。",
+        "translation": "余，语气的舒缓。从八，舍省声。"
+      },
+      "semantics": {
+        "definition": "我；剩余；姓氏",
+        "words": ["余下", "剩余", "业余"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["人部", "常用"]
+      }
+    },
+    {
+      "id": "char-0796",
+      "level": 1,
+      "script_forms": {
+        "simplified": "希",
+        "traditional": "希",
+        "seal": "static/chars/char-0796-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xī"
+      },
+      "structure": {
+        "radical_id": "rad-050",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从爻从巾，表示稀少"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "罕也。从爻从巾。",
+        "translation": "希，稀少。从爻，从巾。"
+      },
+      "semantics": {
+        "definition": "希望；稀少；希腊",
+        "words": ["希望", "希奇", "希腊"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["巾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0797",
+      "level": 1,
+      "script_forms": {
+        "simplified": "坐",
+        "traditional": "坐",
+        "seal": "static/chars/char-0797-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zuò"
+      },
+      "structure": {
+        "radical_id": "rad-032",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从土从二人，表示坐下"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "止也。从土，从畱省。",
+        "translation": "坐，止息。从土，从畱省。"
+      },
+      "semantics": {
+        "definition": "坐下；乘坐；座位",
+        "words": ["坐下", "乘坐", "坐标"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["土部", "常用"]
+      }
+    },
+    {
+      "id": "char-0798",
+      "level": 1,
+      "script_forms": {
+        "simplified": "谷",
+        "traditional": "谷",
+        "seal": "static/chars/char-0798-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gǔ"
+      },
+      "structure": {
+        "radical_id": "rad-150",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从水从口，表示山谷"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "泉出通川為谷。从水半見，出於口。",
+        "translation": "谷，泉水流出通向山川为谷。从水半见，出于口。"
+      },
+      "semantics": {
+        "definition": "山谷；谷物；姓氏",
+        "words": ["山谷", "谷物", "谷子"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["谷部", "常用"]
+      }
+    },
+    {
+      "id": "char-0799",
+      "level": 1,
+      "script_forms": {
+        "simplified": "妥",
+        "traditional": "妥",
+        "seal": "static/chars/char-0799-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tuǒ"
+      },
+      "structure": {
+        "radical_id": "rad-038",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从爪从女，表示安抚"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "安也。从爪女。",
+        "translation": "妥，安定。从爪，从女。"
+      },
+      "semantics": {
+        "definition": "妥当；妥善；妥协",
+        "words": ["妥当", "妥善", "妥协"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["女部", "常用"]
+      }
+    },
+    {
+      "id": "char-0800",
+      "level": 1,
+      "script_forms": {
+        "simplified": "含",
+        "traditional": "含",
+        "seal": "static/chars/char-0800-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hán"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，今声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "嗛也。从口今聲。",
+        "translation": "含，含在嘴里。从口，今声。"
+      },
+      "semantics": {
+        "definition": "包含；含在嘴里；含蓄",
+        "words": ["包含", "含义", "含蓄"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0801",
+      "level": 1,
+      "script_forms": {
+        "simplified": "邻",
+        "traditional": "鄰",
+        "seal": "static/chars/char-0801-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lín"
+      },
+      "structure": {
+        "radical_id": "rad-163",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从邑，粦声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "五家為鄰。从邑粦聲。",
+        "translation": "邻，五家为邻。从邑，粦声。"
+      },
+      "semantics": {
+        "definition": "邻居；邻近；邻国",
+        "words": ["邻居", "邻近", "邻国"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["邑部", "常用"]
+      }
+    },
+    {
+      "id": "char-0802",
+      "level": 1,
+      "script_forms": {
+        "simplified": "岔",
+        "traditional": "岔",
+        "seal": "static/chars/char-0802-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chà"
+      },
+      "structure": {
+        "radical_id": "rad-046",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从山从分，表示岔路"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "山分也。从山分聲。",
+        "translation": "岔，山脉分歧。从山，分声。"
+      },
+      "semantics": {
+        "definition": "岔路；岔开；事故",
+        "words": ["岔路", "岔开", "岔子"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["山部", "常用"]
+      }
+    },
+    {
+      "id": "char-0803",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肝",
+        "traditional": "肝",
+        "seal": "static/chars/char-0803-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gān"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从肉，干声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "木藏也。从肉干聲。",
+        "translation": "肝，木脏。从肉，干声。"
+      },
+      "semantics": {
+        "definition": "肝脏；肝胆",
+        "words": ["肝脏", "心肝", "肝胆"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0804",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肛",
+        "traditional": "肛",
+        "seal": "static/chars/char-0804-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gāng"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从肉，工声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "胛也。从肉工聲。",
+        "translation": "肛，肛门。从肉，工声。"
+      },
+      "semantics": {
+        "definition": "肛门；肛肠",
+        "words": ["肛门", "肛肠", "肛裂"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0805",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肚",
+        "traditional": "肚",
+        "seal": "static/chars/char-0805-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dù"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从肉，土声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "腹也。从肉土聲。",
+        "translation": "肚，腹部。从肉，土声。"
+      },
+      "semantics": {
+        "definition": "肚子；腹部",
+        "words": ["肚子", "肚皮", "肚量"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0806",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肘",
+        "traditional": "肘",
+        "seal": "static/chars/char-0806-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhǒu"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从肉从寸，表示肘部"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "臂節也。从肉从寸。",
+        "translation": "肘，手臂的关节。从肉，从寸。"
+      },
+      "semantics": {
+        "definition": "肘部；肘子",
+        "words": ["肘部", "肘子", "掣肘"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0807",
+      "level": 1,
+      "script_forms": {
+        "simplified": "肠",
+        "traditional": "腸",
+        "seal": "static/chars/char-0807-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cháng"
+      },
+      "structure": {
+        "radical_id": "rad-130",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从肉，昜声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "大小腸也。从肉昜聲。",
+        "translation": "肠，大小肠。从肉，昜声。"
+      },
+      "semantics": {
+        "definition": "肠道；心肠",
+        "words": ["肠道", "心肠", "香肠"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["肉部", "常用"]
+      }
+    },
+    {
+      "id": "char-0808",
+      "level": 1,
+      "script_forms": {
+        "simplified": "龟",
+        "traditional": "龜",
+        "seal": "static/chars/char-0808-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "guī"
+      },
+      "structure": {
+        "radical_id": "rad-213",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象龟之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "舊也。外骨內肉者也。从它，龜頭與它頭同。",
+        "translation": "龟，旧。外骨内肉。从它，龟头与它头同。"
+      },
+      "semantics": {
+        "definition": "乌龟；龟甲；龟缩",
+        "words": ["乌龟", "龟甲", "龟缩"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["龟部", "常用"]
+      }
+    },
+    {
+      "id": "char-0809",
+      "level": 1,
+      "script_forms": {
+        "simplified": "甸",
+        "traditional": "甸",
+        "seal": "static/chars/char-0809-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "diàn"
+      },
+      "structure": {
+        "radical_id": "rad-102",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从田从勹，表示王田"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "天子五百里地。从田，包省聲。",
+        "translation": "甸，天子五百里地。从田，包省声。"
+      },
+      "semantics": {
+        "definition": "古代行政区划；郊外",
+        "words": ["甸子", "甸服", "桑干甸"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["田部", "常用"]
+      }
+    },
+    {
+      "id": "char-0810",
+      "level": 1,
+      "script_forms": {
+        "simplified": "免",
+        "traditional": "免",
+        "seal": "static/chars/char-0810-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "miǎn"
+      },
+      "structure": {
+        "radical_id": "rad-010",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从儿从冖，表示脱帽"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "兔逸也。从兔不見足。",
+        "translation": "免，兔逃脱。从兔不见足。"
+      },
+      "semantics": {
+        "definition": "免除；避免；免不了",
+        "words": ["避免", "免除", "免疫"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["儿部", "常用"]
+      }
+    },
+    {
+      "id": "char-0811",
+      "level": 1,
+      "script_forms": {
+        "simplified": "狂",
+        "traditional": "狂",
+        "seal": "static/chars/char-0811-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kuáng"
+      },
+      "structure": {
+        "radical_id": "rad-094",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从犬，王声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "狾犬也。从犬㞷聲。",
+        "translation": "狂，疯狗。从犬，㞷声。"
+      },
+      "semantics": {
+        "definition": "疯狂；狂妄；狂喜",
+        "words": ["疯狂", "狂妄", "狂欢"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["犬部", "常用"]
+      }
+    },
+    {
+      "id": "char-0812",
+      "level": 1,
+      "script_forms": {
+        "simplified": "犹",
+        "traditional": "猶",
+        "seal": "static/chars/char-0812-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yóu"
+      },
+      "structure": {
+        "radical_id": "rad-094",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从犬，酋声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "玃屬。从犬酋聲。",
+        "translation": "犹，猴类。从犬，酋声。"
+      },
+      "semantics": {
+        "definition": "犹如；犹豫；尚且",
+        "words": ["犹如", "犹豫", "记忆犹新"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["犬部", "常用"]
+      }
+    },
+    {
+      "id": "char-0813",
+      "level": 1,
+      "script_forms": {
+        "simplified": "狈",
+        "traditional": "狽",
+        "seal": "static/chars/char-0813-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bèi"
+      },
+      "structure": {
+        "radical_id": "rad-094",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从犬，贝声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "狼屬。从犬貝聲。",
+        "translation": "狈，狼类。从犬，貝声。"
+      },
+      "semantics": {
+        "definition": "传说中的兽名；狼狈",
+        "words": ["狼狈", "狼狈为奸"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["犬部", "常用"]
+      }
+    },
+    {
+      "id": "char-0814",
+      "level": 1,
+      "script_forms": {
+        "simplified": "角",
+        "traditional": "角",
+        "seal": "static/chars/char-0814-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiǎo"
+      },
+      "structure": {
+        "radical_id": "rad-148",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象兽角之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "獸角也。象形。",
+        "translation": "角，兽角。象形。"
+      },
+      "semantics": {
+        "definition": "牛角；角度；角色",
+        "words": ["角度", "角色", "角落"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["角部", "常用"]
+      }
+    },
+    {
+      "id": "char-0815",
+      "level": 1,
+      "script_forms": {
+        "simplified": "删",
+        "traditional": "刪",
+        "seal": "static/chars/char-0815-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shān"
+      },
+      "structure": {
+        "radical_id": "rad-018",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从刀从册，表示删减"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "剟也。从刀从冊。",
+        "translation": "删，削除。从刀，从冊。"
+      },
+      "semantics": {
+        "definition": "删除；删减；删改",
+        "words": ["删除", "删减", "删改"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["刀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0816",
+      "level": 1,
+      "script_forms": {
+        "simplified": "条",
+        "traditional": "條",
+        "seal": "static/chars/char-0816-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tiáo"
+      },
+      "structure": {
+        "radical_id": "rad-075",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，攸声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "小枝也。从木攸聲。",
+        "translation": "条，小枝。从木，攸声。"
+      },
+      "semantics": {
+        "definition": "条状物；条款；条理",
+        "words": ["条件", "条纹", "条理"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["木部", "常用"]
+      }
+    },
+    {
+      "id": "char-0817",
+      "level": 1,
+      "script_forms": {
+        "simplified": "彤",
+        "traditional": "彤",
+        "seal": "static/chars/char-0817-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tóng"
+      },
+      "structure": {
+        "radical_id": "rad-059",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从丹从彡，表示红色"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "丹飾也。从丹从彡。彡，其畫也。",
+        "translation": "彤，丹饰。从丹，从彡。彡，其画。"
+      },
+      "semantics": {
+        "definition": "红色；彤云",
+        "words": ["彤云", "红彤彤", "彤弓"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["丹部", "常用"]
+      }
+    },
+    {
+      "id": "char-0818",
+      "level": 1,
+      "script_forms": {
+        "simplified": "卵",
+        "traditional": "卵",
+        "seal": "static/chars/char-0818-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "luǎn"
+      },
+      "structure": {
+        "radical_id": "rad-026",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "象形",
+        "liushu_detail": "象卵之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "凡物無乳者卵生。象形。",
+        "translation": "卵，凡无乳的动物卵生。象形。"
+      },
+      "semantics": {
+        "definition": "卵子；蛋；卵巢",
+        "words": ["卵子", "产卵", "卵生"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["卩部", "常用"]
+      }
+    },
+    {
+      "id": "char-0819",
+      "level": 1,
+      "script_forms": {
+        "simplified": "灸",
+        "traditional": "灸",
+        "seal": "static/chars/char-0819-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiǔ"
+      },
+      "structure": {
+        "radical_id": "rad-086",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从火，久声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "灼也。从火久聲。",
+        "translation": "灸，灼烧。从火，久声。"
+      },
+      "semantics": {
+        "definition": "中医灸疗法",
+        "words": ["针灸", "艾灸", "灸疗"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["火部", "常用"]
+      }
+    },
+    {
+      "id": "char-0820",
+      "level": 1,
+      "script_forms": {
+        "simplified": "岛",
+        "traditional": "島",
+        "seal": "static/chars/char-0820-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dǎo"
+      },
+      "structure": {
+        "radical_id": "rad-046",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从山，鸟声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "海中往往有山可依止曰島。从山鳥聲。",
+        "translation": "岛，海中往往有山可依止叫岛。从山，鳥声。"
+      },
+      "semantics": {
+        "definition": "岛屿；岛国",
+        "words": ["岛屿", "海岛", "半岛"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["山部", "常用"]
+      }
+    },
+    {
+      "id": "char-0821",
+      "level": 1,
+      "script_forms": {
+        "simplified": "刨",
+        "traditional": "刨",
+        "seal": "static/chars/char-0821-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "páo"
+      },
+      "structure": {
+        "radical_id": "rad-018",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从刀，包声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "剖也。从刀包聲。",
+        "translation": "刨，剖开。从刀，包声。"
+      },
+      "semantics": {
+        "definition": "挖掘；刨子；刨床",
+        "words": ["刨土", "刨子", "刨床"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["刀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0822",
+      "level": 1,
+      "script_forms": {
+        "simplified": "迎",
+        "traditional": "迎",
+        "seal": "static/chars/char-0822-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yíng"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从辵，卬声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "逢也。从辵卬聲。",
+        "translation": "迎，相逢。从辵，卬声。"
+      },
+      "semantics": {
+        "definition": "迎接；迎面；迎合",
+        "words": ["迎接", "欢迎", "迎面"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0823",
+      "level": 1,
+      "script_forms": {
+        "simplified": "饭",
+        "traditional": "飯",
+        "seal": "static/chars/char-0823-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fàn"
+      },
+      "structure": {
+        "radical_id": "rad-184",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从食，反声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "食也。从食反聲。",
+        "translation": "饭，食物。从食，反声。"
+      },
+      "semantics": {
+        "definition": "米饭；饭菜；吃饭",
+        "words": ["米饭", "吃饭", "饭店"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["食部", "常用"]
+      }
+    },
+    {
+      "id": "char-0824",
+      "level": 1,
+      "script_forms": {
+        "simplified": "饮",
+        "traditional": "飲",
+        "seal": "static/chars/char-0824-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yǐn"
+      },
+      "structure": {
+        "radical_id": "rad-184",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从食从欠，表示喝"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "啜也。从欠食聲。",
+        "translation": "饮，喝。从欠，食声。"
+      },
+      "semantics": {
+        "definition": "喝；饮料；饮酒",
+        "words": ["饮水", "饮料", "饮酒"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["食部", "常用"]
+      }
+    },
+    {
+      "id": "char-0825",
+      "level": 1,
+      "script_forms": {
+        "simplified": "系",
+        "traditional": "系",
+        "seal": "static/chars/char-0825-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xì"
+      },
+      "structure": {
+        "radical_id": "rad-120",
+        "radical_extra_strokes": 1,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象丝系之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "縣也。从糸丿聲。",
+        "translation": "系，悬挂。从糸，丿声。"
+      },
+      "semantics": {
+        "definition": "系统；关系；系上",
+        "words": ["系统", "关系", "联系"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["糸部", "常用"]
+      }
+    },
+    {
+      "id": "char-0826",
+      "level": 1,
+      "script_forms": {
+        "simplified": "言",
+        "traditional": "言",
+        "seal": "static/chars/char-0826-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yán"
+      },
+      "structure": {
+        "radical_id": "rad-149",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "形声",
+        "liushu_detail": "从口，䇂声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "直言曰言，論難曰語。从口䇂聲。",
+        "translation": "言，直言叫言，论难叫语。从口，䇂声。"
+      },
+      "semantics": {
+        "definition": "说话；语言；言论",
+        "words": ["语言", "言论", "发言"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["言部", "常用"]
+      }
+    },
+    {
+      "id": "char-0827",
+      "level": 1,
+      "script_forms": {
+        "simplified": "冻",
+        "traditional": "凍",
+        "seal": "static/chars/char-0827-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dòng"
+      },
+      "structure": {
+        "radical_id": "rad-015",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从仌，东声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "仌也。从仌東聲。",
+        "translation": "冻，冰冻。从仌，東声。"
+      },
+      "semantics": {
+        "definition": "冰冻；寒冷；冻僵",
+        "words": ["冰冻", "冻结", "冻僵"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["冫部", "常用"]
+      }
+    },
+    {
+      "id": "char-0828",
+      "level": 1,
+      "script_forms": {
+        "simplified": "状",
+        "traditional": "狀",
+        "seal": "static/chars/char-0828-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhuàng"
+      },
+      "structure": {
+        "radical_id": "rad-094",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从犬，爿声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "犬形也。从犬爿聲。",
+        "translation": "状，狗的形状。从犬，爿声。"
+      },
+      "semantics": {
+        "definition": "状态；形状；状况",
+        "words": ["状态", "形状", "状况"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["犬部", "常用"]
+      }
+    },
+    {
+      "id": "char-0829",
+      "level": 1,
+      "script_forms": {
+        "simplified": "亩",
+        "traditional": "畝",
+        "seal": "static/chars/char-0829-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "mǔ"
+      },
+      "structure": {
+        "radical_id": "rad-008",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从田，每声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "六尺為步，步百為畮。从田每聲。",
+        "translation": "亩，六尺为步，步百为亩。从田，每声。"
+      },
+      "semantics": {
+        "definition": "土地面积单位",
+        "words": ["亩产", "田亩", "英亩"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["亠部", "常用"]
+      }
+    },
+    {
+      "id": "char-0830",
+      "level": 1,
+      "script_forms": {
+        "simplified": "况",
+        "traditional": "況",
+        "seal": "static/chars/char-0830-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kuàng"
+      },
+      "structure": {
+        "radical_id": "rad-015",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，兄声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "寒水也。从水兄聲。",
+        "translation": "况，寒水。从水，兄声。"
+      },
+      "semantics": {
+        "definition": "情况；况且；何况",
+        "words": ["情况", "况且", "何况"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["冫部", "常用"]
+      }
+    },
+    {
+      "id": "char-0831",
+      "level": 1,
+      "script_forms": {
+        "simplified": "床",
+        "traditional": "床",
+        "seal": "static/chars/char-0831-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chuáng"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从木，爿声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "安身之坐者。从木爿聲。",
+        "translation": "床，安身坐卧的家具。从木，爿声。"
+      },
+      "semantics": {
+        "definition": "床铺；床架",
+        "words": ["床铺", "起床", "床单"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0832",
+      "level": 1,
+      "script_forms": {
+        "simplified": "库",
+        "traditional": "庫",
+        "seal": "static/chars/char-0832-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kù"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从广从车，表示车库"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "兵車藏也。从車在广下。",
+        "translation": "库，兵车收藏的地方。从车在广下。"
+      },
+      "semantics": {
+        "definition": "仓库；库房；水库",
+        "words": ["仓库", "库房", "水库"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0833",
+      "level": 1,
+      "script_forms": {
+        "simplified": "庇",
+        "traditional": "庇",
+        "seal": "static/chars/char-0833-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bì"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从广，比声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "蔭也。从广比聲。",
+        "translation": "庇，遮蔽。从广，比声。"
+      },
+      "semantics": {
+        "definition": "庇护；包庇",
+        "words": ["庇护", "包庇", "庇佑"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0834",
+      "level": 1,
+      "script_forms": {
+        "simplified": "疗",
+        "traditional": "療",
+        "seal": "static/chars/char-0834-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "liáo"
+      },
+      "structure": {
+        "radical_id": "rad-104",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从疒，尞声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "治也。从疒樂聲。",
+        "translation": "疗，医治。从疒，樂声。"
+      },
+      "semantics": {
+        "definition": "治疗；疗养；疗效",
+        "words": ["治疗", "疗养", "疗效"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["疒部", "常用"]
+      }
+    },
+    {
+      "id": "char-0835",
+      "level": 1,
+      "script_forms": {
+        "simplified": "吝",
+        "traditional": "吝",
+        "seal": "static/chars/char-0835-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lìn"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从口从文，表示吝啬"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "恨惜也。从口文聲。",
+        "translation": "吝，悔恨可惜。从口，文声。"
+      },
+      "semantics": {
+        "definition": "吝啬；吝惜",
+        "words": ["吝啬", "吝惜", "不吝"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0836",
+      "level": 1,
+      "script_forms": {
+        "simplified": "应",
+        "traditional": "應",
+        "seal": "static/chars/char-0836-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yīng"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，雁声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "當也。从心雁聲。",
+        "translation": "应，应当。从心，雁声。"
+      },
+      "semantics": {
+        "definition": "应该；答应；应用",
+        "words": ["应该", "答应", "应用"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0837",
+      "level": 1,
+      "script_forms": {
+        "simplified": "这",
+        "traditional": "這",
+        "seal": "static/chars/char-0837-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhè"
+      },
+      "structure": {
+        "radical_id": "rad-162",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从辵，言声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "迎也。从辵言聲。",
+        "translation": "这，迎接。从辵，言声。"
+      },
+      "semantics": {
+        "definition": "指示代词；这里",
+        "words": ["这里", "这个", "这些"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辵部", "常用"]
+      }
+    },
+    {
+      "id": "char-0838",
+      "level": 1,
+      "script_forms": {
+        "simplified": "冷",
+        "traditional": "冷",
+        "seal": "static/chars/char-0838-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lěng"
+      },
+      "structure": {
+        "radical_id": "rad-015",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从仌，令声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "寒也。从仌令聲。",
+        "translation": "冷，寒冷。从仌，令声。"
+      },
+      "semantics": {
+        "definition": "寒冷；冷淡；冷静",
+        "words": ["寒冷", "冷静", "冷淡"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["冫部", "常用"]
+      }
+    },
+    {
+      "id": "char-0839",
+      "level": 1,
+      "script_forms": {
+        "simplified": "庐",
+        "traditional": "廬",
+        "seal": "static/chars/char-0839-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lú"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从广，卢声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "寄也。秋冬去，春夏居。从广盧聲。",
+        "translation": "庐，寄居。秋冬离开，春夏居住。从广，盧声。"
+      },
+      "semantics": {
+        "definition": "简陋的房屋；庐舍",
+        "words": ["庐山", "草庐", "庐舍"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0840",
+      "level": 1,
+      "script_forms": {
+        "simplified": "序",
+        "traditional": "序",
+        "seal": "static/chars/char-0840-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xù"
+      },
+      "structure": {
+        "radical_id": "rad-053",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从广，予声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "東西牆也。从广予聲。",
+        "translation": "序，东西墙。从广，予声。"
+      },
+      "semantics": {
+        "definition": "次序；顺序；序言",
+        "words": ["顺序", "次序", "序言"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["广部", "常用"]
+      }
+    },
+    {
+      "id": "char-0841",
+      "level": 1,
+      "script_forms": {
+        "simplified": "辛",
+        "traditional": "辛",
+        "seal": "static/chars/char-0841-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xīn"
+      },
+      "structure": {
+        "radical_id": "rad-160",
+        "radical_extra_strokes": 0,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象刑刀之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "秋時萬物成而孰；金剛，味辛，辛痛即泣出。从一从䇂。",
+        "translation": "辛，秋天万物成熟；金钢，味辛，辛痛就流泪。从一，从䇂。"
+      },
+      "semantics": {
+        "definition": "辣；辛苦；天干第八位",
+        "words": ["辛苦", "辛辣", "辛酸"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["辛部", "常用"]
+      }
+    },
+    {
+      "id": "char-0842",
+      "level": 1,
+      "script_forms": {
+        "simplified": "弃",
+        "traditional": "棄",
+        "seal": "static/chars/char-0842-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qì"
+      },
+      "structure": {
+        "radical_id": "rad-055",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从廾从推，表示抛弃"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "捐也。从廾推弃之，从𠫓。",
+        "translation": "弃，抛弃。从廾推弃之，从𠫓。"
+      },
+      "semantics": {
+        "definition": "抛弃；舍弃；弃权",
+        "words": ["放弃", "抛弃", "弃权"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["廾部", "常用"]
+      }
+    },
+    {
+      "id": "char-0843",
+      "level": 1,
+      "script_forms": {
+        "simplified": "冶",
+        "traditional": "冶",
+        "seal": "static/chars/char-0843-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yě"
+      },
+      "structure": {
+        "radical_id": "rad-015",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从仌，台声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "銷也。从仌台聲。",
+        "translation": "冶，熔炼。从仌，台声。"
+      },
+      "semantics": {
+        "definition": "冶炼；冶金；陶冶",
+        "words": ["冶炼", "冶金", "陶冶"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["冫部", "常用"]
+      }
+    },
+    {
+      "id": "char-0844",
+      "level": 1,
+      "script_forms": {
+        "simplified": "忘",
+        "traditional": "忘",
+        "seal": "static/chars/char-0844-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wàng"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，亡声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "不識也。从心亡聲。",
+        "translation": "忘，不记得。从心，亡声。"
+      },
+      "semantics": {
+        "definition": "忘记；遗忘；忘我",
+        "words": ["忘记", "遗忘", "忘我"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0845",
+      "level": 1,
+      "script_forms": {
+        "simplified": "闰",
+        "traditional": "閏",
+        "seal": "static/chars/char-0845-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "rùn"
+      },
+      "structure": {
+        "radical_id": "rad-169",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从门从王，表示闰月"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "餘分之月，五歲再閏。从王在門中。",
+        "translation": "闰，余分之月，五年再闰。从王在门中。"
+      },
+      "semantics": {
+        "definition": "闰月；闰年",
+        "words": ["闰月", "闰年", "闰日"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["门部", "常用"]
+      }
+    },
+    {
+      "id": "char-0846",
+      "level": 1,
+      "script_forms": {
+        "simplified": "闲",
+        "traditional": "閑",
+        "seal": "static/chars/char-0846-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xián"
+      },
+      "structure": {
+        "radical_id": "rad-169",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从门从木，表示栅栏"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "闌也。从門中有木。",
+        "translation": "闲，栅栏。从门中有木。"
+      },
+      "semantics": {
+        "definition": "空闲；闲散；悠闲",
+        "words": ["空闲", "悠闲", "闲话"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["门部", "常用"]
+      }
+    },
+    {
+      "id": "char-0847",
+      "level": 1,
+      "script_forms": {
+        "simplified": "间",
+        "traditional": "間",
+        "seal": "static/chars/char-0847-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiān"
+      },
+      "structure": {
+        "radical_id": "rad-169",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从门从日，表示缝隙"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "隙也。从門从月。",
+        "translation": "间，缝隙。从门，从月。"
+      },
+      "semantics": {
+        "definition": "中间；空间；间隔",
+        "words": ["中间", "空间", "时间"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["门部", "常用"]
+      }
+    },
+    {
+      "id": "char-0848",
+      "level": 1,
+      "script_forms": {
+        "simplified": "闷",
+        "traditional": "悶",
+        "seal": "static/chars/char-0848-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "mèn"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，门声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "懣也。从心門聲。",
+        "translation": "闷，烦闷。从心，門声。"
+      },
+      "semantics": {
+        "definition": "烦闷；闷热；闷气",
+        "words": ["烦闷", "闷热", "闷气"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0849",
+      "level": 1,
+      "script_forms": {
+        "simplified": "判",
+        "traditional": "判",
+        "seal": "static/chars/char-0849-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "pàn"
+      },
+      "structure": {
+        "radical_id": "rad-018",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从刀，半声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "分也。从刀半聲。",
+        "translation": "判，分开。从刀，半声。"
+      },
+      "semantics": {
+        "definition": "判断；判决；判别",
+        "words": ["判断", "判决", "批判"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["刀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0850",
+      "level": 1,
+      "script_forms": {
+        "simplified": "兑",
+        "traditional": "兌",
+        "seal": "static/chars/char-0850-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "duì"
+      },
+      "structure": {
+        "radical_id": "rad-012",
+        "radical_extra_strokes": 5,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从人从口，表示喜悦"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "說也。从儿㕣聲。",
+        "translation": "兑，喜悦。从儿，㕣声。"
+      },
+      "semantics": {
+        "definition": "兑换；兑现；兑付",
+        "words": ["兑换", "兑现", "兑付"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["八部", "常用"]
+      }
+    },
+    {
+      "id": "char-0851",
+      "level": 1,
+      "script_forms": {
+        "simplified": "灶",
+        "traditional": "灶",
+        "seal": "static/chars/char-0851-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zào"
+      },
+      "structure": {
+        "radical_id": "rad-086",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从火，土声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "炊竈也。从穴，鼀省聲。",
+        "translation": "灶，炊灶。从穴，鼀省声。"
+      },
+      "semantics": {
+        "definition": "灶台；炉灶；灶神",
+        "words": ["灶台", "炉灶", "灶神"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["火部", "常用"]
+      }
+    },
+    {
+      "id": "char-0852",
+      "level": 1,
+      "script_forms": {
+        "simplified": "灿",
+        "traditional": "燦",
+        "seal": "static/chars/char-0852-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "càn"
+      },
+      "structure": {
+        "radical_id": "rad-086",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从火，山声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "燦爛，明也。从火粲聲。",
+        "translation": "灿，灿烂，明亮。从火，粲声。"
+      },
+      "semantics": {
+        "definition": "灿烂；光彩鲜明",
+        "words": ["灿烂", "灿然", "灿灿"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["火部", "常用"]
+      }
+    },
+    {
+      "id": "char-0853",
+      "level": 1,
+      "script_forms": {
+        "simplified": "灼",
+        "traditional": "灼",
+        "seal": "static/chars/char-0853-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhuó"
+      },
+      "structure": {
+        "radical_id": "rad-086",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从火，勺声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "炙也。从火勺聲。",
+        "translation": "灼，炙烤。从火，勺声。"
+      },
+      "semantics": {
+        "definition": "灼热；灼伤；灼见",
+        "words": ["灼热", "灼伤", "灼见"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["火部", "常用"]
+      }
+    },
+    {
+      "id": "char-0854",
+      "level": 1,
+      "script_forms": {
+        "simplified": "弟",
+        "traditional": "弟",
+        "seal": "static/chars/char-0854-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "dì"
+      },
+      "structure": {
+        "radical_id": "rad-057",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象绳束之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "韋束之次弟也。从古文之象。",
+        "translation": "弟，皮绳束物的次第。从古文之象。"
+      },
+      "semantics": {
+        "definition": "弟弟；兄弟；弟子",
+        "words": ["弟弟", "兄弟", "弟子"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["弓部", "常用"]
+      }
+    },
+    {
+      "id": "char-0855",
+      "level": 1,
+      "script_forms": {
+        "simplified": "汪",
+        "traditional": "汪",
+        "seal": "static/chars/char-0855-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wāng"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，王声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "深廣也。从水王聲。",
+        "translation": "汪，深广。从水，王声。"
+      },
+      "semantics": {
+        "definition": "水深广；汪洋；姓氏",
+        "words": ["汪洋", "水汪汪", "汪汪"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0856",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沐",
+        "traditional": "沐",
+        "seal": "static/chars/char-0856-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "mù"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，木声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "濯髮也。从水木聲。",
+        "translation": "沐，洗头发。从水，木声。"
+      },
+      "semantics": {
+        "definition": "洗头发；沐浴；润泽",
+        "words": ["沐浴", "沐雨", "栉风沐雨"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0857",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沛",
+        "traditional": "沛",
+        "seal": "static/chars/char-0857-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "pèi"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，市声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "水。出遼東番汗塞外，西南入海。从水市聲。",
+        "translation": "沛，水名。从水，市声。"
+      },
+      "semantics": {
+        "definition": "充沛；旺盛；沛然",
+        "words": ["充沛", "沛然", "丰沛"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0858",
+      "level": 1,
+      "script_forms": {
+        "simplified": "汰",
+        "traditional": "汰",
+        "seal": "static/chars/char-0858-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "tài"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，太声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "淅㶕也。从水太聲。",
+        "translation": "汰，淘洗。从水，太声。"
+      },
+      "semantics": {
+        "definition": "淘汰；裁汰；汰除",
+        "words": ["淘汰", "裁汰", "汰除"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0859",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沥",
+        "traditional": "瀝",
+        "seal": "static/chars/char-0859-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lì"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，历声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "浚也。从水歷聲。",
+        "translation": "沥，滤。从水，歷声。"
+      },
+      "semantics": {
+        "definition": "液体一滴一滴地落下；沥干",
+        "words": ["沥青", "沥干", "呕心沥血"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0860",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沙",
+        "traditional": "沙",
+        "seal": "static/chars/char-0860-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shā"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从水从少，表示沙粒"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "水散石也。从水从少。",
+        "translation": "沙，水散石。从水，从少。"
+      },
+      "semantics": {
+        "definition": "沙子；沙漠；沙哑",
+        "words": ["沙子", "沙漠", "沙滩"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0861",
+      "level": 1,
+      "script_forms": {
+        "simplified": "汽",
+        "traditional": "汽",
+        "seal": "static/chars/char-0861-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qì"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，气声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "水涸也。从水氣聲。",
+        "translation": "汽，水干涸。从水，氣声。"
+      },
+      "semantics": {
+        "definition": "蒸汽；汽车；汽水",
+        "words": ["蒸汽", "汽车", "汽水"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0862",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沃",
+        "traditional": "沃",
+        "seal": "static/chars/char-0862-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wò"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，夭声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "溉灌也。从水夭聲。",
+        "translation": "沃，灌溉。从水，夭声。"
+      },
+      "semantics": {
+        "definition": "肥沃；沃土；沃野",
+        "words": ["肥沃", "沃土", "沃野"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0863",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沦",
+        "traditional": "淪",
+        "seal": "static/chars/char-0863-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "lún"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，仑声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "小波為淪。从水侖聲。",
+        "translation": "沦，小波纹为沦。从水，侖声。"
+      },
+      "semantics": {
+        "definition": "沉沦；沦落；沦陷",
+        "words": ["沦落", "沦陷", "沉沦"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0864",
+      "level": 1,
+      "script_forms": {
+        "simplified": "汹",
+        "traditional": "洶",
+        "seal": "static/chars/char-0864-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "xiōng"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，匈声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "涌也。从水匈聲。",
+        "translation": "汹，水涌。从水，匈声。"
+      },
+      "semantics": {
+        "definition": "水势汹涌；汹汹",
+        "words": ["汹涌", "汹汹", "气势汹汹"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0865",
+      "level": 1,
+      "script_forms": {
+        "simplified": "泛",
+        "traditional": "泛",
+        "seal": "static/chars/char-0865-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "fàn"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，乏声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "浮也。从水乏聲。",
+        "translation": "泛，漂浮。从水，乏声。"
+      },
+      "semantics": {
+        "definition": "漂浮；广泛；泛泛",
+        "words": ["广泛", "泛滥", "泛舟"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0866",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沧",
+        "traditional": "滄",
+        "seal": "static/chars/char-0866-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "cāng"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，仓声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "寒也。从水倉聲。",
+        "translation": "沧，寒冷。从水，倉声。"
+      },
+      "semantics": {
+        "definition": "沧海；沧桑；沧州",
+        "words": ["沧海", "沧桑", "沧州"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0867",
+      "level": 1,
+      "script_forms": {
+        "simplified": "没",
+        "traditional": "沒",
+        "seal": "static/chars/char-0867-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "méi"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "会意",
+        "liushu_detail": "从水从殳，表示沉没"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "沈也。从水从殳。",
+        "translation": "没，沉没。从水，从殳。"
+      },
+      "semantics": {
+        "definition": "没有；沉没；没收",
+        "words": ["没有", "沉没", "没收"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0868",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沟",
+        "traditional": "溝",
+        "seal": "static/chars/char-0868-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "gōu"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，冓声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "水瀆也。从水冓聲。",
+        "translation": "沟，水沟。从水，冓声。"
+      },
+      "semantics": {
+        "definition": "水沟；沟通；沟壑",
+        "words": ["沟通", "水沟", "沟壑"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0869",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沪",
+        "traditional": "滬",
+        "seal": "static/chars/char-0869-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hù"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，户声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "滬瀆也。从水戶聲。",
+        "translation": "沪，沪渎。从水，戶声。"
+      },
+      "semantics": {
+        "definition": "上海的简称",
+        "words": ["上海", "沪剧", "沪市"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0870",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沈",
+        "traditional": "沈",
+        "seal": "static/chars/char-0870-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "shěn"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，冘声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "陵上滈水也。从水冘聲。",
+        "translation": "沈，陵上滈水。从水，冘声。"
+      },
+      "semantics": {
+        "definition": "姓氏；沉没",
+        "words": ["沈阳", "沈姓", "沈没"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0871",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沉",
+        "traditional": "沉",
+        "seal": "static/chars/char-0871-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chén"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，冘声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "陵上滈水也。从水冘聲。",
+        "translation": "沉，陵上滈水。从水，冘声。"
+      },
+      "semantics": {
+        "definition": "沉没；沉重；沉淀",
+        "words": ["沉淀", "沉重", "沉没"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0872",
+      "level": 1,
+      "script_forms": {
+        "simplified": "沁",
+        "traditional": "沁",
+        "seal": "static/chars/char-0872-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qìn"
+      },
+      "structure": {
+        "radical_id": "rad-085",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从水，心声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "水。出上黨羊頭山，東南入河。从水心聲。",
+        "translation": "沁，水名。从水，心声。"
+      },
+      "semantics": {
+        "definition": "沁水；沁人心脾",
+        "words": ["沁水", "沁人心脾", "沁阳"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["水部", "常用"]
+      }
+    },
+    {
+      "id": "char-0873",
+      "level": 1,
+      "script_forms": {
+        "simplified": "怀",
+        "traditional": "懷",
+        "seal": "static/chars/char-0873-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "huái"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，不声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "念思也。从心褱聲。",
+        "translation": "怀，思念。从心，褱声。"
+      },
+      "semantics": {
+        "definition": "怀念；怀抱；胸怀",
+        "words": ["怀念", "怀抱", "胸怀"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0874",
+      "level": 1,
+      "script_forms": {
+        "simplified": "忧",
+        "traditional": "憂",
+        "seal": "static/chars/char-0874-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "yōu"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，尤声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "愁也。从心尤聲。",
+        "translation": "忧，忧愁。从心，尤声。"
+      },
+      "semantics": {
+        "definition": "忧愁；忧虑；担忧",
+        "words": ["忧愁", "忧虑", "担忧"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0875",
+      "level": 1,
+      "script_forms": {
+        "simplified": "忱",
+        "traditional": "忱",
+        "seal": "static/chars/char-0875-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "chén"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，冘声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "誠也。从心冘聲。",
+        "translation": "忱，真诚。从心，冘声。"
+      },
+      "semantics": {
+        "definition": "真诚；热忱",
+        "words": ["热忱", "忱挚", "赤忱"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0876",
+      "level": 1,
+      "script_forms": {
+        "simplified": "快",
+        "traditional": "快",
+        "seal": "static/chars/char-0876-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "kuài"
+      },
+      "structure": {
+        "radical_id": "rad-061",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从心，夬声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "喜也。从心夬聲。",
+        "translation": "快，喜悦。从心，夬声。"
+      },
+      "semantics": {
+        "definition": "快速；快乐；痛快",
+        "words": ["快乐", "快速", "痛快"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["心部", "常用"]
+      }
+    },
+    {
+      "id": "char-0877",
+      "level": 1,
+      "script_forms": {
+        "simplified": "完",
+        "traditional": "完",
+        "seal": "static/chars/char-0877-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "wán"
+      },
+      "structure": {
+        "radical_id": "rad-040",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从宀，元声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "全也。从宀元聲。",
+        "translation": "完，完全。从宀，元声。"
+      },
+      "semantics": {
+        "definition": "完整；完成；完美",
+        "words": ["完成", "完整", "完美"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["宀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0878",
+      "level": 1,
+      "script_forms": {
+        "simplified": "宋",
+        "traditional": "宋",
+        "seal": "static/chars/char-0878-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "sòng"
+      },
+      "structure": {
+        "radical_id": "rad-040",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从宀从木，表示居所"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "居也。从宀从木。",
+        "translation": "宋，居住。从宀，从木。"
+      },
+      "semantics": {
+        "definition": "朝代名；姓氏",
+        "words": ["宋朝", "宋词", "宋体"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["宀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0879",
+      "level": 1,
+      "script_forms": {
+        "simplified": "宏",
+        "traditional": "宏",
+        "seal": "static/chars/char-0879-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "hóng"
+      },
+      "structure": {
+        "radical_id": "rad-040",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从宀，厷声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "屋深響也。从宀厷聲。",
+        "translation": "宏，屋子深而响。从宀，厷声。"
+      },
+      "semantics": {
+        "definition": "宏大；宏伟；宏观",
+        "words": ["宏伟", "宏大", "宏观"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["宀部", "常用"]
+      }
+    },
+    {
+      "id": "char-0880",
+      "level": 1,
+      "script_forms": {
+        "simplified": "牢",
+        "traditional": "牢",
+        "seal": "static/chars/char-0880-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "láo"
+      },
+      "structure": {
+        "radical_id": "rad-093",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从宀从牛，表示关牲畜的圈"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "閑，養牛馬圈也。从牛，冬省。取其四周帀也。",
+        "translation": "牢，养牛马的圈。从牛，冬省。取其四周匝。"
+      },
+      "semantics": {
+        "definition": "牢固；牢房；牢骚",
+        "words": ["牢固", "监牢", "牢骚"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["牛部", "常用"]
+      }
+    },
+    {
+      "id": "char-0881",
+      "level": 1,
+      "script_forms": {
+        "simplified": "究",
+        "traditional": "究",
+        "seal": "static/chars/char-0881-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "jiū"
+      },
+      "structure": {
+        "radical_id": "rad-116",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从穴，九声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "窮也。从穴九聲。",
+        "translation": "究，穷尽。从穴，九声。"
+      },
+      "semantics": {
+        "definition": "研究；追究；究竟",
+        "words": ["研究", "追究", "究竟"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["穴部", "常用"]
+      }
+    },
+    {
+      "id": "char-0882",
+      "level": 1,
+      "script_forms": {
+        "simplified": "穷",
+        "traditional": "窮",
+        "seal": "static/chars/char-0882-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qióng"
+      },
+      "structure": {
+        "radical_id": "rad-116",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "形声",
+        "liushu_detail": "从穴，躬声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "極也。从穴躬聲。",
+        "translation": "穷，极尽。从穴，躬声。"
+      },
+      "semantics": {
+        "definition": "贫穷；穷尽；穷困",
+        "words": ["贫穷", "穷尽", "无穷"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["穴部", "常用"]
+      }
+    },
+    {
+      "id": "char-0883",
+      "level": 1,
+      "script_forms": {
+        "simplified": "灾",
+        "traditional": "災",
+        "seal": "static/chars/char-0883-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zāi"
+      },
+      "structure": {
+        "radical_id": "rad-086",
+        "radical_extra_strokes": 3,
+        "total_strokes": 7,
+        "layout": "上下结构",
+        "liushu": "会意",
+        "liushu_detail": "从宀从火，表示火灾"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "天火曰災。从宀火。",
+        "translation": "灾，天火叫灾。从宀，从火。"
+      },
+      "semantics": {
+        "definition": "灾害；灾难；灾区",
+        "words": ["灾害", "灾难", "灾区"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["火部", "常用"]
+      }
+    },
+    {
+      "id": "char-0884",
+      "level": 1,
+      "script_forms": {
+        "simplified": "良",
+        "traditional": "良",
+        "seal": "static/chars/char-0884-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "liáng"
+      },
+      "structure": {
+        "radical_id": "rad-138",
+        "radical_extra_strokes": 1,
+        "total_strokes": 7,
+        "layout": "独体结构",
+        "liushu": "象形",
+        "liushu_detail": "象粮器之形"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "善也。从畗省，亡聲。",
+        "translation": "良，善。从畗省，亡声。"
+      },
+      "semantics": {
+        "definition": "良好；优良；善良",
+        "words": ["良好", "优良", "善良"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["艮部", "常用"]
+      }
+    },
+    {
+      "id": "char-0885",
+      "level": 1,
+      "script_forms": {
+        "simplified": "证",
+        "traditional": "證",
+        "seal": "static/chars/char-0885-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "zhèng"
+      },
+      "structure": {
+        "radical_id": "rad-149",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从言，正声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "諫也。从言正聲。",
+        "translation": "证，谏。从言，正声。"
+      },
+      "semantics": {
+        "definition": "证明；证据；证件",
+        "words": ["证明", "证据", "证件"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["言部", "常用"]
+      }
+    },
+    {
+      "id": "char-0886",
+      "level": 1,
+      "script_forms": {
+        "simplified": "启",
+        "traditional": "啟",
+        "seal": "static/chars/char-0886-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "qǐ"
+      },
+      "structure": {
+        "radical_id": "rad-030",
+        "radical_extra_strokes": 4,
+        "total_strokes": 7,
+        "layout": "半包围结构",
+        "liushu": "会意",
+        "liushu_detail": "从户从口，表示开启"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "開也。从戶从口。",
+        "translation": "启，开启。从戶，从口。"
+      },
+      "semantics": {
+        "definition": "启发；启示；启动",
+        "words": ["启发", "启示", "启动"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["口部", "常用"]
+      }
+    },
+    {
+      "id": "char-0887",
+      "level": 1,
+      "script_forms": {
+        "simplified": "评",
+        "traditional": "評",
+        "seal": "static/chars/char-0887-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "píng"
+      },
+      "structure": {
+        "radical_id": "rad-149",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从言，平声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "論也。从言平聲。",
+        "translation": "评，评论。从言，平声。"
+      },
+      "semantics": {
+        "definition": "评论；评价；批评",
+        "words": ["评论", "评价", "批评"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["言部", "常用"]
+      }
+    },
+    {
+      "id": "char-0888",
+      "level": 1,
+      "script_forms": {
+        "simplified": "补",
+        "traditional": "補",
+        "seal": "static/chars/char-0888-seal.svg"
+      },
+      "phonetics": {
+        "pinyin": "bǔ"
+      },
+      "structure": {
+        "radical_id": "rad-145",
+        "radical_extra_strokes": 2,
+        "total_strokes": 7,
+        "layout": "左右结构",
+        "liushu": "形声",
+        "liushu_detail": "从衣，甫声"
+      },
+      "shuowen": {
+        "source_version": "大徐本",
+        "original": "完衣也。从衣甫聲。",
+        "translation": "补，修补衣服。从衣，甫声。"
+      },
+      "semantics": {
+        "definition": "修补；补充；补品",
+        "words": ["补充", "修补", "补品"],
+        "related_ids": []
+      },
+      "study": {
+        "mnemonic": null,
+        "tags": ["衣部", "常用"]
+      }
+    }
+  ]
+}
