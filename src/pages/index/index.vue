@@ -1,12 +1,31 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import FontCover from '../../components/FontCover.vue'
 import { fontCatalog } from '../../fonts/catalog'
+import characterTable from '../../static/character_table/first-level.json'
+import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
+import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
 
 const { addedFonts, currentFont } = storeToRefs(useFontStore())
+const preferencesStore = useCharacterPreferencesStore()
+const dailyProgressStore = useDailyProgressStore()
+const planDailyCount = ref(readPlanDailyCount())
+
+function refreshPlan() {
+  dailyProgressStore.hydrate()
+  planDailyCount.value = readPlanDailyCount()
+}
+
+refreshPlan()
+onShow(() => {
+  refreshPlan()
+})
+
 const referenceFont = computed(() => (
   addedFonts.value.find((font) => font.id !== currentFont.value.id)
   ?? fontCatalog.find((font) => font.id !== currentFont.value.id)
@@ -16,6 +35,15 @@ const displayedFonts = computed(() => [
   { role: '学习字体', font: currentFont.value },
   { role: '对照字体', font: referenceFont.value },
 ])
+
+const dailyTarget = computed(() => {
+  const available = characterTable.chars.filter((entry) => !preferencesStore.isExcluded(entry.id)).length
+  const count = Math.max(1, Math.trunc(planDailyCount.value))
+  return Math.min(available, count)
+})
+const learnedDisplay = computed(() => `${Math.min(dailyProgressStore.learnedCount, dailyTarget.value)}/${dailyTarget.value}`)
+const reviewedDisplay = computed(() => `${Math.min(dailyProgressStore.reviewedCount, REVIEW_TARGET)}/${REVIEW_TARGET}`)
+const studyMinutesDisplay = computed(() => `${dailyProgressStore.minutes}`)
 
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
@@ -49,9 +77,9 @@ function openSearch() {
         <navigator class="edit-plan" url="/pages/plan/index" hover-class="none" role="button" aria-label="修改">修改</navigator>
       </view>
       <view class="plan-stats">
-        <view class="stat"><text class="stat-label">已新学</text><text class="stat-value">x/y</text></view>
-        <view class="stat"><text class="stat-label">已复习</text><text class="stat-value">x/y</text></view>
-        <view class="stat"><text class="stat-label">已学习时长</text><text class="stat-value stat-time">xxx min</text></view>
+        <view class="stat"><text class="stat-label">已新学</text><text class="stat-value">{{ learnedDisplay }}</text></view>
+        <view class="stat"><text class="stat-label">已复习</text><text class="stat-value">{{ reviewedDisplay }}</text></view>
+        <view class="stat"><text class="stat-label">已学习时长</text><text class="stat-value stat-time">{{ studyMinutesDisplay }} min</text></view>
       </view>
       <view class="plan-actions">
         <navigator

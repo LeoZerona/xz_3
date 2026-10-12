@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { fontCatalog } from '../../fonts/catalog'
 import type { LearningFont } from '../../fonts/types'
 import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
+import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { IDLE_TIMEOUT_MS, REVIEW_TARGET } from '../../study/dailyProgress'
 import { INPUT_STUDY_MODE, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
@@ -29,11 +31,13 @@ interface StudyQuestion {
 
 const PLAN_STORAGE_KEY = 'font-learning-plan'
 const DEFAULT_DAILY_COUNT = 15
-const REVIEW_TARGET = 20
 
 const fontStore = useFontStore()
 const preferencesStore = useCharacterPreferencesStore()
+const dailyProgressStore = useDailyProgressStore()
 const { addedFonts, currentFont } = storeToRefs(fontStore)
+const { reviewedCount: storedReviewedCount } = storeToRefs(dailyProgressStore)
+dailyProgressStore.hydrate()
 const savedPlan = uni.getStorageSync(PLAN_STORAGE_KEY) as StoredLearningPlan | undefined
 const configuredDailyCount = typeof savedPlan?.dailyCount === 'number' ? savedPlan.dailyCount : DEFAULT_DAILY_COUNT
 const configuredModes = normalizeStudyModes(savedPlan?.modes)
@@ -43,8 +47,7 @@ const dailyCharacters = availableCharacters.slice(0, Math.max(1, Math.trunc(conf
 const dailyTarget = dailyCharacters.length
 
 const currentIndex = ref(0)
-const learnedCount = ref(0)
-const reviewedCount = ref(0)
+const reviewedCount = computed(() => storedReviewedCount.value)
 const selectedAnswer = ref<string | null>(null)
 const inputAnswer = ref('')
 const hasAttempted = ref(false)
@@ -69,7 +72,9 @@ const isCorrect = computed(() => {
   return Boolean(currentCharacter.value && selectedAnswer.value === currentCharacter.value.script_forms.simplified)
 })
 const isLastQuestion = computed(() => currentIndex.value >= dailyCharacters.length - 1)
+const learnedCount = computed(() => dailyProgressStore.learnedCount)
 const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget))
+const studyMinutes = computed(() => dailyProgressStore.minutes)
 const choiceOptions = computed(() => buildChoiceOptions(availableCharacters, currentIndex.value))
 const currentQuestion = computed<StudyQuestion | null>(() => {
   if (!currentCharacter.value) return null
@@ -96,20 +101,35 @@ function buildChoiceOptions(entries: StudyCharacterEntry[], index: number): Stud
   return [...choices.slice(shift), ...choices.slice(0, shift)]
 }
 
+let lastActiveAt = Date.now()
+let studyTimer: ReturnType<typeof setInterval> | null = null
+
+function touchActive() {
+  lastActiveAt = Date.now()
+}
+
+function isPageVisible(): boolean {
+  if (typeof document === 'undefined') return true
+  return document.visibilityState === 'visible'
+}
+
 function markCorrectAnswer() {
-  if (hasAnswered.value || !isCorrect.value) return
+  if (hasAnswered.value || !isCorrect.value || !currentCharacter.value) return
   hasAnswered.value = true
-  learnedCount.value += 1
+  touchActive()
+  dailyProgressStore.addLearned(currentCharacter.value.id)
 }
 
 function handleChoiceAnswer(character: string) {
   if (isCorrect.value) return
+  touchActive()
   selectedAnswer.value = character
   hasAttempted.value = true
   markCorrectAnswer()
 }
 
 function handleInputAnswer(value: string) {
+  touchActive()
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
   hasAttempted.value = false
 }
@@ -117,12 +137,13 @@ function handleInputAnswer(value: string) {
 function submitInputAnswer(value: string) {
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
   if (!inputAnswer.value || hasAnswered.value) return
+  touchActive()
   hasAttempted.value = true
   const expected = currentCharacter.value?.script_forms
   if (!expected) return
   if (inputAnswer.value !== expected.simplified && inputAnswer.value !== expected.traditional) return
   hasAnswered.value = true
-  learnedCount.value += 1
+  if (currentCharacter.value) dailyProgressStore.addLearned(currentCharacter.value.id)
 }
 
 function resetQuestionState() {
@@ -134,6 +155,7 @@ function resetQuestionState() {
 
 function handleNext() {
   if (!isCorrect.value) return
+  touchActive()
   if (isLastQuestion.value) {
     uni.showModal({
       title: '今日学习完成',
@@ -158,8 +180,37 @@ function toggleFavorite() {
   uni.showToast({ title: preferencesStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' })
 }
 
+function startStudyTimer() {
+  if (studyTimer) return
+  lastActiveAt = Date.now()
+  studyTimer = setInterval(() => {
+    if (!isPageVisible()) return
+    if (Date.now() - lastActiveAt > IDLE_TIMEOUT_MS) return
+    dailyProgressStore.addStudySeconds(1)
+  }, 1000)
+}
+
+function stopStudyTimer() {
+  if (studyTimer) {
+    clearInterval(studyTimer)
+    studyTimer = null
+  }
+  dailyProgressStore.persist()
+}
+
 onMounted(() => {
   uni.pageScrollTo({ scrollTop: 0, duration: 0 })
+  startStudyTimer()
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') touchActive()
+      else dailyProgressStore.persist()
+    })
+  }
+})
+
+onBeforeUnmount(() => {
+  stopStudyTimer()
 })
 </script>
 
@@ -191,7 +242,7 @@ onMounted(() => {
       </view>
       <view class="progress-item">
         <text class="progress-label">学习时间</text>
-        <text class="progress-value">0<small>min</small></text>
+        <text class="progress-value">{{ studyMinutes }}<small>min</small></text>
       </view>
     </view>
 

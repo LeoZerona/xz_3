@@ -85,6 +85,7 @@
 import { nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
+import characterTable from '../../static/character_table/first-level.json'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import { normalizeStudyModes, STUDY_MODES } from '../../study/modes'
@@ -99,9 +100,11 @@ const ROW_HEIGHT = 54
 type Section = 'plan' | 'fonts' | 'catalog'
 
 const activeSection = ref<Section>('plan')
+// 总字数以 first-level.json 为准，按你要求先以该文件为准。
+const TOTAL_CHAR_COUNT = characterTable.chars.length
 const planOptions = Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
-  return { count, days: Math.ceil(300 / count) }
+  return { count, days: Math.ceil(TOTAL_CHAR_COUNT / count) }
 })
 const modeOptions = STUDY_MODES
 
