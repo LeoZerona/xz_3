@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import CharacterFontComparison from '../../../components/CharacterFontComparison.vue'
 import type { LearningFont } from '../../../fonts/types'
-import { INPUT_STUDY_MODE } from '../../../study/modes'
+import { getEffectiveStudyModes, INPUT_STUDY_MODE } from '../../../study/modes'
 import type { StudyMode } from '../../../study/modes'
 import type { StudyCharacterEntry } from '../../../study/types'
 
@@ -43,17 +43,20 @@ const modeName = computed(() => {
   if (props.question.mode === 'reference-to-seal-choice') return '反向辨认'
   return '输入回忆'
 })
+const totalModes = computed(() => {
+  try { const e = getEffectiveStudyModes(); return e.length > 0 ? e.length : 3 } catch { return 3 }
+})
 const localInputAnswer = ref(props.inputAnswer)
 const wrongAttemptCount = ref(0)
 const actionLabel = computed(() => {
   if (!props.isCorrect) return '确认'
-  if (!props.isLastMode) return '下一种练习'
-  return props.isLastCharacter ? '完成今日学习' : '下一字'
+  if (!props.isLastMode) return '下一题'
+  return props.isLastCharacter ? '完成今日学习' : '下一题'
 })
 const actionAriaLabel = computed(() => {
   if (!props.isCorrect) return '确认输入答案'
-  if (!props.isLastMode) return '进入当前文字的下一种练习'
-  return props.isLastCharacter ? '完成今日学习' : '进入下一字'
+  if (!props.isLastMode) return '进入下一题'
+  return props.isLastCharacter ? '完成今日学习' : '进入下一题'
 })
 
 watch(localInputAnswer, (value) => {
@@ -89,7 +92,7 @@ function handleChoiceAnswer(character: string) {
   <view class="question-stage">
     <view v-if="!isCorrect" class="question-content">
       <view class="mode-status" role="status">
-        <text>本字第 {{ modePosition }}/3 种</text>
+        <text>本字第 {{ modePosition }}/{{ totalModes }} 种</text>
         <text>{{ modeName }}</text>
       </view>
       <view class="prompt-card"
@@ -128,7 +131,7 @@ function handleChoiceAnswer(character: string) {
         <label class="input-label" :class="{ 'is-error': hasAttempted }">
           <text class="sr-only">输入识别结果</text>
           <input class="answer-input" type="text" v-model="localInputAnswer"
-            :style="{ fontFamily: question.answerFont.fontFamily }" maxlength="1" confirm-type="done"
+            style="font-family: inherit;" maxlength="1" confirm-type="done"
             placeholder="请输入一个字" placeholder-style="font-size: 13px; color: var(--color-text-muted);"
             @confirm="handlePrimaryAction">
         </label>
@@ -574,3 +577,5 @@ function handleChoiceAnswer(character: string) {
   }
 }
 </style>
+
+

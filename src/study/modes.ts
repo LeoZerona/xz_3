@@ -35,3 +35,12 @@ export function normalizeStudyModes(value: unknown): StudyMode[] {
   })
   return [...new Set(modes)]
 }
+
+
+export function getEffectiveStudyModes() {
+  try {
+    const saved = uni.getStorageSync("font-learning-plan");
+    const normalized = normalizeStudyModes(saved && saved.modes);
+    return normalized.length>0?normalized:[...STUDY_MODES];
+  } catch(e){ return [...STUDY_MODES]; }
+}

@@ -41,7 +41,7 @@
       <view class="schedule">
         <view class="schedule-summary">
           <text>完成日期：<text class="accent">2026年10月25日</text></text>
-          <text>预计每天 xxx 分钟</text>
+          <text>预计每天 {{ estimatedMinutes }} 分钟</text>
         </view>
 
         <view class="plan-picker">
@@ -62,11 +62,14 @@
           </div>
         </view>
 
-        <text class="mode-title">三种必修学习方式</text>
-        <view class="mode-list" aria-label="每个文字都需要完成的三种学习方式">
-          <view v-for="(mode, index) in modeOptions" :key="mode" class="mode-card">
-            <text>{{ getStudyModeLabel(mode) }}</text>
-            <text class="mode-required">{{ index + 1 }}/3 · 必修</text>
+        <view class="mode-header" style="display:flex;flex-direction:column;gap:4px;margin:24px 0 12px;">
+          <text class="mode-title" style="margin:0;">选择必修学习方式</text>
+          <text style="font-size:10px;color:var(--color-text-muted);">勾选的学习方式将在学习时出现，至少选择 1 种</text>
+        </view>
+        <view class="mode-list" aria-label="选择必修学习方式">
+          <view v-for="mode in modeOptions" :key="mode" class="mode-card" :class="{ 'is-selected': selectedModes.includes(mode) }" role="checkbox" tabindex="0" :aria-checked="selectedModes.includes(mode)" @click="toggleMode(mode)" @keydown.enter="toggleMode(mode)" @keydown.space.prevent="toggleMode(mode)">
+            <view class="mode-info" style="flex:1;display:flex;flex-direction:column;gap:2px;"><text class="mode-label">{{ getStudyModeLabel(mode) }}</text></view>
+            <view class="mode-check" :class="{ 'is-checked': selectedModes.includes(mode) }" aria-hidden="true" style="width:22px;height:22px;border:1.5px solid var(--color-border);border-radius:6px;display:grid;place-items:center;flex:none;background:var(--color-surface);"><text v-if="selectedModes.includes(mode)" style="color:var(--color-primary);font-weight:700;font-size:14px;">✓</text></view>
           </view>
         </view>
       </view>
@@ -82,12 +85,13 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
 import characterTable from '../../static/character_table/first-level.json'
 import { useFontStore } from '../../stores/fonts'
-import { getStudyModeLabel, STUDY_MODES } from '../../study/modes'
+import { getStudyModeLabel, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
+import { REVIEW_TARGET } from '../../study/dailyProgress'
 import FontCatalog from './components/FontCatalog.vue'
 import FontManager from './components/FontManager.vue'
 
@@ -104,19 +108,38 @@ const planOptions = Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
   return { count, days: Math.ceil(TOTAL_CHAR_COUNT / count) }
 })
-const modeOptions = STUDY_MODES
-
 const saved = uni.getStorageSync(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
+const modeOptions = STUDY_MODES
+const savedModes = normalizeStudyModes(saved?.modes)
+const selectedModes = ref<import('../../study/modes').StudyMode[]>(savedModes.length ? savedModes : [...STUDY_MODES])
+function toggleMode(mode: import('../../study/modes').StudyMode) {
+  const idx = selectedModes.value.indexOf(mode)
+  if (idx >= 0) {
+    if (selectedModes.value.length <= 1) { uni.showToast({ title: '至少保留一种学习方式', icon: 'none' }); return }
+    selectedModes.value = selectedModes.value.filter(m=>m!==mode)
+  } else {
+    selectedModes.value = STUDY_MODES.filter(m=> selectedModes.value.includes(m) || m===mode)
+  }
+}
+
 const initialDailyCount = saved?.dailyCount && planOptions.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
 const initialPlan = planOptions.find((item) => item.count === initialDailyCount) ?? planOptions[1]
 const initialPlanIndex = Math.max(0, planOptions.findIndex((item) => item.count === initialDailyCount))
-let dailyCount = initialDailyCount
+const dailyCount = ref(initialDailyCount)
+const estimatedMinutes = computed(() => {
+  const modeCount = selectedModes.value.length || 1
+  const count = dailyCount.value
+  // 每字每种必修约 24 秒，新学 15字*3种 ≈ 18 分钟；复习 20字约 4 分钟，+1 分钟基础开销，向上取整
+  const newMinutes = count * modeCount * 0.4
+  const reviewMinutes = REVIEW_TARGET * 0.2
+  return Math.max(3, Math.ceil(newMinutes + reviewMinutes + 1))
+})
 
 function syncWheelSelection(element: HTMLElement) {
   const index = Math.max(0, Math.min(planOptions.length - 1, Math.round(element.scrollTop / ROW_HEIGHT)))
   const selected = planOptions[index]
   if (!selected) return
-  dailyCount = selected.count
+  dailyCount.value = selected.count
   element.dataset.selectedCount = String(selected.count)
   element.querySelectorAll<HTMLElement>('.picker-row').forEach((row, rowIndex) => {
     const active = rowIndex === index
@@ -163,7 +186,8 @@ function handleBack() {
 }
 
 function savePlan() {
-  uni.setStorageSync(STORAGE_KEY, { dailyCount, modes: [...STUDY_MODES] })
+  if (selectedModes.value.length===0){ uni.showToast({title:'请选择至少一种学习方式',icon:'none'});return }
+  uni.setStorageSync(STORAGE_KEY, { dailyCount: dailyCount.value, modes: [...selectedModes.value] })
   returnToPrevious()
 }
 
@@ -204,9 +228,23 @@ onMounted(() => {
 .mode-title { display: block; margin: 24px 0 12px; font-size: 15px; font-weight: 700; }
 .mode-list { display: flex; flex-direction: column; gap: 10px; }
 .mode-card { width: 100%; min-height: 56px; margin: 0; padding: 10px 14px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 11px; font-weight: 400; line-height: 1.45; text-align: left; cursor: pointer; }
-.mode-card { border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border)); background: var(--color-primary-soft); }
+.mode-card.is-selected { border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border)); background: var(--color-primary-soft); }
+.mode-card.is-selected .mode-check.is-checked { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.mode-check { transition: all 0.18s ease; }
 .mode-required { flex: none; color: var(--color-primary); font-size: 9px; font-weight: 700; }
 .save-wrap { position: fixed; z-index: 2; right: 0; bottom: 0; left: 0; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); background: var(--color-surface); box-shadow: 0 -5px 18px var(--color-shadow); }
 .save-button { width: min(calc(100% - 36px), 524px); height: 52px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 14px; line-height: 1; }
 @media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 12px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 10px; } }
 </style>
+
+
+
+
+
+
+
+
+
+
+
+

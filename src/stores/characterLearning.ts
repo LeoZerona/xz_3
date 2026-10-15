@@ -8,7 +8,7 @@ import {
   normalizeCharacterLearningData,
 } from '../study/learningData'
 import type { CharacterLearningData, CharacterLearningRecord, SlashAction } from '../study/learningData'
-import { STUDY_MODES } from '../study/modes'
+import { getEffectiveStudyModes, STUDY_MODES } from '../study/modes'
 import type { StudyMode } from '../study/modes'
 
 export const CHARACTER_LEARNING_STORAGE_KEY = 'font-learning-character-data'
@@ -48,7 +48,11 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     .filter((record) => record.slash.active)
     .map((record) => record.characterId))
   const completedIds = computed(() => Object.values(data.value.characters)
-    .filter(isCharacterCompleted)
+    .filter((r) => {
+      const eff = getEffectiveStudyModes();
+      return eff.length>0 ? eff.every((m)=> Boolean(r.modes[m].completedAt)) : true;
+    })
+    // legacy: .filter(isCharacterCompleted)
     .map((record) => record.characterId))
 
   function persist(at = new Date().toISOString()) {
@@ -112,7 +116,8 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       if (isCorrect) progress.completedAt ??= at
       record.firstStartedAt ??= at
       record.lastStudiedAt = at
-      const isComplete = STUDY_MODES.every((studyMode) => Boolean(record.modes[studyMode].completedAt))
+      const effective = getEffectiveStudyModes();
+      const isComplete = effective.every((studyMode) => Boolean(record.modes[studyMode].completedAt))
       record.status = isComplete ? 'completed' : 'learning'
       if (isComplete) record.completedAt ??= at
     }, at)
@@ -123,11 +128,17 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
   }
 
   function isCharacterComplete(characterId: string): boolean {
-    return isCharacterCompleted(getRecord(characterId))
+    const effective = getEffectiveStudyModes();
+    const rec = getRecord(characterId);
+    if (!rec) return false;
+    // completed means all effective modes done
+    if (effective.length === 0) return true;
+    return effective.every((m) => isModeCompleted(rec, m))
   }
 
   function nextIncompleteMode(characterId: string): StudyMode | null {
-    return STUDY_MODES.find((mode) => !isModeComplete(characterId, mode)) ?? null
+    const effective = getEffectiveStudyModes();
+    return effective.find((mode) => !isModeComplete(characterId, mode)) ?? null
   }
 
   return {

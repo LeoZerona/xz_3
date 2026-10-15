@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { LearningFont } from '../../fonts/types'
 import characterTable from '../../static/character_table/first-level.json'
@@ -7,7 +7,7 @@ import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { IDLE_TIMEOUT_MS, readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
-import { INPUT_STUDY_MODE, STUDY_MODES } from '../../study/modes'
+import { getEffectiveStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
 import StudyQuestionCard from './components/StudyQuestionCard.vue'
@@ -45,20 +45,70 @@ const dailyCharacters = computed(() => dailyProgressStore.assignedIds.flatMap((i
   const entry = characterById.get(id)
   return entry ? [entry] : []
 }))
-const initialIndex = dailyCharacters.value.findIndex((entry) => !learningStore.isCharacterComplete(entry.id))
-const currentIndex = ref(initialIndex >= 0 ? initialIndex : dailyCharacters.value.length)
+const effectiveModes = computed(() => getEffectiveStudyModes())
+const totalModeCount = computed(() => effectiveModes.value.length)
+
+function buildInterleaved(chars: StudyCharacterEntry[], modes: StudyMode[]): Array<{ character: StudyCharacterEntry; mode: StudyMode }> {
+  if (chars.length === 0 || modes.length === 0) return []
+  const groups: StudyCharacterEntry[][] = modes.map(() => [...chars])
+  const interleaved: Array<{ character: StudyCharacterEntry; mode: StudyMode }> = []
+  const indices = groups.map(() => 0)
+  let hasMore = true
+  while (hasMore) {
+    hasMore = false
+    for (let gi = 0; gi < groups.length; gi++) {
+      let taken = 0
+      while (taken < 4 && indices[gi] < groups[gi].length) {
+        interleaved.push({ character: groups[gi][indices[gi]], mode: modes[gi] })
+        indices[gi]++
+        taken++
+        hasMore = true
+      }
+    }
+  }
+  return interleaved
+}
+
+const allTasksInterleaved = computed(() => buildInterleaved(dailyCharacters.value, effectiveModes.value))
+
+function findFirstIncompleteIndex(): number {
+  const tasks = allTasksInterleaved.value
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i]
+    if (!learningStore.isModeComplete(t.character.id, t.mode)) return i
+  }
+  return tasks.length
+}
+
+const currentTaskIndex = ref(findFirstIncompleteIndex())
+
+// keep index valid when interleaving recomputes (e.g. mode setting changes)
+watch(allTasksInterleaved, () => {
+  const tasks = allTasksInterleaved.value
+  if (tasks.length === 0) {
+    currentTaskIndex.value = 0
+    return
+  }
+  // if current index points to a completed task or out of bounds, relocate
+  if (currentTaskIndex.value >= tasks.length || (tasks[currentTaskIndex.value] && learningStore.isModeComplete(tasks[currentTaskIndex.value].character.id, tasks[currentTaskIndex.value].mode))) {
+    currentTaskIndex.value = findFirstIncompleteIndex()
+  }
+})
+
+// remaining tasks only for counts / completion checks
+const remainingTasks = computed(() => allTasksInterleaved.value.filter((t) => !learningStore.isModeComplete(t.character.id, t.mode)))
+//保留 pendingTasks 兼容旧命名，供 isDayComplete 等使用（等价于 remainingTasks）
+const pendingTasks = remainingTasks
+
+const currentTask = computed(() => allTasksInterleaved.value[currentTaskIndex.value] ?? null)
+const currentCharacter = computed(() => currentTask.value?.character ?? null)
+const activeMode = computed<StudyMode>(() => currentTask.value?.mode ?? effectiveModes.value[0] ?? STUDY_MODES[0])
 const reviewedCount = computed(() => storedReviewedCount.value)
 const selectedAnswer = ref<string | null>(null)
 const inputAnswer = ref('')
 const hasAttempted = ref(false)
 const hasAnswered = ref(false)
-
-const currentCharacter = computed(() => dailyCharacters.value[currentIndex.value])
-const activeMode = ref<StudyMode>(
-  currentCharacter.value ? learningStore.nextIncompleteMode(currentCharacter.value.id) ?? STUDY_MODES[0] : STUDY_MODES[0],
-)
-if (currentCharacter.value) dailyProgressStore.setCurrentCharacter(currentCharacter.value.id)
-const isInputMode = computed(() => activeMode.value === INPUT_STUDY_MODE)
+const isInputMode = computed(() => activeMode.value === 'seal-to-reference-input')
 const isInputAnswerCorrect = computed(() => {
   if (!currentCharacter.value) return false
   const answer = inputAnswer.value.trim()
@@ -69,26 +119,31 @@ const isCorrect = computed(() => {
   if (isInputMode.value) return hasAttempted.value && isInputAnswerCorrect.value
   return Boolean(currentCharacter.value && selectedAnswer.value === currentCharacter.value.script_forms.simplified)
 })
-const isLastCharacter = computed(() => currentIndex.value >= dailyCharacters.value.length - 1)
-const isLastMode = computed(() => Boolean(currentCharacter.value && learningStore.isCharacterComplete(currentCharacter.value.id)))
-const modePosition = computed(() => STUDY_MODES.indexOf(activeMode.value) + 1)
-const isDayComplete = computed(() => dailyCharacters.value.length > 0
-  && dailyCharacters.value.every((entry) => learningStore.isCharacterComplete(entry.id)))
+const isLastTask = computed(() => remainingTasks.value.length === 1)
+const isLastCharacter = computed(() => isLastTask.value)
+const isLastMode = computed(() => {
+  const char = currentCharacter.value
+  if (!char) return true
+  const remainingForChar = effectiveModes.value.filter((m) => !learningStore.isModeComplete(char.id, m))
+  return remainingForChar.length <= 1
+})
+const modePosition = computed(() => effectiveModes.value.indexOf(activeMode.value) + 1)
+const isDayComplete = computed(() => remainingTasks.value.length === 0 && dailyCharacters.value.length > 0 && dailyCharacters.value.every((entry) => learningStore.isCharacterComplete(entry.id)))
 const dailyTarget = computed(() => dailyCharacters.value.length)
 const learnedCount = computed(() => dailyProgressStore.learnedCount)
 const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget.value))
 const studyMinutes = computed(() => dailyProgressStore.minutes)
 const choiceOptions = computed(() => buildChoiceOptions(
   availableCharacters,
-  currentCharacter.value,
-  currentIndex.value + modePosition.value,
+  currentCharacter.value ?? undefined,
+  (currentTaskIndex.value * 7 + modePosition.value),
 ))
 const currentQuestion = computed<StudyQuestion | null>(() => {
   if (!currentCharacter.value) return null
   const isReverseChoice = activeMode.value === 'reference-to-seal-choice'
   return {
     mode: activeMode.value,
-    position: currentIndex.value + 1,
+    position: dailyCharacters.value.findIndex((e) => e.id === currentCharacter.value!.id) + 1,
     character: currentCharacter.value,
     options: choiceOptions.value,
     promptFont: isReverseChoice ? referenceFont.value : currentFont.value,
@@ -132,7 +187,9 @@ function handleChoiceAnswer(character: string) {
   selectedAnswer.value = character
   hasAttempted.value = true
   const isAnswerCorrect = character === current.script_forms.simplified
-  learningStore.recordModeAttempt(current.id, activeMode.value, isAnswerCorrect)
+  try {
+    learningStore.recordModeAttempt(current.id, activeMode.value, isAnswerCorrect)
+  } catch {}
   if (!isAnswerCorrect) return
   hasAnswered.value = true
   if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
@@ -152,11 +209,13 @@ function submitInputAnswer(value: string) {
   const expected = currentCharacter.value?.script_forms
   if (!expected) return
   const isAnswerCorrect = inputAnswer.value === expected.simplified || inputAnswer.value === expected.traditional
-  learningStore.recordModeAttempt(currentCharacter.value.id, activeMode.value, isAnswerCorrect)
+  try {
+    learningStore.recordModeAttempt(currentCharacter.value!.id, activeMode.value, isAnswerCorrect)
+  } catch {}
   if (!isAnswerCorrect) return
   hasAnswered.value = true
-  if (learningStore.isCharacterComplete(currentCharacter.value.id)) {
-    dailyProgressStore.addLearned(currentCharacter.value.id)
+  if (learningStore.isCharacterComplete(currentCharacter.value!.id)) {
+    dailyProgressStore.addLearned(currentCharacter.value!.id)
   }
 }
 
@@ -167,47 +226,51 @@ function resetQuestionState() {
   hasAnswered.value = false
 }
 
+function advanceToNextIncomplete() {
+  const tasks = allTasksInterleaved.value
+  let next = currentTaskIndex.value + 1
+  while (next < tasks.length && learningStore.isModeComplete(tasks[next].character.id, tasks[next].mode)) {
+    next++
+  }
+  currentTaskIndex.value = next
+}
+
 function handleNext() {
   const current = currentCharacter.value
   if (!isCorrect.value || !current) return
   touchActive()
-  const nextMode = learningStore.nextIncompleteMode(current.id)
-  if (nextMode) {
-    activeMode.value = nextMode
-    resetQuestionState()
-    return
-  }
-  const nextIndex = dailyCharacters.value.findIndex((entry, index) => (
-    index > currentIndex.value && !learningStore.isCharacterComplete(entry.id)
-  ))
-  if (nextIndex < 0) {
-    dailyProgressStore.setCurrentCharacter(null)
-    uni.showModal({
-      title: '今日学习完成',
-      content: `已完成 ${dailyTarget.value} 个文字的三种练习`,
-      showCancel: false,
-      success: () => uni.reLaunch({ url: '/pages/index/index' }),
-    })
-    return
-  }
-  currentIndex.value = nextIndex
-  const nextCharacter = dailyCharacters.value[nextIndex]
-  if (nextCharacter) {
-    activeMode.value = learningStore.nextIncompleteMode(nextCharacter.id) ?? STUDY_MODES[0]
-    dailyProgressStore.setCurrentCharacter(nextCharacter.id)
-  }
   resetQuestionState()
+  advanceToNextIncomplete()
+  const nextTask = allTasksInterleaved.value[currentTaskIndex.value] ?? null
+  try {
+    dailyProgressStore.setCurrentCharacter(nextTask?.character.id ?? null)
+  } catch {}
+  if (!nextTask) {
+    try { dailyProgressStore.setCurrentCharacter(null) } catch {}
+    if (isDayComplete.value) {
+      try {
+        uni.showModal({
+          title: '今日学习完成',
+          content: `已完成 ${dailyTarget.value} 个文字的 ${totalModeCount.value} 种练习`,
+          showCancel: false,
+          success: () => {
+            try { uni.reLaunch({ url: '/pages/index/index' }) } catch {}
+          },
+        })
+      } catch {}
+    }
+  }
 }
 
 function openSearch() {
-  uni.navigateTo({ url: '/pages/search/index' })
+  try { uni.navigateTo({ url: '/pages/search/index' }) } catch {}
 }
 
 function toggleFavorite() {
   const character = currentCharacter.value
   if (!character) return
   learningStore.toggleFavorite(character.id)
-  uni.showToast({ title: learningStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' })
+  try { uni.showToast({ title: learningStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' }) } catch {}
 }
 
 function startStudyTimer() {
@@ -225,19 +288,22 @@ function stopStudyTimer() {
     clearInterval(studyTimer)
     studyTimer = null
   }
-  dailyProgressStore.persist()
+  try { dailyProgressStore.persist() } catch {}
 }
 
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') touchActive()
-  else dailyProgressStore.persist()
+  else try { dailyProgressStore.persist() } catch {}
 }
 
 onMounted(() => {
-  uni.pageScrollTo({ scrollTop: 0, duration: 0 })
+  try { uni.pageScrollTo({ scrollTop: 0, duration: 0 }) } catch {}
   startStudyTimer()
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', handleVisibilityChange)
+  }
+  if (currentCharacter.value) {
+    try { dailyProgressStore.setCurrentCharacter(currentCharacter.value.id) } catch {}
   }
 })
 
@@ -251,7 +317,7 @@ onBeforeUnmount(() => {
   <view class="study-page">
     <view class="study-topbar">
       <navigator class="topbar-button" url="/pages/index/index" open-type="reLaunch" hover-class="none" role="button" aria-label="返回">
-        <span class="back-icon" aria-hidden="true">←</span>
+        <svg class="back-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
       </navigator>
       <view class="header-space" aria-hidden="true" />
       <view class="topbar-actions">
@@ -281,7 +347,7 @@ onBeforeUnmount(() => {
 
     <StudyQuestionCard
       v-if="currentQuestion"
-      :key="`${currentQuestion.position}-${currentQuestion.mode}`"
+      :key="`${currentQuestion.character.id}-${currentQuestion.mode}`"
       :question="currentQuestion"
       :selected-answer="selectedAnswer"
       :input-answer="inputAnswer"
@@ -297,7 +363,7 @@ onBeforeUnmount(() => {
     />
     <view v-else class="empty-study" role="status">
       <text class="empty-study-title">{{ isDayComplete ? '今日学习已完成' : '暂无可学习文字' }}</text>
-      <text class="empty-study-description">{{ isDayComplete ? '每个文字都已完成三种学习方式' : '可在文字详情页恢复已斩掉的文字' }}</text>
+      <text class="empty-study-description">{{ isDayComplete ? '每个文字都已完成全部已选学习方式' : '可在文字详情页恢复已斩掉的文字' }}</text>
       <navigator v-if="isDayComplete" class="complete-return" url="/pages/index/index" open-type="reLaunch" hover-class="none">返回首页</navigator>
     </view>
   </view>
@@ -312,6 +378,7 @@ onBeforeUnmount(() => {
 .topbar-button[disabled] { color: var(--color-text-muted); opacity: .5; }
 .back-icon, .favorite-icon, .search-icon { pointer-events: none; }
 .back-icon { font-size: 27px; font-weight: 300; }
+.back-icon-svg { display:block; width:20px; height:20px; }
 .favorite-icon { font-size: 31px; line-height: 1; }
 .search-icon { position: relative; width: 21px; height: 21px; border: 2px solid currentColor; border-radius: 50%; }
 .search-icon::after { content: ''; position: absolute; right: -5px; bottom: -3px; width: 8px; height: 2px; border-radius: 2px; background: currentColor; transform: rotate(48deg); transform-origin: left center; }
