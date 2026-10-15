@@ -23,4 +23,9 @@ describe('内置字体目录', () => {
       fontSource: '/assets/example.ttf',
     })
   })
+
+  it('小篆字体使用与全局字体声明一致的稳定 family', () => {
+    expect(fontCatalog.find((font) => font.name === '方正小篆体')?.fontFamily)
+      .toBe('builtin-q5yuss, serif')
+  })
 })

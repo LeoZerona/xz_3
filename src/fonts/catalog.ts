@@ -57,43 +57,6 @@ export const fontCatalog: LearningFont[] = buildFontCatalog(builtinFontModules)
 export const DEFAULT_FONT_ID = fontCatalog[0]?.id ?? ''
 export const DEFAULT_ADDED_FONT_IDS = fontCatalog.slice(0, 2).map((font) => font.id)
 
-const registeredFontFamilies = new Set<string>()
-
-export function registerBuiltinFontFaces(): void {
-  for (const font of fontCatalog as BuiltinFont[]) {
-    if (registeredFontFamilies.has(font.fontFaceFamily)) continue
-
-    if (typeof document !== 'undefined' && document.head) {
-      const style = document.createElement('style')
-      style.dataset.builtinFont = font.fontFaceFamily
-      style.textContent = `@font-face{font-family:"${font.fontFaceFamily}";src:url("${font.fontSource}") format("truetype");font-display:swap;}`
-      document.head.appendChild(style)
-      registeredFontFamilies.add(font.fontFaceFamily)
-      continue
-    }
-
-    const uniWithFontFace = typeof uni === 'undefined'
-      ? undefined
-      : uni as unknown as {
-          loadFontFace?: (options: {
-            family: string
-            source: string
-            success?: () => void
-            fail?: (error: unknown) => void
-          }) => void
-        }
-
-    if (typeof uniWithFontFace?.loadFontFace === 'function') {
-      uniWithFontFace.loadFontFace({
-        family: font.fontFaceFamily,
-        source: `url("${font.fontSource}")`,
-        success: () => registeredFontFamilies.add(font.fontFaceFamily),
-        fail: () => { /* 字体加载失败时保留系统衬线字体回退。 */ },
-      })
-    }
-  }
-}
-
 export function getFont(fontId: unknown): LearningFont | undefined {
   return fontCatalog.find((font) => font.id === fontId)
 }

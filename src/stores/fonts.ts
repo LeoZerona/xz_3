@@ -5,7 +5,6 @@ import {
   DEFAULT_FONT_ID,
   fontCatalog,
   getFont,
-  registerBuiltinFontFaces,
 } from '../fonts/catalog'
 import type { LearningFont } from '../fonts/types'
 
@@ -122,7 +121,6 @@ function readStoredState(customFonts: LearningFont[]): StoredFontState {
 }
 
 export const useFontStore = defineStore('fonts', () => {
-  registerBuiltinFontFaces()
   const customFonts = ref<PersistedCustomFont[]>(readCustomFonts())
   // 本地方案：启动时立即注册持久化的自定义字体，确保刷新后仍可显示
   registerAllCustomFonts(customFonts.value)

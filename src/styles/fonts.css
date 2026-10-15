@@ -1,0 +1,23 @@
+/*
+ * App-vue 对运行时本地字体注册的页面时机和作用域较敏感。
+ * 内置字体在全局样式中静态注册，family 名称须与 fonts/catalog.ts 生成值保持一致。
+ */
+@font-face {
+  font-family: "builtin-mbn5sq";
+  src: url("../static/fronts/优设标题黑.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "builtin-q5yuss";
+  src: url("../static/fronts/方正小篆体.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "builtin-1sva34g";
+  src: url("../static/fronts/方正特雅宋简体.TTF") format("truetype");
+}
+
+@font-face {
+  font-family: "builtin-z98q3a";
+  src: url("../static/fronts/汉仪楷体繁.ttf") format("truetype");
+}
