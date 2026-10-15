@@ -57,8 +57,13 @@ function openSearch() {
 <template>
   <view class="home">
     <view class="topbar">
-      <button class="icon-button" role="button" aria-label="搜索" @click="openSearch"><van-icon name="search" size="24" aria-hidden="true" /></button>
-      <button class="icon-button" role="button" aria-label="消息提示"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
+      <view class="topbar-slogan">
+        <text class="topbar-slogan-text">✨ 坚持一笔一画，成就更好的自己</text>
+      </view>
+      <view class="topbar-actions">
+        <button class="icon-button" role="button" aria-label="搜索" @click="openSearch"><van-icon name="search" size="24" aria-hidden="true" /></button>
+        <button class="icon-button" role="button" aria-label="消息提示"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
+      </view>
     </view>
 
     <view class="font-list">
@@ -99,7 +104,10 @@ function openSearch() {
 
 <style scoped lang="scss">
 .home { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; background: var(--color-page); color: var(--color-text); }
-.topbar { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 20px 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; background: var(--color-topbar); }
+.topbar { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 16px 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--color-topbar); }
+.topbar-slogan { flex: 1; min-width: 0; display: flex; align-items: center; }
+.topbar-slogan-text { color: var(--color-primary); font-size: 13px; font-weight: 700; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .icon-button { width: 38px; height: 38px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--color-text); }
 .icon-button::after, .action-button::after { border: 0; }
 .font-list { padding: 8px 16px 0; }
