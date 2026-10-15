@@ -120,7 +120,7 @@ function showIpExplanation() {
 </template>
 
 <style scoped lang="scss">
-.personal-profile-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-surface-muted); color: var(--color-text); }
+ .personal-profile-page { overscroll-behavior: none; overscroll-behavior-y: none; width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-surface-muted); color: var(--color-text); }
 .profile-nav { position: sticky; z-index: 2; top: 0; height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .back-button { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: var(--color-text); }
 .back-glyph { margin-top: -3px; font-size: 36px; font-weight: 300; line-height: 1; }

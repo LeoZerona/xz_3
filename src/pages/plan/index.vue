@@ -62,13 +62,13 @@
           </div>
         </view>
 
-        <text class="mode-title">选择学习模式（支持多选）</text>
-        <checkbox-group class="mode-list" @change="changeModes">
-          <label v-for="mode in modeOptions" :key="mode" class="mode-card">
-            <text>{{ mode }}</text>
-            <checkbox class="choice-control" :value="mode" :checked="initialModes.includes(mode)" :color="currentTheme.tokens.primary" />
-          </label>
-        </checkbox-group>
+        <text class="mode-title">三种必修学习方式</text>
+        <view class="mode-list" aria-label="每个文字都需要完成的三种学习方式">
+          <view v-for="(mode, index) in modeOptions" :key="mode" class="mode-card">
+            <text>{{ getStudyModeLabel(mode) }}</text>
+            <text class="mode-required">{{ index + 1 }}/3 · 必修</text>
+          </view>
+        </view>
       </view>
     </div>
 
@@ -87,12 +87,10 @@ import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
 import characterTable from '../../static/character_table/first-level.json'
 import { useFontStore } from '../../stores/fonts'
-import { useThemeStore } from '../../stores/theme'
-import { normalizeStudyModes, STUDY_MODES } from '../../study/modes'
+import { getStudyModeLabel, STUDY_MODES } from '../../study/modes'
 import FontCatalog from './components/FontCatalog.vue'
 import FontManager from './components/FontManager.vue'
 
-const { currentTheme } = storeToRefs(useThemeStore())
 const { currentFont } = storeToRefs(useFontStore())
 
 const STORAGE_KEY = 'font-learning-plan'
@@ -110,12 +108,9 @@ const modeOptions = STUDY_MODES
 
 const saved = uni.getStorageSync(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
 const initialDailyCount = saved?.dailyCount && planOptions.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
-const savedModes = normalizeStudyModes(saved?.modes)
-const initialModes = savedModes.length > 0 ? savedModes : [...STUDY_MODES]
 const initialPlan = planOptions.find((item) => item.count === initialDailyCount) ?? planOptions[1]
 const initialPlanIndex = Math.max(0, planOptions.findIndex((item) => item.count === initialDailyCount))
 let dailyCount = initialDailyCount
-let selectedModes = [...initialModes]
 
 function syncWheelSelection(element: HTMLElement) {
   const index = Math.max(0, Math.min(planOptions.length - 1, Math.round(element.scrollTop / ROW_HEIGHT)))
@@ -148,10 +143,6 @@ function showSection(section: Section) {
   if (section === 'plan') nextTick(initialiseWheel)
 }
 
-function changeModes(event: { detail: { value: string[] } }) {
-  selectedModes = normalizeStudyModes(event.detail.value)
-}
-
 function returnToPrevious() {
   if (getCurrentPages().length > 1) {
     uni.navigateBack({
@@ -172,11 +163,7 @@ function handleBack() {
 }
 
 function savePlan() {
-  if (selectedModes.length === 0) {
-    uni.showToast({ title: '请至少选择一种学习模式', icon: 'none' })
-    return
-  }
-  uni.setStorageSync(STORAGE_KEY, { dailyCount, modes: selectedModes })
+  uni.setStorageSync(STORAGE_KEY, { dailyCount, modes: [...STUDY_MODES] })
   returnToPrevious()
 }
 
@@ -214,11 +201,11 @@ onMounted(() => {
 .wheel-spacer { height: 54px; }
 .picker-row { position: relative; z-index: 1; width: 100%; height: 54px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; color: var(--color-text-muted); font-size: 12px; line-height: 1; text-align: center; scroll-snap-align: center; scroll-snap-stop: always; }
 .picker-row.is-selected { color: var(--color-text); }
-.choice-control { transform: scale(.82); }
 .mode-title { display: block; margin: 24px 0 12px; font-size: 15px; font-weight: 700; }
 .mode-list { display: flex; flex-direction: column; gap: 10px; }
 .mode-card { width: 100%; min-height: 56px; margin: 0; padding: 10px 14px 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 11px; font-weight: 400; line-height: 1.45; text-align: left; cursor: pointer; }
-.mode-card:has(.uni-checkbox-input svg) { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); }
+.mode-card { border-color: color-mix(in srgb, var(--color-primary) 32%, var(--color-border)); background: var(--color-primary-soft); }
+.mode-required { flex: none; color: var(--color-primary); font-size: 9px; font-weight: 700; }
 .save-wrap { position: fixed; z-index: 2; right: 0; bottom: 0; left: 0; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); background: var(--color-surface); box-shadow: 0 -5px 18px var(--color-shadow); }
 .save-button { width: min(calc(100% - 36px), 524px); height: 52px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 14px; line-height: 1; }
 @media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 12px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 10px; } }

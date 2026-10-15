@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { fontCatalog } from '../../fonts/catalog'
 import type { LearningFont } from '../../fonts/types'
 import characterTable from '../../static/character_table/first-level.json'
-import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
+import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
-import { IDLE_TIMEOUT_MS, REVIEW_TARGET } from '../../study/dailyProgress'
-import { INPUT_STUDY_MODE, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
+import { IDLE_TIMEOUT_MS, readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { INPUT_STUDY_MODE, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
 import StudyQuestionCard from './components/StudyQuestionCard.vue'
-
-interface StoredLearningPlan {
-  dailyCount?: number
-  modes?: string[]
-}
 
 interface StudyQuestion {
   mode: StudyMode
@@ -29,37 +23,41 @@ interface StudyQuestion {
   referenceFont: LearningFont
 }
 
-const PLAN_STORAGE_KEY = 'font-learning-plan'
-const DEFAULT_DAILY_COUNT = 15
-
 const fontStore = useFontStore()
-const preferencesStore = useCharacterPreferencesStore()
+const learningStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
-const { addedFonts, currentFont } = storeToRefs(fontStore)
+const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { reviewedCount: storedReviewedCount } = storeToRefs(dailyProgressStore)
 dailyProgressStore.hydrate()
-const savedPlan = uni.getStorageSync(PLAN_STORAGE_KEY) as StoredLearningPlan | undefined
-const configuredDailyCount = typeof savedPlan?.dailyCount === 'number' ? savedPlan.dailyCount : DEFAULT_DAILY_COUNT
-const configuredModes = normalizeStudyModes(savedPlan?.modes)
-const activeModes = configuredModes.length > 0 ? configuredModes : [...STUDY_MODES]
-const availableCharacters: StudyCharacterEntry[] = characterTable.chars.filter((entry) => !preferencesStore.isExcluded(entry.id))
-const dailyCharacters = availableCharacters.slice(0, Math.max(1, Math.trunc(configuredDailyCount)))
-const dailyTarget = dailyCharacters.length
+dailyProgressStore.reconcileLearned(learningStore.completedIds)
+const allCharacters: StudyCharacterEntry[] = characterTable.chars
+const availableCharacters = allCharacters.filter((entry) => !learningStore.isExcluded(entry.id))
+const candidateIds = availableCharacters
+  .filter((entry) => !learningStore.isCharacterComplete(entry.id))
+  .map((entry) => entry.id)
+dailyProgressStore.ensureSession(candidateIds, readPlanDailyCount())
+for (const characterId of dailyProgressStore.assignedIds) {
+  if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
+}
 
-const currentIndex = ref(0)
+const characterById = new Map(allCharacters.map((entry) => [entry.id, entry]))
+const dailyCharacters = computed(() => dailyProgressStore.assignedIds.flatMap((id) => {
+  const entry = characterById.get(id)
+  return entry ? [entry] : []
+}))
+const initialIndex = dailyCharacters.value.findIndex((entry) => !learningStore.isCharacterComplete(entry.id))
+const currentIndex = ref(initialIndex >= 0 ? initialIndex : dailyCharacters.value.length)
 const reviewedCount = computed(() => storedReviewedCount.value)
 const selectedAnswer = ref<string | null>(null)
 const inputAnswer = ref('')
 const hasAttempted = ref(false)
 const hasAnswered = ref(false)
 
-const referenceFont = computed(() => (
-  addedFonts.value.find((font) => font.id !== currentFont.value.id)
-  ?? fontCatalog.find((font) => font.id !== currentFont.value.id)
-  ?? currentFont.value
-))
-const activeMode = computed(() => activeModes[currentIndex.value % activeModes.length] ?? STUDY_MODES[0])
-const currentCharacter = computed(() => dailyCharacters[currentIndex.value] ?? dailyCharacters[0])
+const currentCharacter = computed(() => dailyCharacters.value[currentIndex.value])
+const activeMode = ref<StudyMode>(
+  currentCharacter.value ? learningStore.nextIncompleteMode(currentCharacter.value.id) ?? STUDY_MODES[0] : STUDY_MODES[0],
+)
+if (currentCharacter.value) dailyProgressStore.setCurrentCharacter(currentCharacter.value.id)
 const isInputMode = computed(() => activeMode.value === INPUT_STUDY_MODE)
 const isInputAnswerCorrect = computed(() => {
   if (!currentCharacter.value) return false
@@ -71,14 +69,23 @@ const isCorrect = computed(() => {
   if (isInputMode.value) return hasAttempted.value && isInputAnswerCorrect.value
   return Boolean(currentCharacter.value && selectedAnswer.value === currentCharacter.value.script_forms.simplified)
 })
-const isLastQuestion = computed(() => currentIndex.value >= dailyCharacters.length - 1)
+const isLastCharacter = computed(() => currentIndex.value >= dailyCharacters.value.length - 1)
+const isLastMode = computed(() => Boolean(currentCharacter.value && learningStore.isCharacterComplete(currentCharacter.value.id)))
+const modePosition = computed(() => STUDY_MODES.indexOf(activeMode.value) + 1)
+const isDayComplete = computed(() => dailyCharacters.value.length > 0
+  && dailyCharacters.value.every((entry) => learningStore.isCharacterComplete(entry.id)))
+const dailyTarget = computed(() => dailyCharacters.value.length)
 const learnedCount = computed(() => dailyProgressStore.learnedCount)
-const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget))
+const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget.value))
 const studyMinutes = computed(() => dailyProgressStore.minutes)
-const choiceOptions = computed(() => buildChoiceOptions(availableCharacters, currentIndex.value))
+const choiceOptions = computed(() => buildChoiceOptions(
+  availableCharacters,
+  currentCharacter.value,
+  currentIndex.value + modePosition.value,
+))
 const currentQuestion = computed<StudyQuestion | null>(() => {
   if (!currentCharacter.value) return null
-  const isReverseChoice = activeMode.value === '查看对照字体选择学习字体'
+  const isReverseChoice = activeMode.value === 'reference-to-seal-choice'
   return {
     mode: activeMode.value,
     position: currentIndex.value + 1,
@@ -91,13 +98,18 @@ const currentQuestion = computed<StudyQuestion | null>(() => {
   }
 })
 
-function buildChoiceOptions(entries: StudyCharacterEntry[], index: number): StudyCharacterEntry[] {
-  const choices: StudyCharacterEntry[] = []
+function buildChoiceOptions(
+  entries: StudyCharacterEntry[],
+  answer: StudyCharacterEntry | undefined,
+  seed: number,
+): StudyCharacterEntry[] {
+  if (!answer) return []
+  const choices: StudyCharacterEntry[] = [answer]
   for (let offset = 0; choices.length < 4 && offset < entries.length; offset += 1) {
-    const candidate = entries[(index + offset) % entries.length]
+    const candidate = entries[(seed + offset) % entries.length]
     if (candidate && !choices.some((choice) => choice.id === candidate.id)) choices.push(candidate)
   }
-  const shift = choices.length > 0 ? (index * 3 + 1) % choices.length : 0
+  const shift = choices.length > 0 ? (seed * 3 + 1) % choices.length : 0
   return [...choices.slice(shift), ...choices.slice(0, shift)]
 }
 
@@ -113,19 +125,17 @@ function isPageVisible(): boolean {
   return document.visibilityState === 'visible'
 }
 
-function markCorrectAnswer() {
-  if (hasAnswered.value || !isCorrect.value || !currentCharacter.value) return
-  hasAnswered.value = true
-  touchActive()
-  dailyProgressStore.addLearned(currentCharacter.value.id)
-}
-
 function handleChoiceAnswer(character: string) {
-  if (isCorrect.value) return
+  const current = currentCharacter.value
+  if (hasAnswered.value || !current) return
   touchActive()
   selectedAnswer.value = character
   hasAttempted.value = true
-  markCorrectAnswer()
+  const isAnswerCorrect = character === current.script_forms.simplified
+  learningStore.recordModeAttempt(current.id, activeMode.value, isAnswerCorrect)
+  if (!isAnswerCorrect) return
+  hasAnswered.value = true
+  if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
 }
 
 function handleInputAnswer(value: string) {
@@ -141,9 +151,13 @@ function submitInputAnswer(value: string) {
   hasAttempted.value = true
   const expected = currentCharacter.value?.script_forms
   if (!expected) return
-  if (inputAnswer.value !== expected.simplified && inputAnswer.value !== expected.traditional) return
+  const isAnswerCorrect = inputAnswer.value === expected.simplified || inputAnswer.value === expected.traditional
+  learningStore.recordModeAttempt(currentCharacter.value.id, activeMode.value, isAnswerCorrect)
+  if (!isAnswerCorrect) return
   hasAnswered.value = true
-  if (currentCharacter.value) dailyProgressStore.addLearned(currentCharacter.value.id)
+  if (learningStore.isCharacterComplete(currentCharacter.value.id)) {
+    dailyProgressStore.addLearned(currentCharacter.value.id)
+  }
 }
 
 function resetQuestionState() {
@@ -154,18 +168,34 @@ function resetQuestionState() {
 }
 
 function handleNext() {
-  if (!isCorrect.value) return
+  const current = currentCharacter.value
+  if (!isCorrect.value || !current) return
   touchActive()
-  if (isLastQuestion.value) {
+  const nextMode = learningStore.nextIncompleteMode(current.id)
+  if (nextMode) {
+    activeMode.value = nextMode
+    resetQuestionState()
+    return
+  }
+  const nextIndex = dailyCharacters.value.findIndex((entry, index) => (
+    index > currentIndex.value && !learningStore.isCharacterComplete(entry.id)
+  ))
+  if (nextIndex < 0) {
+    dailyProgressStore.setCurrentCharacter(null)
     uni.showModal({
       title: '今日学习完成',
-      content: `已完成 ${dailyTarget} 个文字练习`,
+      content: `已完成 ${dailyTarget.value} 个文字的三种练习`,
       showCancel: false,
       success: () => uni.reLaunch({ url: '/pages/index/index' }),
     })
     return
   }
-  currentIndex.value += 1
+  currentIndex.value = nextIndex
+  const nextCharacter = dailyCharacters.value[nextIndex]
+  if (nextCharacter) {
+    activeMode.value = learningStore.nextIncompleteMode(nextCharacter.id) ?? STUDY_MODES[0]
+    dailyProgressStore.setCurrentCharacter(nextCharacter.id)
+  }
   resetQuestionState()
 }
 
@@ -176,8 +206,8 @@ function openSearch() {
 function toggleFavorite() {
   const character = currentCharacter.value
   if (!character) return
-  preferencesStore.toggleFavorite(character.id)
-  uni.showToast({ title: preferencesStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' })
+  learningStore.toggleFavorite(character.id)
+  uni.showToast({ title: learningStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' })
 }
 
 function startStudyTimer() {
@@ -198,19 +228,22 @@ function stopStudyTimer() {
   dailyProgressStore.persist()
 }
 
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') touchActive()
+  else dailyProgressStore.persist()
+}
+
 onMounted(() => {
   uni.pageScrollTo({ scrollTop: 0, duration: 0 })
   startStudyTimer()
   if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') touchActive()
-      else dailyProgressStore.persist()
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
   }
 })
 
 onBeforeUnmount(() => {
   stopStudyTimer()
+  if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
@@ -225,13 +258,13 @@ onBeforeUnmount(() => {
         <button class="topbar-button" role="button" aria-label="搜索" @click="openSearch">
           <span class="search-icon" aria-hidden="true" />
         </button>
-        <button class="topbar-button" role="button" :aria-label="currentCharacter && preferencesStore.isFavorite(currentCharacter.id) ? '取消收藏当前文字' : '收藏当前文字'" @click="toggleFavorite">
-          <span class="favorite-icon" aria-hidden="true">{{ currentCharacter && preferencesStore.isFavorite(currentCharacter.id) ? '★' : '☆' }}</span>
+        <button class="topbar-button" role="button" :disabled="!currentCharacter" :aria-label="currentCharacter && learningStore.isFavorite(currentCharacter.id) ? '取消收藏当前文字' : '收藏当前文字'" @click="toggleFavorite">
+          <span class="favorite-icon" aria-hidden="true">{{ currentCharacter && learningStore.isFavorite(currentCharacter.id) ? '★' : '☆' }}</span>
         </button>
       </view>
     </view>
 
-    <view class="progress-card" aria-label="今日学习进度">
+    <view v-if="!isCorrect" class="progress-card" aria-label="今日学习进度">
       <view class="progress-item">
         <text class="progress-label">今日新学</text>
         <text class="progress-value">{{ studyProgress }}/{{ dailyTarget }}</text>
@@ -248,21 +281,24 @@ onBeforeUnmount(() => {
 
     <StudyQuestionCard
       v-if="currentQuestion"
-      :key="currentQuestion.position"
+      :key="`${currentQuestion.position}-${currentQuestion.mode}`"
       :question="currentQuestion"
       :selected-answer="selectedAnswer"
       :input-answer="inputAnswer"
       :has-attempted="hasAttempted"
       :is-correct="isCorrect"
-      :is-last-question="isLastQuestion"
+      :is-last-mode="isLastMode"
+      :is-last-character="isLastCharacter"
+      :mode-position="modePosition"
       @answer-choice="handleChoiceAnswer"
       @update:input-answer="handleInputAnswer"
       @submit-input="submitInputAnswer"
       @next="handleNext"
     />
     <view v-else class="empty-study" role="status">
-      <text class="empty-study-title">暂无可学习文字</text>
-      <text class="empty-study-description">可在文字详情页恢复已斩掉的文字</text>
+      <text class="empty-study-title">{{ isDayComplete ? '今日学习已完成' : '暂无可学习文字' }}</text>
+      <text class="empty-study-description">{{ isDayComplete ? '每个文字都已完成三种学习方式' : '可在文字详情页恢复已斩掉的文字' }}</text>
+      <navigator v-if="isDayComplete" class="complete-return" url="/pages/index/index" open-type="reLaunch" hover-class="none">返回首页</navigator>
     </view>
   </view>
 </template>
@@ -273,6 +309,7 @@ onBeforeUnmount(() => {
 .topbar-actions { display: flex; justify-content: flex-end; gap: 6px; }
 .topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--color-text); line-height: 1; }
 .topbar-button::after { border: 0; }
+.topbar-button[disabled] { color: var(--color-text-muted); opacity: .5; }
 .back-icon, .favorite-icon, .search-icon { pointer-events: none; }
 .back-icon { font-size: 27px; font-weight: 300; }
 .favorite-icon { font-size: 31px; line-height: 1; }
@@ -286,6 +323,7 @@ onBeforeUnmount(() => {
 .empty-study { min-height: 0; padding: 30px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
 .empty-study-title { font-size: 15px; font-weight: 700; }
 .empty-study-description { color: var(--color-text-muted); font-size: 11px; }
+.complete-return { min-width: 132px; height: 44px; margin-top: 10px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: var(--color-primary); color: var(--color-on-primary); font-size: 13px; font-weight: 600; }
 
 @media (max-height: 720px) {
   .study-topbar { min-height: calc(56px + var(--app-top-safe-area)); }

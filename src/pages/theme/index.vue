@@ -81,7 +81,7 @@ function goBack() {
 </script>
 
 <style scoped>
-.theme-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
+.theme-page { width: min(100%, 560px); min-height: 100vh; overscroll-behavior: none; overscroll-behavior-y: none; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
 .theme-nav { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 40px; font-weight: 300; line-height: 38px; cursor: pointer; }
 .theme-content { padding: 22px 16px calc(26px + env(safe-area-inset-bottom)); }

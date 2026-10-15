@@ -6,9 +6,13 @@ export const IDLE_TIMEOUT_MS = 2 * 60 * 1000
 
 export interface DailyProgress {
   dateKey: string
+  assignedIds: string[]
   learnedIds: string[]
+  currentCharacterId: string | null
   reviewedCount: number
   studySeconds: number
+  startedAt: string | null
+  completedAt: string | null
 }
 
 export function todayKey(date = new Date()): string {
@@ -44,7 +48,16 @@ function normalizeIdList(value: unknown): string[] {
 
 export function normalizeProgress(value: unknown, dateKey: string): DailyProgress {
   if (typeof value !== 'object' || value === null) {
-    return { dateKey, learnedIds: [], reviewedCount: 0, studySeconds: 0 }
+    return {
+      dateKey,
+      assignedIds: [],
+      learnedIds: [],
+      currentCharacterId: null,
+      reviewedCount: 0,
+      studySeconds: 0,
+      startedAt: null,
+      completedAt: null,
+    }
   }
   const stored = value as Partial<DailyProgress>
   const studySeconds = typeof stored.studySeconds === 'number' && Number.isFinite(stored.studySeconds)
@@ -53,7 +66,29 @@ export function normalizeProgress(value: unknown, dateKey: string): DailyProgres
   const reviewedCount = typeof stored.reviewedCount === 'number' && Number.isFinite(stored.reviewedCount)
     ? Math.max(0, Math.trunc(stored.reviewedCount))
     : 0
-  return { dateKey, learnedIds: normalizeIdList(stored.learnedIds), reviewedCount, studySeconds }
+  const learnedIds = normalizeIdList(stored.learnedIds)
+  const assignedIds = normalizeIdList(stored.assignedIds)
+  return {
+    dateKey,
+    assignedIds: assignedIds.length > 0 ? assignedIds : learnedIds,
+    learnedIds,
+    currentCharacterId: typeof stored.currentCharacterId === 'string' ? stored.currentCharacterId : null,
+    reviewedCount,
+    studySeconds,
+    startedAt: typeof stored.startedAt === 'string' ? stored.startedAt : null,
+    completedAt: typeof stored.completedAt === 'string' ? stored.completedAt : null,
+  }
+}
+
+/** 保留今日已有字单，并从尚未学完、未斩的候选字中补足目标数量。 */
+export function buildDailyAssignment(existingIds: string[], candidateIds: string[], targetCount: number): string[] {
+  const target = normalizeDailyCount(targetCount)
+  const result = normalizeIdList(existingIds)
+  for (const characterId of normalizeIdList(candidateIds)) {
+    if (result.length >= target) break
+    if (!result.includes(characterId)) result.push(characterId)
+  }
+  return result
 }
 
 /** 展示用分钟数：内部按秒累计，每满 60 秒 +1，向下取整。 */

@@ -19,7 +19,9 @@
   --color-cover-one: #17b684;
   --color-cover-two: #4476e8;
   --color-shadow: #20242d0d;
-  --app-top-safe-area: max(30px, env(safe-area-inset-top));
+  /* 顶部安全区：状态栏约30px + 刘海 inset，兼容 env() / constant() */
+  --app-top-safe-area: calc(30px + env(safe-area-inset-top, 0px));
+  --app-safe-mask-height: calc(30px + env(safe-area-inset-top, 0px));
   --brand: var(--color-primary);
   --brand-dark: var(--color-primary-strong);
   --muted: var(--color-text-muted);
@@ -34,14 +36,72 @@
   color: var(--color-text);
   background: var(--color-page);
 }
+/* iOS 11 兼容：constant() 兜底 */
+@supports (top: constant(safe-area-inset-top)) {
+  :root {
+    --app-top-safe-area: calc(30px + constant(safe-area-inset-top, 0px));
+    --app-safe-mask-height: calc(30px + constant(safe-area-inset-top, 0px));
+  }
+}
 
 :root[data-theme-mode='dark'] { color-scheme: dark; }
 
 html, body, page { background: var(--color-page); }
 body, page, .app-shell { font-size: 12px; }
 body { transition: background-color .2s ease, color .2s ease; }
-.app-shell { min-height: 100vh; background: var(--color-page); color: var(--color-text); }
+.app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  position: relative;
+  background: var(--color-page);
+  color: var(--color-text);
+}
+
+/* 2. 顶部状态栏遮挡蒙版：固定于最上层，不透明，跟随主题 */
+.app-safe-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  height: var(--app-safe-mask-height);
+  height: calc(30px + env(safe-area-inset-top, 0px));
+  background: var(--color-page);
+  background: var(--color-surface);
+  pointer-events: none;
+}
+@supports (top: constant(safe-area-inset-top)) {
+  .app-safe-mask {
+    height: calc(30px + constant(safe-area-inset-top, 0px));
+  }
+}
+@supports (top: env(safe-area-inset-top)) {
+  .app-safe-mask {
+    height: calc(30px + env(safe-area-inset-top, 0px));
+  }
+}
+/* 3. 底部 Tab 切换动效统一：slide/push 200-250ms ease-out */
+.tab-slide-enter-active, .tab-slide-leave-active,
+.page-slide-enter-active, .page-slide-leave-active {
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+}
+.tab-slide-enter-from { transform: translateX(18%); opacity: 0.85; }
+.tab-slide-leave-to { transform: translateX(-18%); opacity: 0.85; }
+.tab-slide-reverse-enter-from { transform: translateX(-18%); opacity: 0.85; }
+.tab-slide-reverse-leave-to { transform: translateX(18%); opacity: 0.85; }
 
 @media (prefers-reduced-motion: reduce) {
   body { transition: none; }
+  .tab-slide-enter-active, .tab-slide-leave-active, .page-slide-enter-active, .page-slide-leave-active { transition: none; }
+}
+
+/* 全局页面容器：固定不动，内部滚动 */
+.page-shell, .home, .profile-page, .preview-page, .study-page, .plan-page, .settings-page, .detail-page, .search-page, .theme-page, .personal-profile-page, .region-page {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }

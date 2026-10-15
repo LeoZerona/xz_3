@@ -4,14 +4,22 @@
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/plan/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
@@ -19,7 +27,10 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",
-        "disableScroll": true
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
@@ -27,14 +38,21 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",
-        "disableScroll": true
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/character-detail/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
@@ -42,35 +60,54 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",
-        "disableScroll": true
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/theme/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/settings/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/personal-profile/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
       "path": "pages/region-picker/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "disableScroll": false,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     },
     {
@@ -78,7 +115,10 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",
-        "disableScroll": false
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
       }
     }
   ],
@@ -86,6 +126,13 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "",
     "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#ffffff",
+    "app-plus": {
+      "bounce": "none"
+    },
+    "disableScroll": false,
+    "h5": {
+      "pullToRefresh": false
+    }
   }
 }

@@ -214,7 +214,7 @@ onMounted(async () => {
 .history-track { width: max-content; padding: 0 16px 6px; display: flex; gap: 9px; }
 .history-chip { min-width: 54px; height: 34px; padding: 0 14px; border-radius: 17px; background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 11px; }
 .result-heading { height: 40px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 10px; }
-.result-scroll { min-height: 0; flex: 1; }
+.result-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
 .result-item { width: calc(100% - 28px); min-height: 92px; margin: 0 14px; padding: 13px 2px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--color-border); text-align: left; }
 .result-character { width: 52px; flex: 0 0 52px; color: var(--color-primary-strong); font-size: 33px; font-weight: 600; text-align: center; }
 .result-content { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }

@@ -1,5 +1,8 @@
 <template>
-  <view class="app-shell" :data-theme="currentThemeId"><slot /></view>
+  <view class="app-shell" :data-theme="currentThemeId">
+    <view class="app-safe-mask" aria-hidden="true" />
+    <slot />
+  </view>
 </template>
 
 <script setup lang="ts">
@@ -14,7 +17,7 @@ onMounted(themeStore.initialize)
 </script>
 
 <style>
-page { background: var(--color-page); }
+page { background: var(--color-page); overscroll-behavior: none; overscroll-behavior-y: none; }
 
 /* 修复 uni.showToast 在 H5 上图标与文字不居中的问题：原样式图标无水平居中，内容宽度与空白处理导致偏左 */
 uni-toast.uni-toast,
@@ -40,5 +43,14 @@ uni-toast .uni-toast__content,
   white-space: normal !important;
   word-break: break-word !important;
   overflow: visible !important;
+}
+
+/* 全局页面切换不闪烁：H5 下 uni 页面为 vue-router 视图，增加淡入衔接 */
+uni-page, .uni-page {
+  background: var(--color-page);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
 }
 </style>

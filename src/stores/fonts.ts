@@ -1,6 +1,12 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { DEFAULT_ADDED_FONT_IDS, DEFAULT_FONT_ID, fontCatalog, getFont } from '../fonts/catalog'
+import {
+  DEFAULT_ADDED_FONT_IDS,
+  DEFAULT_FONT_ID,
+  fontCatalog,
+  getFont,
+  registerBuiltinFontFaces,
+} from '../fonts/catalog'
 import type { LearningFont } from '../fonts/types'
 
 export const FONT_STATE_STORAGE_KEY = 'font-learning-fonts'
@@ -8,9 +14,10 @@ export const CUSTOM_FONTS_STORAGE_KEY = 'font-learning-custom-fonts'
 const LEGACY_CURRENT_FONT_STORAGE_KEY = 'font-learning-current'
 
 interface StoredFontState {
-  version: 1
+  version: 1 | 2
   addedIds: string[]
   currentId: string
+  referenceId?: string
 }
 
 export interface PersistedCustomFont extends LearningFont {
@@ -96,26 +103,33 @@ function readStoredState(customFonts: LearningFont[]): StoredFontState {
       const currentId = typeof stored?.currentId === 'string' && addedIds.includes(stored.currentId)
         ? stored.currentId
         : addedIds[0]!
-      return { version: 1, addedIds, currentId }
+      const referenceId = typeof stored?.referenceId === 'string' && addedIds.includes(stored.referenceId)
+        ? stored.referenceId
+        : (addedIds.find((id) => id !== currentId) ?? currentId)
+      return { version: 2, addedIds, currentId, referenceId }
     }
 
     const legacyCurrentId = uni.getStorageSync(LEGACY_CURRENT_FONT_STORAGE_KEY)
     const currentId = typeof legacyCurrentId === 'string' && DEFAULT_ADDED_FONT_IDS.includes(legacyCurrentId)
       ? legacyCurrentId
       : DEFAULT_FONT_ID
-    return { version: 1, addedIds: [...DEFAULT_ADDED_FONT_IDS], currentId }
+    const referenceId = DEFAULT_ADDED_FONT_IDS.find((id) => id !== currentId) ?? currentId
+    return { version: 2, addedIds: [...DEFAULT_ADDED_FONT_IDS], currentId, referenceId }
   } catch {
-    return { version: 1, addedIds: [...DEFAULT_ADDED_FONT_IDS], currentId: DEFAULT_FONT_ID }
+    const referenceId = DEFAULT_ADDED_FONT_IDS.find((id) => id !== DEFAULT_FONT_ID) ?? DEFAULT_FONT_ID
+    return { version: 2, addedIds: [...DEFAULT_ADDED_FONT_IDS], currentId: DEFAULT_FONT_ID, referenceId }
   }
 }
 
 export const useFontStore = defineStore('fonts', () => {
+  registerBuiltinFontFaces()
   const customFonts = ref<PersistedCustomFont[]>(readCustomFonts())
   // 本地方案：启动时立即注册持久化的自定义字体，确保刷新后仍可显示
   registerAllCustomFonts(customFonts.value)
   const storedState = readStoredState(customFonts.value)
   const addedFontIds = ref(storedState.addedIds)
   const currentFontId = ref(storedState.currentId)
+  const referenceFontId = ref(storedState.referenceId ?? storedState.currentId)
 
   function getAnyFont(fontId: string): LearningFont | undefined {
     return getBuiltinFont(fontId) ?? customFonts.value.find((font) => font.id === fontId)
@@ -123,12 +137,14 @@ export const useFontStore = defineStore('fonts', () => {
 
   const addedFonts = computed(() => addedFontIds.value.map(getAnyFont).filter((font): font is LearningFont => font !== undefined))
   const currentFont = computed(() => getAnyFont(currentFontId.value) ?? fontCatalog[0]!)
+  const referenceFont = computed(() => getAnyFont(referenceFontId.value) ?? currentFont.value)
 
   function persist() {
     const state: StoredFontState = {
-      version: 1,
+      version: 2,
       addedIds: [...addedFontIds.value],
       currentId: currentFontId.value,
+      referenceId: referenceFontId.value,
     }
     try {
       uni.setStorageSync(FONT_STATE_STORAGE_KEY, state)
@@ -149,16 +165,38 @@ export const useFontStore = defineStore('fonts', () => {
   }
 
   function removeFont(fontId: string) {
-    if (fontId === currentFontId.value) return
+    if (fontId === currentFontId.value || fontId === referenceFontId.value) return
     addedFontIds.value = addedFontIds.value.filter((id) => id !== fontId)
     persist()
   }
 
-  function selectFont(fontId: string) {
+  function selectLearningFont(fontId: string) {
     if (!addedFontIds.value.includes(fontId)) return
+    if (fontId === referenceFontId.value && currentFontId.value !== fontId) {
+      referenceFontId.value = currentFontId.value
+    }
     currentFontId.value = fontId
     persist()
   }
+
+  function selectReferenceFont(fontId: string) {
+    if (!addedFontIds.value.includes(fontId)) return
+    if (fontId === currentFontId.value && referenceFontId.value !== fontId) {
+      currentFontId.value = referenceFontId.value
+    }
+    referenceFontId.value = fontId
+    persist()
+  }
+
+  function swapFonts() {
+    const learningId = currentFontId.value
+    currentFontId.value = referenceFontId.value
+    referenceFontId.value = learningId
+    persist()
+  }
+
+  // 保留原有调用名称，避免已有页面或外部调用失效。
+  const selectFont = selectLearningFont
 
   function isAdded(fontId: string) {
     return addedFontIds.value.includes(fontId)
@@ -177,13 +215,16 @@ export const useFontStore = defineStore('fonts', () => {
     if (!exists) return
     customFonts.value = customFonts.value.filter((font) => font.id !== fontId)
     persistCustomFonts()
-    // 同步从已添加列表移除，避免残留无效 id
+    // 同步从已添加列表移除，并为受影响的字体角色选择可用回退项。
     if (addedFontIds.value.includes(fontId)) {
       addedFontIds.value = addedFontIds.value.filter((id) => id !== fontId)
-      // 若当前字体被删除，自动切换到首个可用字体
       if (currentFontId.value === fontId) {
         const fallback = addedFontIds.value[0] ?? DEFAULT_FONT_ID
         currentFontId.value = fallback
+      }
+      if (referenceFontId.value === fontId) {
+        referenceFontId.value = addedFontIds.value.find((id) => id !== currentFontId.value)
+          ?? currentFontId.value
       }
       persist()
     }
@@ -194,11 +235,16 @@ export const useFontStore = defineStore('fonts', () => {
     addedFonts,
     currentFontId,
     currentFont,
+    referenceFontId,
+    referenceFont,
     customFonts,
     getAnyFont,
     addFont,
     removeFont,
     selectFont,
+    selectLearningFont,
+    selectReferenceFont,
+    swapFonts,
     isAdded,
     addCustomFont,
     removeCustomFont,

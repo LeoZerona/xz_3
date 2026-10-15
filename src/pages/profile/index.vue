@@ -45,6 +45,8 @@ function handleMenu(item: MenuItem) {
   if (item.url) {
     uni.navigateTo({
       url: item.url,
+      animationType: 'slide-in-right',
+      animationDuration: 220,
       fail: () => showPlaceholder(item.label),
     })
     return
@@ -55,6 +57,8 @@ function handleMenu(item: MenuItem) {
 function openSettings() {
   uni.navigateTo({
     url: '/pages/settings/index',
+    animationType: 'slide-in-right',
+    animationDuration: 220,
     fail: () => uni.showToast({ title: '暂时无法打开设置', icon: 'none' }),
   })
 }
@@ -62,6 +66,8 @@ function openSettings() {
 function openPersonalProfile() {
   uni.navigateTo({
     url: '/pages/personal-profile/index',
+    animationType: 'slide-in-right',
+    animationDuration: 220,
     fail: () => uni.showToast({ title: '暂时无法打开个人资料', icon: 'none' }),
   })
 }
@@ -69,7 +75,7 @@ function openPersonalProfile() {
 
 <template>
   <view class="profile-page">
-    <view class="profile-scroll">
+    <scroll-view class="profile-scroll" scroll-y :show-scrollbar="false" :bounces="false">
       <view class="profile-header">
         <view class="header-actions">
           <button class="header-action" aria-label="扫一扫" @click="showPlaceholder('扫一扫')">
@@ -132,7 +138,7 @@ function openPersonalProfile() {
       </view>
 
       <text class="scroll-hint">已经到底啦</text>
-    </view>
+    </scroll-view>
 
     <AppBottomNavigation
       active-tab="profile"
@@ -145,20 +151,33 @@ function openPersonalProfile() {
 <style scoped lang="scss">
 .profile-page {
   width: min(100%, 560px);
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
   background: var(--color-surface-muted);
   color: var(--color-text);
 }
 .profile-scroll {
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  /* 内容高度 ≤视口时，禁用滚动回弹由 overscroll-behavior 保证 */
 }
 .profile-header {
   padding: calc(8px + var(--app-top-safe-area)) 20px 18px;
   background: var(--color-topbar);
+  position: relative;
+  z-index: 1;
 }
 .header-actions {
   height: 40px;
@@ -168,8 +187,10 @@ function openPersonalProfile() {
   gap: 8px;
 }
 .header-action {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   margin: 0;
   padding: 0;
   display: flex;
@@ -319,4 +340,5 @@ function openPersonalProfile() {
   .user-name { font-size: 14px; }
   .user-meta { font-size: 8px; }
 }
+@media (prefers-reduced-motion: reduce) { .profile-scroll { scroll-behavior: auto; } }
 </style>

@@ -1,35 +1,44 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { fontCatalog } from '../../fonts/catalog'
 import characterTable from '../../static/character_table/first-level.json'
-import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
+import { useCharacterLearningStore } from '../../stores/characterLearning'
+import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { readPlanDailyCount } from '../../study/dailyProgress'
 
 type CoveredFont = 'learning' | 'reference'
 
-const PLAN_STORAGE_KEY = 'font-learning-plan'
-const DEFAULT_DAILY_COUNT = 15
 const fontStore = useFontStore()
-const { addedFonts, currentFont } = storeToRefs(fontStore)
-const { excludedIds } = storeToRefs(useCharacterPreferencesStore())
-const savedPlan = uni.getStorageSync(PLAN_STORAGE_KEY) as { dailyCount?: number } | undefined
-const configuredDailyCount = typeof savedPlan?.dailyCount === 'number' ? savedPlan.dailyCount : DEFAULT_DAILY_COUNT
-const dailyCount = Math.min(characterTable.chars.length, Math.max(1, Math.trunc(configuredDailyCount)))
+const learningStore = useCharacterLearningStore()
+const dailyProgressStore = useDailyProgressStore()
+const { currentFont, referenceFont } = storeToRefs(fontStore)
+const { assignedIds, learnedIds } = storeToRefs(dailyProgressStore)
+const dailyCount = Math.min(characterTable.chars.length, readPlanDailyCount())
+
+dailyProgressStore.hydrate()
+dailyProgressStore.reconcileLearned(learningStore.completedIds)
+const candidateIds = characterTable.chars
+  .filter((entry) => !learningStore.isExcluded(entry.id) && !learningStore.isCharacterComplete(entry.id))
+  .map((entry) => entry.id)
+dailyProgressStore.ensureSession(candidateIds, dailyCount)
+for (const characterId of assignedIds.value) {
+  if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
+}
 
 const coveredFont = ref<CoveredFont>('reference')
 const revealedCharacterIds = ref<string[]>([])
-const dailyCharacters = computed(() => characterTable.chars
-  .filter((entry) => !excludedIds.value.includes(entry.id))
-  .slice(0, dailyCount))
-const referenceFont = computed(() => (
-  addedFonts.value.find((font) => font.id !== currentFont.value.id)
-  ?? fontCatalog.find((font) => font.id !== currentFont.value.id)
-  ?? currentFont.value
+const characterById = new Map(characterTable.chars.map((entry) => [entry.id, entry]))
+const dailyCharacters = computed(() => assignedIds.value.flatMap((id) => {
+  const entry = characterById.get(id)
+  return entry ? [entry] : []
+}))
+const isDayComplete = computed(() => (
+  dailyCharacters.value.length > 0
+  && dailyCharacters.value.every((entry) => learnedIds.value.includes(entry.id))
 ))
-const coveredFontName = computed(() => (
-  coveredFont.value === 'learning' ? currentFont.value.name : referenceFont.value.name
-))
+const completedCount = computed(() => dailyCharacters.value
+  .filter((entry) => learnedIds.value.includes(entry.id)).length)
 const areAllCharactersRevealed = computed(() => (
   dailyCharacters.value.length > 0
   && dailyCharacters.value.every((entry) => revealedCharacterIds.value.includes(entry.id))
@@ -72,6 +81,10 @@ function startLearning() {
     uni.showToast({ title: '暂无可学习文字', icon: 'none' })
     return
   }
+  if (isDayComplete.value) {
+    uni.showToast({ title: '今日学习已完成', icon: 'success' })
+    return
+  }
   uni.redirectTo({ url: '/pages/study/index' })
 }
 </script>
@@ -89,12 +102,11 @@ function startLearning() {
     <view class="preview-summary">
       <view class="summary-copy">
         <text class="summary-title">今日要学 {{ dailyCharacters.length }} 个文字</text>
-        <text class="summary-description">点击遮罩即可查看 {{ coveredFontName }} 中的文字</text>
+        <text class="summary-description">已完成 {{ completedCount }}/{{ dailyCharacters.length }} · 每字需完成三种练习</text>
       </view>
       <view class="summary-actions">
         <button class="swap-button" role="button" aria-label="交换遮盖字体" @click="swapCoveredFont">
-          <van-icon name="exchange" size="16" aria-hidden="true" />
-          <text>交换遮盖</text>
+          <van-icon name="exchange" size="18" aria-hidden="true" />
         </button>
         <button class="cover-toggle-button" role="button" :aria-label="coverToggleLabel" @click="toggleAllCovers">
           <van-icon :name="areAllCharactersRevealed ? 'closed-eye' : 'eye-o'" size="19" aria-hidden="true" />
@@ -114,7 +126,7 @@ function startLearning() {
       <view class="detail-heading">详情</view>
     </view>
 
-    <scroll-view class="character-scroll" scroll-y :show-scrollbar="false">
+    <scroll-view class="character-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
       <view class="character-list">
         <view v-for="entry in dailyCharacters" :key="entry.id" class="character-row">
           <button
@@ -164,32 +176,34 @@ function startLearning() {
     </scroll-view>
 
     <view class="start-wrap">
-      <button class="start-button" role="button" aria-label="开始今日学习" :disabled="dailyCharacters.length === 0" @click="startLearning">开始今日学习</button>
+      <button class="start-button" role="button" :aria-label="isDayComplete ? '今日学习已完成' : '开始今日学习'" :disabled="dailyCharacters.length === 0 || isDayComplete" @click="startLearning">{{ isDayComplete ? '今日学习已完成' : '开始今日学习' }}</button>
     </view>
   </view>
 </template>
 
 <style scoped lang="scss">
 .preview-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; background: var(--color-page); color: var(--color-text); }
-.preview-header { min-height: calc(66px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 14px 8px; display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; background: var(--color-topbar); }
+.preview-header { min-height: calc(66px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 8px 0; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; background: var(--color-topbar); }
 .header-button, .swap-button, .cover-toggle-button, .character-cell, .detail-button, .start-button { margin: 0; padding: 0; border: 0; color: inherit; line-height: normal; }
 .header-button::after, .swap-button::after, .cover-toggle-button::after, .character-cell::after, .detail-button::after, .start-button::after { border: 0; }
-.header-button { width: 44px; height: 44px; display: grid; place-items: center; background: transparent; }
+.header-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; background: transparent; margin-left: 0; border-radius: 22px; }
+.header-button:active { background: var(--color-primary-soft); }
 .back-icon { font-size: 38px; font-weight: 300; line-height: 1; }
 .preview-summary { min-height: 88px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .summary-copy { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .summary-title { font-size: 14px; font-weight: 700; }
 .summary-description { overflow: hidden; color: var(--color-text-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .summary-actions { flex: none; display: flex; align-items: center; gap: 7px; }
-.swap-button { height: 38px; padding: 0 11px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 8px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 10px; white-space: nowrap; }
-.cover-toggle-button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); box-shadow: 0 3px 10px var(--color-shadow); }
+.swap-button, .cover-toggle-button { width: 42px; height: 38px; display: grid; place-items: center; border-radius: 8px; }
+.swap-button { background: var(--color-primary-soft); color: var(--color-primary); }
+.cover-toggle-button { border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent); background: var(--color-surface); color: var(--color-primary); box-shadow: 0 3px 10px var(--color-shadow); }
 .font-heading { min-height: 52px; padding: 0 10px 0 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px; align-items: center; gap: 10px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-muted); }
 .font-heading-item { min-width: 0; display: flex; align-items: baseline; gap: 5px; }
 .font-heading-item.is-covered .font-name::after { content: ' · 遮盖'; color: var(--color-primary); font-size: 8px; font-weight: 500; }
 .font-kind { flex: none; color: var(--color-text-muted); font-size: 8px; }
 .font-name { overflow: hidden; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .detail-heading { color: var(--color-text-muted); font-size: 8px; text-align: center; }
-.character-scroll { min-height: 0; flex: 1; background: var(--color-surface); }
+.character-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; background: var(--color-surface); }
 .character-list { padding-bottom: 6px; }
 .empty-characters { min-height: 220px; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--color-text-muted); font-size: 11px; text-align: center; }
 .character-row { min-height: 74px; padding: 10px 10px 10px 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px; align-items: stretch; gap: 10px; border-bottom: 1px solid var(--color-border); }
@@ -205,8 +219,7 @@ function startLearning() {
 .start-button[disabled] { background: var(--color-surface-muted); color: var(--color-text-muted); }
 @media (max-width: 360px) {
   .preview-summary { padding-right: 12px; padding-left: 12px; }
-  .swap-button { padding: 0 8px; font-size: 9px; }
-  .cover-toggle-button { width: 36px; height: 36px; }
+  .swap-button, .cover-toggle-button { width: 40px; height: 36px; }
   .font-heading, .character-row { padding-left: 12px; gap: 7px; }
   .character { font-size: 27px; }
 }

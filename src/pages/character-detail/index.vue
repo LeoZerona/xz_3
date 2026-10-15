@@ -2,25 +2,19 @@
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
-import { fontCatalog } from '../../fonts/catalog'
 import characterTable from '../../static/character_table/first-level.json'
-import { useCharacterPreferencesStore } from '../../stores/characterPreferences'
+import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useFontStore } from '../../stores/fonts'
 import type { StudyCharacterEntry } from '../../study/types'
 import CharacterDetailContent from './components/CharacterDetailContent.vue'
 
 const characterId = ref('')
-const preferencesStore = useCharacterPreferencesStore()
+const preferencesStore = useCharacterLearningStore()
 const { favoriteIds, excludedIds } = storeToRefs(preferencesStore)
-const { addedFonts, currentFont } = storeToRefs(useFontStore())
+const { currentFont, referenceFont } = storeToRefs(useFontStore())
 const characters: StudyCharacterEntry[] = characterTable.chars
 
 const character = computed(() => characters.find((entry) => entry.id === characterId.value))
-const referenceFont = computed(() => (
-  addedFonts.value.find((font) => font.id !== currentFont.value.id)
-  ?? fontCatalog.find((font) => font.id !== currentFont.value.id)
-  ?? currentFont.value
-))
 const isFavorite = computed(() => Boolean(character.value && favoriteIds.value.includes(character.value.id)))
 const isExcluded = computed(() => Boolean(character.value && excludedIds.value.includes(character.value.id)))
 
@@ -95,8 +89,10 @@ onLoad((options) => {
 .header-actions { display: flex; justify-content: flex-end; gap: 4px; }
 .header-button, .return-button { margin: 0; padding: 0; border: 0; color: inherit; line-height: normal; }
 .header-button::after, .return-button::after { border: 0; }
-.header-button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: transparent; }
+.header-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 22px; background: transparent; }
 .header-button.is-active { background: var(--color-primary-soft); color: var(--color-primary); }
+.header-button:active { background: var(--color-primary-soft); }
+.header-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 .header-button[disabled] { color: var(--color-text-muted); opacity: .48; }
 .back-button { font-size: 38px; font-weight: 300; }
 .favorite-button { font-size: 27px; }

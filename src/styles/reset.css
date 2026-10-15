@@ -18,3 +18,42 @@ img, svg, canvas, image { display: block; max-width: 100%; }
 fieldset, img { border: 0; }
 hr { border: 0; }
 [hidden] { display: none !important; }
+
+/* 1. 页面滚动与回弹优化：禁止页面级橡皮筋回弹，正屏主体固定不动 */
+html {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: auto;
+  height: 100%;
+}
+body {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  overflow: hidden;
+  height: 100%;
+  height: 100dvh;
+  -webkit-overflow-scrolling: auto;
+}
+html, body, #app, page {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+#app, page, .app-shell {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+/* iOS 兼容：bounces 在 WebView 中通过 overscroll-behavior 控制，额外禁用 */
+@supports (-webkit-touch-callout: none) {
+  html, body { overscroll-behavior: none; }
+}
+/* 内部可滚动容器：仅容器内滚动，不带动背景/标题栏，松手无回弹 */
+[scroll-y], scroll-view[scroll-y], .scroll-y, .page-scroll, .home-scroll, .profile-scroll, .character-scroll, .plan-wheel, .settings-content, .menu-area {
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+}
+@media (prefers-reduced-motion: reduce) {
+  [scroll-y], scroll-view[scroll-y], .scroll-y, .page-scroll, .home-scroll, .profile-scroll, .character-scroll { scroll-behavior: auto; }
+}

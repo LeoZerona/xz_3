@@ -143,7 +143,7 @@ function saveSeniorMode(nextValue: boolean) {
 
 <style scoped lang="scss">
 .settings-page {
-  width: min(100%, 560px);
+  width: min(100%, 560px); overscroll-behavior: none; overscroll-behavior-y: none;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;

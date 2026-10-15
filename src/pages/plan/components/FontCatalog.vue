@@ -288,8 +288,8 @@ function setActiveTab(tab: 'builtin' | 'custom') {
 <template>
   <main class="catalog-page">
     <view class="catalog-intro">
-      <text class="catalog-title">选择练习字体</text>
-      <text class="catalog-description">添加后可在“修改字体”中切换，并用于首页展示、学习计划和练习内容。</text>
+      <text class="catalog-title">添加字体资源</text>
+      <text class="catalog-description">添加后可在“修改字体”中分别设为学习字体或对照字体，并用于预览和练习。</text>
     </view>
 
     <view class="font-tabs" role="tablist" aria-label="字体类型">

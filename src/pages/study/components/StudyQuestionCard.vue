@@ -23,7 +23,9 @@ interface Props {
   inputAnswer: string
   hasAttempted: boolean
   isCorrect: boolean
-  isLastQuestion: boolean
+  isLastMode: boolean
+  isLastCharacter: boolean
+  modePosition: number
 }
 
 const props = defineProps<Props>()
@@ -36,15 +38,22 @@ const emit = defineEmits<{
 }>()
 
 const isInputMode = computed(() => props.question.mode === INPUT_STUDY_MODE)
+const modeName = computed(() => {
+  if (props.question.mode === 'seal-to-reference-choice') return '篆字辨认'
+  if (props.question.mode === 'reference-to-seal-choice') return '反向辨认'
+  return '输入回忆'
+})
 const localInputAnswer = ref(props.inputAnswer)
 const wrongAttemptCount = ref(0)
 const actionLabel = computed(() => {
   if (!props.isCorrect) return '确认'
-  return props.isLastQuestion ? '完成今日学习' : '下一字'
+  if (!props.isLastMode) return '下一种练习'
+  return props.isLastCharacter ? '完成今日学习' : '下一字'
 })
 const actionAriaLabel = computed(() => {
   if (!props.isCorrect) return '确认输入答案'
-  return props.isLastQuestion ? '完成今日学习' : '进入下一字'
+  if (!props.isLastMode) return '进入当前文字的下一种练习'
+  return props.isLastCharacter ? '完成今日学习' : '进入下一字'
 })
 
 watch(localInputAnswer, (value) => {
@@ -54,6 +63,10 @@ watch(localInputAnswer, (value) => {
     return
   }
   emit('update:input-answer', normalizedValue)
+})
+
+watch(() => props.inputAnswer, (value) => {
+  if (value !== localInputAnswer.value) localInputAnswer.value = value
 })
 
 function handlePrimaryAction() {
@@ -75,6 +88,10 @@ function handleChoiceAnswer(character: string) {
 <template>
   <view class="question-stage">
     <view v-if="!isCorrect" class="question-content">
+      <view class="mode-status" role="status">
+        <text>本字第 {{ modePosition }}/3 种</text>
+        <text>{{ modeName }}</text>
+      </view>
       <view class="prompt-card"
         :aria-label="`题目使用${question.promptFont.name}展示，${question.character.script_forms.simplified}`">
         <text class="prompt-character" :style="{ fontFamily: question.promptFont.fontFamily }">
@@ -170,7 +187,7 @@ function handleChoiceAnswer(character: string) {
     <button v-if="isInputMode || isCorrect" class="primary-action" role="button"
       :disabled="!isCorrect && !localInputAnswer.trim()" :aria-label="actionAriaLabel" @click="handlePrimaryAction">
       <text>{{ actionLabel }}</text>
-      <van-icon v-if="isCorrect && !isLastQuestion" name="arrow" size="16" aria-hidden="true" />
+      <van-icon v-if="isCorrect && !(isLastMode && isLastCharacter)" name="arrow" size="16" aria-hidden="true" />
     </button>
   </view>
 </template>
@@ -190,6 +207,15 @@ function handleChoiceAnswer(character: string) {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
+}
+
+.mode-status {
+  margin: 0 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  font-size: 10px;
 }
 
 .prompt-card {
