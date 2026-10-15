@@ -141,6 +141,26 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     return effective.find((mode) => !isModeComplete(characterId, mode)) ?? null
   }
 
+  function resetCharacters(characterIds: string[], at = new Date().toISOString()) {
+    let changed = false
+    for (const characterId of characterIds) {
+      if (!characterId) continue
+      const existing = data.value.characters[characterId]
+      if (!existing) continue
+      const next = cloneRecord(existing)
+      for (const mode of STUDY_MODES) {
+        next.modes[mode] = { attempts: 0, mistakes: 0, firstAttemptAt: null, lastAttemptAt: null, completedAt: null }
+      }
+      next.status = 'not-started'
+      next.firstStartedAt = null
+      next.lastStudiedAt = null
+      next.completedAt = null
+      data.value.characters = { ...data.value.characters, [characterId]: next }
+      changed = true
+    }
+    if (changed) persist(at)
+  }
+
   return {
     data,
     favoriteIds,
@@ -157,5 +177,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     isModeComplete,
     isCharacterComplete,
     nextIncompleteMode,
+    resetCharacters,
   }
 })
+

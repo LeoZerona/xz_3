@@ -120,6 +120,39 @@
           "bounce": "none"
         }
       }
+    },
+    {
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "bounce": "none"
+        },
+        "disableScroll": true
+      },
+      "path": "pages/levels/index"
+    },
+    {
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom",
+        "app-plus": {
+          "bounce": "none"
+        },
+        "disableScroll": true
+      },
+      "path": "pages/level-study/index"
+    },
+    {
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "",
+        "app-plus": {
+          "bounce": "none"
+        },
+        "disableScroll": false
+      },
+      "path": "pages/reading/index"
     }
   ],
   "globalStyle": {

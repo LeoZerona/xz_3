@@ -1911,9 +1911,8 @@
         "related_ids": []
       },
       "study": { "mnemonic": null, "tags": ["日部", "常用"] }
-    }
-  ],
-      {
+    },
+    {
       "id": "char-0621",
       "level": 1,
       "script_forms": {
@@ -3041,4 +3040,5 @@
       },
       "study": { "mnemonic": null, "tags": ["力部", "常用"] }
     }
+  ]
 }

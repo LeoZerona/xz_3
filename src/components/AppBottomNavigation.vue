@@ -25,8 +25,8 @@ const emit = defineEmits<{
 
 const navigationItems: NavigationItem[] = [
   { key: "study", label: "学习", icon: "desktop-o", url: "/pages/index/index" },
-  { key: "character", label: "单字练习", icon: "edit" },
-  { key: "reading", label: "对照阅读", icon: "notes-o" },
+  { key: "character", label: "关卡学习", icon: "apps-o", url: "/pages/levels/index" },
+  { key: "reading", label: "对照阅读", icon: "notes-o", url: "/pages/reading/index" },
   { key: "profile", label: "我", icon: "contact-o", url: "/pages/profile/index" },
 ];
 
@@ -208,3 +208,6 @@ function handleTouchEnd(event: TouchEvent) {
   white-space: nowrap;
 }
 </style>
+
+
+
