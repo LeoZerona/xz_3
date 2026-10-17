@@ -37,4 +37,18 @@ export default defineConfig({
   resolve: {
     alias: [{ find: /^vue-router$/, replacement: vueRouterEntry }],
   },
+  css: {
+    // 修复 Dart Sass legacy-js-api 警告：Vite 5.2 内部使用 sass.render（legacy API）
+    // Vite >=5.4/6 会识别 api: "modern-compiler" 自动切换到 compileStringAsync
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler",
+        silenceDeprecations: ["legacy-js-api"],
+      } as any,
+      sass: {
+        api: "modern-compiler",
+        silenceDeprecations: ["legacy-js-api"],
+      } as any,
+    },
+  },
 });

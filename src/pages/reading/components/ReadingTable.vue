@@ -114,7 +114,7 @@ function splitChars(text: string): string[] {
   bottom: 0;
   left: 0;
   pointer-events: none;
-  background: rgb(144 181 255 / 20%);
+  background: color-mix(in srgb, var(--color-progress) 20%, transparent);
   border-bottom: 2px solid var(--color-progress);
   transform-origin: top;
   will-change: transform;
@@ -137,6 +137,9 @@ function splitChars(text: string): string[] {
   -webkit-touch-callout: default;
 }
 .cell-line { line-height: 1.7; word-break: break-word; white-space: pre-wrap; }
+.cell-line::selection, .grid-char::selection {
+  background: var(--color-selection);
+}
 .cell-learning { color: var(--color-text); font-size: 16px; font-weight: 500; letter-spacing: 0.02em; }
 .cell-reference { color: var(--color-text-secondary); font-size: 14px; letter-spacing: 0.01em; }
 
@@ -153,8 +156,8 @@ function splitChars(text: string): string[] {
 .caption-text { color: var(--color-text-muted); font-size: 11px; }
 
 .reading-table-wrap[data-table-style='light-shading'] {
-  .reading-row { border-bottom-color: #eceef2; }
-  .reading-row:nth-child(odd) { background: #fafafb; }
+  .reading-row { border-bottom-color: var(--color-border); }
+  .reading-row:nth-child(odd) { background: var(--color-surface-muted); }
   .reading-row:nth-child(even) { background: var(--color-surface); }
   .cell-content { padding: 12px 16px; }
   .cell-divider { opacity: 0.6; }
@@ -181,7 +184,7 @@ function splitChars(text: string): string[] {
 
 .reading-table-wrap[data-table-style='dark-header'] {
   .table-header { position: relative; z-index: 1; display: flex; padding: 8px 14px; background: var(--color-text); }
-  .header-text { color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; }
+  .header-text { color: var(--color-surface); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; }
 }
 
 .reading-table-wrap[data-table-style='manuscript-grid'] {
@@ -209,9 +212,9 @@ function splitChars(text: string): string[] {
     border-bottom: 1px solid var(--color-border);
     background: var(--color-surface);
   }
-  .grid-char { display: block; color: #1a1a1a; font-size: 16px; line-height: 1; white-space: nowrap; }
+  .grid-char { display: block; color: var(--color-text); font-size: 16px; line-height: 1; white-space: nowrap; }
   .ref-cell { flex-basis: 26px; width: 26px; min-width: 26px; max-width: 26px; height: 26px; border-color: var(--color-border); background: var(--color-surface); }
-  .ref-char { color: #5a6b5a; font-size: 13px; }
+  .ref-char { color: var(--color-text-secondary); font-size: 13px; }
   .manuscript-divider { height: 6px; margin: 0; border-right: 1px solid var(--color-primary); border-left: 1px solid var(--color-primary); background: var(--color-page); }
   .table-caption { margin-top: 8px; border-top-color: var(--color-primary); background: var(--color-primary-soft); }
 }
@@ -223,8 +226,8 @@ function splitChars(text: string): string[] {
   .reading-table { background: var(--color-page); }
   .reading-row { border-bottom: 0; background: transparent; }
   .cell-content { min-height: 64px; padding: 6px 10px; background: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, color-mix(in srgb, var(--color-primary) 18%, transparent) 31px, color-mix(in srgb, var(--color-primary) 18%, transparent) 32px); }
-  .cell-learning { min-height: 32px; padding-top: 1px; color: #1a1a1a; font-size: 16px; line-height: 32px; }
-  .cell-reference { min-height: 28px; color: #5a6b5a; font-size: 13.5px; line-height: 28px; opacity: 0.92; }
+  .cell-learning { min-height: 32px; padding-top: 1px; color: var(--color-text); font-size: 16px; line-height: 32px; }
+  .cell-reference { min-height: 28px; color: var(--color-text-secondary); font-size: 13.5px; line-height: 28px; opacity: 0.92; }
   .cell-divider { height: 4px; margin: 0; background: transparent; }
   .reading-row + .reading-row { border-top: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent); }
   .table-caption { border-top: 1.2px solid var(--color-primary); background: var(--color-primary-soft); }

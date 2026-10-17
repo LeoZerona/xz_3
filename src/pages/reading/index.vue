@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onHide } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
@@ -13,7 +13,6 @@ import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../read
 import { useFontStore } from '../../stores/fonts'
 import AutoPageControl from './components/AutoPageControl.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
-import ReadingPagination from './components/ReadingPagination.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 
@@ -25,7 +24,7 @@ const builtinCount = computed(() => builtinBooks.value.length)
 const customCount = computed(() => customBooks.value.length)
 type LibraryTab = 'builtin' | 'custom'
 const libraryTab = ref<LibraryTab>('builtin')
-const searchQuery = ref('')
+const searchQuery = ref(')
 const filteredBuiltinBooks = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return builtinBooks.value
@@ -38,11 +37,11 @@ const filteredCustomBooks = computed(() => {
 })
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
-const activeBookId = ref('')
+const activeBookId = ref(')
 const rows = ref<ReadingRow[]>([])
 const totalChars = ref(0)
 const loading = ref(false)
-const loadError = ref('')
+const loadError = ref(')
 
 const prefs = ref(readPreferences())
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
@@ -82,6 +81,8 @@ const READING_SCROLLER_SELECTOR = '#reading-scroll .uni-scroll-view-scrollbar-hi
 // 字体
 const fontStore = useFontStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
+const themeStore = useThemeStore()
+const { currentThemeId } = storeToRefs(themeStore)
 
 const activeBook = computed<BookMeta | undefined>(() => books.value.find((b) => b.id === activeBookId.value))
 
@@ -95,6 +96,9 @@ const rangeLabel = computed(() => {
 })
 
 const autoPageSeconds = computed(() => prefs.value.autoPageSeconds)
+const canPrevPage = computed(() => currentPage.value > 1)
+const canNextPage = computed(() => currentPage.value < totalPages.value)
+const progressPercent = computed(() => totalPages.value <= 1 ? 100 : Math.round((currentPage.value / totalPages.value) * 100))
 
 // 触摸翻页
 const touchStartX = ref(0)
@@ -340,6 +344,7 @@ function handleCloseCatalog() {
 }
 
 function handleSelectBook(bookId: string) {
+  showReaderChrome.value = false;
   if (bookId === activeBookId.value) {
     showCatalog.value = false
     return
@@ -392,26 +397,6 @@ function handleNextPage() {
   }
 }
 
-function handleCopyRow(row: ReadingRow) {
-  const text = row.text
-  // 优先使用 uni 剪贴板，H5 降级到 navigator.clipboard
-  try {
-    // #ifdef H5
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText(text)
-        .then(() => uni.showToast({ title: '已复制第 ' + String(row.index) + ' 行', icon: 'none' }))
-        .catch(() => uni.showToast({ title: '复制失败', icon: 'none' }))
-      return
-    }
-    // #endif
-    uni.setClipboardData({
-      data: text,
-      success: () => uni.showToast({ title: '已复制第 ' + String(row.index) + ' 行', icon: 'none' }),
-    })
-  } catch {
-    uni.showToast({ title: '复制失败', icon: 'none' })
-  }
-}
 
 function handleSwapFonts() {
   fontStore.swapFonts()
@@ -426,7 +411,7 @@ async function fetchBook() {
   if (custom && custom.text) {
     try {
       loading.value = true
-      loadError.value = ''
+      loadError.value = '
       const parsed = parseTextToRows(custom.text, book.id)
       rows.value = parsed
       totalChars.value = custom.text.length
@@ -446,7 +431,7 @@ async function fetchBook() {
     return
   }
   loading.value = true
-  loadError.value = ''
+  loadError.value = '
   try {
     const result = await loadBook(book)
     rows.value = result.rows
@@ -533,7 +518,7 @@ async function handleUniFilePicked(file: { name: string; path: string }): Promis
   }
   isUploading.value = true
   try {
-    let text = ''
+    let text = '
     if (typeof plus !== 'undefined') {
       text = await readPlusFileAsText(file.path, ext)
     } else {
@@ -580,7 +565,7 @@ function handleRemoveCustomBook(id: string): void {
         removeCustomBook(id)
         refreshCustomBooks()
         if (activeBookId.value === id) {
-          activeBookId.value = books.value[0]?.id ?? ''
+          activeBookId.value = books.value[0]?.id ?? '
           if (activeBookId.value) void fetchBook()
         }
         uni.showToast({ title: '已删除', icon: 'none' })
@@ -595,7 +580,7 @@ function handleFileInputChange(event: Event): void {
   const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' as const : file.name.toLowerCase().endsWith('.txt') ? 'txt' as const : null
   if (!ext) {
     uni.showToast({ title: '仅支持 .txt / .pdf', icon: 'none' })
-    input.value = ''
+    input.value = '
     return
   }
   isUploading.value = true
@@ -603,7 +588,7 @@ function handleFileInputChange(event: Event): void {
   reader.onload = () => {
     try {
       const buffer = reader.result as ArrayBuffer
-      const text = ext === 'txt' ? decodeTextBuffer(buffer) : ''
+      const text = ext === 'txt' ? decodeTextBuffer(buffer) : '
       // PDF 文本提取依赖 loadBook，此处先存入，实际读取由 bookLoader 处理
       const record = createCustomRecord(file.name, text || ' ', ext)
       // 若为 pdf，尝试用 loadBook 的文本解析能力? 暂存空文本，读取时按 url 处理
@@ -615,13 +600,13 @@ function handleFileInputChange(event: Event): void {
       uni.showToast({ title: (e as Error).message || '读取失败', icon: 'none' })
     } finally {
       isUploading.value = false
-      input.value = ''
+      input.value = '
     }
   }
   reader.onerror = () => {
     uni.showToast({ title: '读取失败', icon: 'none' })
     isUploading.value = false
-    input.value = ''
+    input.value = '
   }
   if (ext === 'txt') reader.readAsArrayBuffer(file)
   else {
@@ -726,7 +711,7 @@ function handleKeydown(e: KeyboardEvent) {
             <view class="search-field">
               <text class="search-icon">⌕</text>
               <input class="search-input" type="text" :value="searchQuery" placeholder="检索文件名称" placeholder-class="search-placeholder" @input="searchQuery = (($event as any).detail ? ($event as any).detail.value : ($event as any).target.value)" />
-              <view v-if="searchQuery" class="search-clear" role="button" tabindex="0" aria-label="清除搜索" @click="searchQuery = ''" @keydown.enter="searchQuery = ''" @keydown.space.prevent="searchQuery = ''">
+              <view v-if="searchQuery" class="search-clear" role="button" tabindex="0" aria-label="清除搜索" @click="searchQuery = '" @keydown.enter="searchQuery = '" @keydown.space.prevent="searchQuery = '">
                 <text class="search-clear-text">×</text>
               </view>
             </view>
@@ -837,173 +822,147 @@ function handleKeydown(e: KeyboardEvent) {
         <text class="upload-hint">支持 .txt / .pdf，已上传文件仅保存在本地</text>
         <input ref="fileInputRef" class="upload-input" type="file" accept=".txt,.pdf" aria-hidden="true" tabindex="-1" @change="handleFileInputChange" />
       </view>
-      <AppBottomNavigation activeTab="reading" />
+      <AppBottomNavigation v-if="viewMode === 'library'" activeTab="reading" />
     </view>
-    <view v-else class="reader-view-wrap">
-    <!-- 顶部栏 -->
-    <view class="reading-topbar">
-      <view class="topbar-left">
-        <text class="topbar-title">对照阅读</text>
-        <text class="topbar-sub">{{ activeBook?.name ?? '未选择书籍' }}</text>
-      </view>
-            <view class="topbar-actions">
-        <view
-          class="topbar-btn"
-          role="button"
-          tabindex="0"
-          aria-label="返回书库"
-          @click="handleExitReader"
-          @keydown.enter="handleExitReader"
-          @keydown.space.prevent="handleExitReader"
-        >
-          <text class="btn-label">返回书库</text>
-        </view>
-        <view
-          class="topbar-btn"
-          role="button"
-          tabindex="0"
-          aria-label="目录"
-          :aria-expanded="showCatalog"
-          @click="handleToggleCatalog"
-          @keydown.enter="handleToggleCatalog"
-          @keydown.space.prevent="handleToggleCatalog"
-        >
-          <text class="btn-label">{{ showCatalog ? '收起目录' : '目录' }}</text>
-        </view>
-        <view
-          class="topbar-btn topbar-btn--ghost"
-          role="button"
-          tabindex="0"
-          aria-label="交换字体"
-          @click="handleSwapFonts"
-          @keydown.enter="handleSwapFonts"
-          @keydown.space.prevent="handleSwapFonts"
-        >
-          <text class="btn-label">交换字体</text>
-        </view>
-        <view
-          class="topbar-btn topbar-btn--primary"
-          role="button"
-          tabindex="0"
-          aria-label="表格样式"
-          @click="showStylePanel = !showStylePanel"
-          @keydown.enter="showStylePanel = !showStylePanel"
-          @keydown.space.prevent="showStylePanel = !showStylePanel"
-        >
-          <text class="btn-label">{{ showStylePanel ? '收起样式' : '表格样式' }}</text>
-        </view>
-      </view>
-    </view>
+    <view v-else class="reader-view-wrap reader-immersive" :data-theme="currentThemeId">
+      <view class="reader-status-cover" aria-hidden="true" />
 
-    <scroll-view
-      id="reading-scroll"
-      class="reading-body"
-      scroll-y
-      :scroll-top="readingScrollTop"
-      :scroll-with-animation="false"
-      :show-scrollbar="false"
-      :bounces="false"
-      @scroll="handleReadingScroll"
-      @touchmove.passive="handleReadingScrollIntent"
-      @wheel.passive="handleReadingScrollIntent"
-    >
-      <view class="reading-body-content" :class="{ 'is-catalog-hidden': !showCatalog }">
-      <!-- 目录侧栏 -->
-      <view v-if="showCatalog" class="catalog-column" @click.self="handleCloseCatalog">
-        <view class="catalog-sheet">
+      <view v-if="showReaderChrome" class="reader-top-overlay" @click.stop>
+        <view class="top-overlay-left">
+          <view class="top-back-btn" role="button" tabindex="0" aria-label="返回书库" @click="handleExitReader" @keydown.enter="handleExitReader" @keydown.space.prevent="handleExitReader">
+            <text class="top-back-icon">‹</text>
+          </view>
+          <view class="top-title-wrap">
+            <text class="top-title">{{ activeBook?.name ?? "对照阅读" }}</text>
+            <text v-if="activeBook?.fileName" class="top-subtitle">{{ activeBook.fileName }}</text>
+          </view>
+        </view>
+        <view class="top-overlay-actions">
+          <view class="top-icon-btn" role="button" tabindex="0" aria-label="目录" @click="handleCatalogToggle" @keydown.enter="handleCatalogToggle" @keydown.space.prevent="handleCatalogToggle"><text class="top-icon-text">≡</text></view>
+          <view class="top-icon-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="top-icon-text">⇄</text></view>
+          <view class="top-icon-btn top-icon-btn--more" role="button" tabindex="0" aria-label="更多设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings"><text class="top-icon-text">⋯</text></view>
+        </view>
+      </view>
+
+      <scroll-view
+        id="reading-scroll"
+        class="reader-body immersive-reader-body"
+        scroll-y
+        :scroll-top="readingScrollTop"
+        :scroll-with-animation="false"
+        :show-scrollbar="false"
+        :bounces="false"
+        @scroll="handleReadingScroll"
+        @touchmove.passive="handleReadingScrollIntent"
+        @wheel.passive="handleReadingScrollIntent"
+        @click="handleReaderTap"
+      >
+        <view class="reader-content-inner">
+          <view v-if="loading" class="state-card">
+            <text class="state-title">正在加载书籍…</text>
+            <text class="state-desc">正在解析文本，请稍候</text>
+          </view>
+
+          <view v-else-if="loadError" class="state-card state-card--error">
+            <text class="state-title">加载失败</text>
+            <text class="state-desc">{{ loadError }}</text>
+            <view class="retry-btn" role="button" tabindex="0" @click="fetchBook" @keydown.enter="fetchBook" @keydown.space.prevent="fetchBook"><text class="retry-text">重试</text></view>
+            <text v-if="activeBook?.ext === 'pdf'" class="state-hint">PDF 需要 pdfjs-dist 支持，或转为 TXT 后放入 books 目录</text>
+          </view>
+
+          <ReadingTable
+            v-else
+            :rows="pageRows"
+            :table-style-id="tableStyleId"
+            :learning-font-family="currentFont.fontFamily"
+            :reference-font-family="referenceFont.fontFamily"
+            :page="currentPage"
+            :total-pages="totalPages"
+            :auto-progress="autoProgress"
+            :is-auto-reading="isAutoReadingActive"
+          />
+        </view>
+      </scroll-view>
+
+      <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
+        <view class="bottom-slider-row">
+          <view class="slider-label" :class="{ 'is-disabled': !canPrevPage }" role="button" tabindex="0" aria-label="上一章" @click="handlePrevPage" @keydown.enter="handlePrevPage" @keydown.space.prevent="handlePrevPage"><text class="slider-label-text">上一章</text></view>
+          <slider class="page-slider" :value="currentPage" :min="1" :max="totalPages" :activeColor="currentThemeId === 'ink-night' ? '#7da2ff' : 'var(--color-primary)'" backgroundColor="var(--color-border)" block-size="18" @change="handleSliderChange" />
+          <view class="slider-label" :class="{ 'is-disabled': !canNextPage }" role="button" tabindex="0" aria-label="下一章" @click="handleNextPage" @keydown.enter="handleNextPage" @keydown.space.prevent="handleNextPage"><text class="slider-label-text">下一章</text></view>
+        </view>
+        <view class="bottom-actions-row">
+          <view class="bottom-action" role="button" tabindex="0" aria-label="目录" @click="handleCatalogToggle" @keydown.enter="handleCatalogToggle" @keydown.space.prevent="handleCatalogToggle">
+            <text class="bottom-action-icon">☰</text>
+            <text class="bottom-action-label">目录</text>
+          </view>
+          <view class="bottom-action" role="button" tabindex="0" :aria-label="currentThemeId === 'ink-night' ? '日间模式' : '夜间模式'" @click="handleNightToggle" @keydown.enter="handleNightToggle" @keydown.space.prevent="handleNightToggle">
+            <text class="bottom-action-icon">{{ currentThemeId === "ink-night" ? "☀" : "☾" }}</text>
+            <text class="bottom-action-label">{{ currentThemeId === 'ink-night' ? '日间' : '夜间' }}</text>
+          </view>
+          <view class="bottom-action" role="button" tabindex="0" aria-label="设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings">
+            <text class="bottom-action-icon">⚙</text>
+            <text class="bottom-action-label">设置</text>
+          </view>
+        </view>
+        <view class="bottom-progress-hint" aria-hidden="true">
+          <text class="hint-text">{{ currentPage }} / {{ totalPages }} · {{ rangeLabel }}</text>
+        </view>
+      </view>
+
+      <view v-if="showReaderCatalog" class="reader-drawer-mask" @click="showReaderCatalog = false">
+        <view class="reader-drawer" @click.stop>
           <BookCatalogPanel
             :books="books"
             :active-book-id="activeBookId"
             :total-rows="rows.length"
             :loading="loading"
-            :closable="isMobileViewport"
+            :closable="true"
             @select="handleSelectBook"
-            @close="handleCloseCatalog"
+            @close="showReaderCatalog = false"
           />
         </view>
       </view>
 
-      <!-- 主阅读区 -->
-      <view class="main-column" @touchstart.passive="handleTouchStart" @touchend.passive="handleTouchEnd">
-        <!-- 书籍信息条 -->
-        <view class="book-meta-bar">
-          <view class="meta-left">
-            <text class="meta-name">{{ activeBook?.name ?? '—' }}</text>
-            <text class="meta-file">{{ activeBook?.fileName ?? '' }}</text>
+      <view v-if="showReaderSettings" class="reader-drawer-mask reader-drawer-mask--settings" @click="showReaderSettings = false">
+        <view class="reader-drawer reader-drawer--settings" @click.stop>
+          <view class="settings-drawer">
+            <view class="drawer-head">
+              <text class="drawer-title">阅读设置</text>
+              <view class="drawer-close" role="button" tabindex="0" aria-label="关闭设置" @click="showReaderSettings = false" @keydown.enter="showReaderSettings = false" @keydown.space.prevent="showReaderSettings = false"><text class="close-text">×</text></view>
+            </view>
+            <scroll-view class="settings-scroll" scroll-y :show-scrollbar="false" :bounces="false">
+              <view class="settings-section">
+                <TableStyleSwitcher
+                  :model-value="tableStyleId"
+                  :rows-per-page="rowsPerPage"
+                  @update:modelValue="handleStyleChange"
+                  @update:rowsPerPage="handleRowsPerPageChange"
+                />
+              </view>
+              <view class="settings-section">
+                <AutoPageControl
+                  :seconds="autoPageSeconds"
+                  :progress="autoProgress"
+                  :is-running="isAutoReading"
+                  :is-paused="isAutoReadingPaused"
+                  :disabled="loading || Boolean(loadError) || rows.length === 0"
+                  @update:seconds="handleAutoPageSecondsChange"
+                  @toggle="handleToggleAutoReading"
+                  @stop="stopAutoReading"
+                />
+              </view>
+              <view class="settings-section">
+                <view class="swap-row">
+                  <text class="swap-label">学习：{{ currentFont.name }} / 对照：{{ referenceFont.name }}</text>
+                  <view class="swap-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="swap-btn-text">交换字体</text></view>
+                </view>
+              </view>
+            </scroll-view>
           </view>
-          <view class="meta-right">
-            <text class="meta-range">{{ rangeLabel }}</text>
-            <text class="meta-fonts">学习：{{ currentFont.name }} / 对照：{{ referenceFont.name }}</text>
-          </view>
-        </view>
-
-        <!-- 样式切换面板 -->
-        <view v-if="showStylePanel" class="style-panel-wrap">
-          <TableStyleSwitcher
-            :model-value="tableStyleId"
-            :rows-per-page="rowsPerPage"
-            @update:modelValue="handleStyleChange"
-            @update:rowsPerPage="handleRowsPerPageChange"
-          />
-        </view>
-
-        <AutoPageControl
-          :seconds="autoPageSeconds"
-          :progress="autoProgress"
-          :is-running="isAutoReading"
-          :is-paused="isAutoReadingPaused"
-          :disabled="loading || Boolean(loadError) || rows.length === 0"
-          @update:seconds="handleAutoPageSecondsChange"
-          @toggle="handleToggleAutoReading"
-          @stop="stopAutoReading"
-        />
-
-        <!-- 加载 / 错误 -->
-        <view v-if="loading" class="state-card">
-          <text class="state-title">正在加载书籍…</text>
-          <text class="state-desc">正在解析文本，请稍候</text>
-        </view>
-
-        <view v-else-if="loadError" class="state-card state-card--error">
-          <text class="state-title">加载失败</text>
-          <text class="state-desc">{{ loadError }}</text>
-          <view class="retry-btn" role="button" tabindex="0" @click="fetchBook" @keydown.enter="fetchBook" @keydown.space.prevent="fetchBook"><text class="retry-text">重试</text></view>
-          <text v-if="activeBook?.ext === 'pdf'" class="state-hint">PDF 需要 pdfjs-dist 支持，或转为 TXT 后放入 books 目录</text>
-        </view>
-
-        <!-- 表格 -->
-        <ReadingTable
-          v-else
-          :rows="pageRows"
-          :table-style-id="tableStyleId"
-          :learning-font-family="currentFont.fontFamily"
-          :reference-font-family="referenceFont.fontFamily"
-          :page="currentPage"
-          :total-pages="totalPages"
-          :auto-progress="autoProgress"
-          :is-auto-reading="isAutoReadingActive"
-          @copy-row="handleCopyRow"
-        />
-
-        <!-- 分页 -->
-        <ReadingPagination
-          v-if="!loading && !loadError"
-          :page="currentPage"
-          :total-pages="totalPages"
-          :total-rows="rows.length"
-          :rows-per-page="rowsPerPage"
-          @update:page="handlePageChange"
-        />
-
-        <!-- 底部说明 -->
-        <view class="reading-foot">
-          <text class="foot-text">左右滑动或键盘 ← → 翻页 · 点击行复制 · 自动阅读会提前平滑推进并保留视线缓冲区</text>
         </view>
       </view>
-      </view>
-    </scroll-view>
 
-    <view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
+<view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
       <view
         class="auto-reading-action auto-reading-action--primary"
         role="button"
@@ -1028,7 +987,7 @@ function handleKeydown(e: KeyboardEvent) {
       </view>
     </view>
 
-    <AppBottomNavigation active-tab="reading" @unavailable="handleUnavailable" />
+    <AppBottomNavigation v-if="viewMode === 'library'" active-tab="reading" @unavailable="handleUnavailable" />
   
     </view></view>
 </template>
@@ -1479,4 +1438,212 @@ function handleKeydown(e: KeyboardEvent) {
 @media (prefers-reduced-motion: reduce) {
   .style-panel-wrap { animation: none; }
 }
+
+/* ===== 沉浸式对照阅读 ===== */
+.reader-immersive {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-page);
+}
+.reader-status-cover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-top-safe-area);
+  height: var(--app-safe-mask-height);
+  background: var(--color-page);
+  background: var(--color-surface);
+  z-index: 21;
+  pointer-events: none;
+}
+.reader-top-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 22;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--app-top-safe-area) 12px 10px;
+  padding-top: var(--app-top-safe-area);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+.top-overlay-left {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.top-back-btn {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+.top-back-btn:active { filter: brightness(0.92); transform: scale(0.98); }
+.top-back-icon { font-size: 22px; color: var(--color-text); line-height: 1; font-weight: 800; }
+.top-title-wrap { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.top-title { font-size: 14px; font-weight: 800; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-subtitle { font-size: 10px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-overlay-actions { flex: none; display: flex; gap: 8px; align-items: center; }
+.top-icon-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+.top-icon-btn:active { filter: brightness(0.92); transform: scale(0.98); }
+.top-icon-text { font-size: 14px; color: var(--color-text); font-weight: 700; line-height: 1; }
+.immersive-reader-body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+.reader-content-inner {
+  padding: calc(var(--app-top-safe-area) + 56px) 14px calc(140px + env(safe-area-inset-bottom));
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.reader-bottom-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 22;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+.bottom-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slider-label {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px 2px;
+}
+.slider-label.is-disabled { opacity: 0.35; pointer-events: none; }
+.page-slider { flex: 1; margin: 0 2px; }
+.bottom-actions-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+}
+.bottom-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 0;
+  border-radius: 8px;
+}
+.bottom-action:active { background: var(--color-surface-muted); transform: scale(0.98); }
+.bottom-action-icon { font-size: 16px; color: var(--color-text); line-height: 1; }
+.bottom-action-label { font-size: 10px; color: var(--color-text-muted); font-weight: 600; }
+.bottom-progress-hint { text-align: center; }
+.hint-text { font-size: 10px; color: var(--color-text-muted); }
+.reader-drawer-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgb(32 36 45 / 42%);
+  display: flex;
+}
+.reader-drawer {
+  width: min(88%, 360px);
+  height: 100%;
+  background: var(--color-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgb(32 36 45 / 18%);
+}
+.reader-drawer--settings {
+  margin-left: auto;
+  width: min(92%, 380px);
+}
+.settings-drawer { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.drawer-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.drawer-title { font-size: 15px; font-weight: 800; color: var(--color-text); }
+.drawer-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+.close-text { font-size: 16px; color: var(--color-text-muted); line-height: 1; }
+.settings-scroll { flex: 1; min-height: 0; overflow: hidden; }
+.settings-section { padding: 14px 12px; border-bottom: 1px solid var(--color-border); }
+.settings-section:last-child { border-bottom: 0; }
+.swap-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.swap-label { font-size: 11px; color: var(--color-text-muted); flex: 1; min-width: 0; line-height: 1.4; }
+.swap-btn {
+  flex: none;
+  height: 30px;
+  padding: 0 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-primary);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.swap-btn:active { filter: brightness(0.92); transform: scale(0.98); }
+.swap-btn-text { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-top-overlay, .reader-bottom-overlay, .reader-drawer { transition: none; }
+}
+
 </style>
