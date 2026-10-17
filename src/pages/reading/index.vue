@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onHide } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
@@ -11,6 +11,7 @@ import { clampPage, computeTotalPages, getPageSlice } from '../../reading/pagina
 import { normalizeAutoPageSeconds, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import AutoPageControl from './components/AutoPageControl.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
@@ -24,7 +25,7 @@ const builtinCount = computed(() => builtinBooks.value.length)
 const customCount = computed(() => customBooks.value.length)
 type LibraryTab = 'builtin' | 'custom'
 const libraryTab = ref<LibraryTab>('builtin')
-const searchQuery = ref(')
+const searchQuery = ref('')
 const filteredBuiltinBooks = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return builtinBooks.value
@@ -37,11 +38,11 @@ const filteredCustomBooks = computed(() => {
 })
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isUploading = ref(false)
-const activeBookId = ref(')
+const activeBookId = ref('')
 const rows = ref<ReadingRow[]>([])
 const totalChars = ref(0)
 const loading = ref(false)
-const loadError = ref(')
+const loadError = ref('')
 
 const prefs = ref(readPreferences())
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
@@ -343,8 +344,28 @@ function handleCloseCatalog() {
   showCatalog.value = false
 }
 
+function handleCatalogToggle() {
+  showReaderCatalog.value = !showReaderCatalog.value
+}
+
+function handleOpenSettings() {
+  showReaderSettings.value = true
+}
+
+function handleNightToggle() {
+  themeStore.toggleTheme()
+}
+
+function handleReaderTap() {
+  showReaderChrome.value = !showReaderChrome.value
+  if (!showReaderChrome.value) {
+    showReaderCatalog.value = false
+    showReaderSettings.value = false
+  }
+}
+
 function handleSelectBook(bookId: string) {
-  showReaderChrome.value = false;
+  showReaderChrome.value = false
   if (bookId === activeBookId.value) {
     showCatalog.value = false
     return
@@ -397,7 +418,6 @@ function handleNextPage() {
   }
 }
 
-
 function handleSwapFonts() {
   fontStore.swapFonts()
   uni.showToast({ title: '已交换学习/对照字体', icon: 'none' })
@@ -411,7 +431,7 @@ async function fetchBook() {
   if (custom && custom.text) {
     try {
       loading.value = true
-      loadError.value = '
+      loadError.value = ''
       const parsed = parseTextToRows(custom.text, book.id)
       rows.value = parsed
       totalChars.value = custom.text.length
@@ -431,7 +451,7 @@ async function fetchBook() {
     return
   }
   loading.value = true
-  loadError.value = '
+  loadError.value = ''
   try {
     const result = await loadBook(book)
     rows.value = result.rows
@@ -518,7 +538,7 @@ async function handleUniFilePicked(file: { name: string; path: string }): Promis
   }
   isUploading.value = true
   try {
-    let text = '
+    let text = ''
     if (typeof plus !== 'undefined') {
       text = await readPlusFileAsText(file.path, ext)
     } else {
@@ -539,15 +559,11 @@ async function handleUniFilePicked(file: { name: string; path: string }): Promis
 function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
-      const plusAny = plus as unknown as { io: unknown }
       // @ts-ignore plus runtime
       plus.io.resolveLocalFileSystemURL(path, (entry: { file: (cb: (f: unknown) => void) => void }) => {
         entry.file((f: unknown) => {
-          const file = f as { size: number }
-          const reader = { readAsText: (_f: unknown, _enc: string, _cb: (e: unknown) => void) => {} }
-          // 简化：走 plus.io 需实际实现，这里仅占位
-          void file
-          void reader
+          void ext
+          void f
           reject(new Error('plus 读取未实现，请用 H5 上传'))
         })
       }, (err: unknown) => reject(err as Error))
@@ -565,7 +581,7 @@ function handleRemoveCustomBook(id: string): void {
         removeCustomBook(id)
         refreshCustomBooks()
         if (activeBookId.value === id) {
-          activeBookId.value = books.value[0]?.id ?? '
+          activeBookId.value = books.value[0]?.id ?? ''
           if (activeBookId.value) void fetchBook()
         }
         uni.showToast({ title: '已删除', icon: 'none' })
@@ -580,7 +596,7 @@ function handleFileInputChange(event: Event): void {
   const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' as const : file.name.toLowerCase().endsWith('.txt') ? 'txt' as const : null
   if (!ext) {
     uni.showToast({ title: '仅支持 .txt / .pdf', icon: 'none' })
-    input.value = '
+    input.value = ''
     return
   }
   isUploading.value = true
@@ -588,7 +604,7 @@ function handleFileInputChange(event: Event): void {
   reader.onload = () => {
     try {
       const buffer = reader.result as ArrayBuffer
-      const text = ext === 'txt' ? decodeTextBuffer(buffer) : '
+      const text = ext === 'txt' ? decodeTextBuffer(buffer) : ''
       // PDF 文本提取依赖 loadBook，此处先存入，实际读取由 bookLoader 处理
       const record = createCustomRecord(file.name, text || ' ', ext)
       // 若为 pdf，尝试用 loadBook 的文本解析能力? 暂存空文本，读取时按 url 处理
@@ -600,13 +616,13 @@ function handleFileInputChange(event: Event): void {
       uni.showToast({ title: (e as Error).message || '读取失败', icon: 'none' })
     } finally {
       isUploading.value = false
-      input.value = '
+      input.value = ''
     }
   }
   reader.onerror = () => {
     uni.showToast({ title: '读取失败', icon: 'none' })
     isUploading.value = false
-    input.value = '
+    input.value = ''
   }
   if (ext === 'txt') reader.readAsArrayBuffer(file)
   else {
@@ -706,12 +722,12 @@ function handleKeydown(e: KeyboardEvent) {
         <text class="library-sub">选择书籍开始对照阅读，支持内置与本地上传</text>
       </view>
       <view class="library-body">
-<view class="library-tab-wrap">
+        <view class="library-tab-wrap">
           <view class="library-search">
             <view class="search-field">
               <text class="search-icon">⌕</text>
               <input class="search-input" type="text" :value="searchQuery" placeholder="检索文件名称" placeholder-class="search-placeholder" @input="searchQuery = (($event as any).detail ? ($event as any).detail.value : ($event as any).target.value)" />
-              <view v-if="searchQuery" class="search-clear" role="button" tabindex="0" aria-label="清除搜索" @click="searchQuery = '" @keydown.enter="searchQuery = '" @keydown.space.prevent="searchQuery = '">
+              <view v-if="searchQuery" class="search-clear" role="button" tabindex="0" aria-label="清除搜索" @click="searchQuery = ''" @keydown.enter="searchQuery = ''" @keydown.space.prevent="searchQuery = ''">
                 <text class="search-clear-text">×</text>
               </view>
             </view>
@@ -822,8 +838,9 @@ function handleKeydown(e: KeyboardEvent) {
         <text class="upload-hint">支持 .txt / .pdf，已上传文件仅保存在本地</text>
         <input ref="fileInputRef" class="upload-input" type="file" accept=".txt,.pdf" aria-hidden="true" tabindex="-1" @change="handleFileInputChange" />
       </view>
-      <AppBottomNavigation v-if="viewMode === 'library'" activeTab="reading" />
     </view>
+
+    <!-- 阅读器 -->
     <view v-else class="reader-view-wrap reader-immersive" :data-theme="currentThemeId">
       <view class="reader-status-cover" aria-hidden="true" />
 
@@ -962,37 +979,39 @@ function handleKeydown(e: KeyboardEvent) {
         </view>
       </view>
 
-<view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
-      <view
-        class="auto-reading-action auto-reading-action--primary"
-        role="button"
-        tabindex="0"
-        :aria-label="isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读'"
-        @click="handleToggleAutoReading"
-        @keydown.enter="handleToggleAutoReading"
-        @keydown.space.prevent="handleToggleAutoReading"
-      >
-        <text>{{ isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读' }}</text>
-      </view>
-      <view
-        class="auto-reading-action auto-reading-action--stop"
-        role="button"
-        tabindex="0"
-        aria-label="停止自动阅读"
-        @click="stopAutoReading"
-        @keydown.enter="stopAutoReading"
-        @keydown.space.prevent="stopAutoReading"
-      >
-        <text>停止</text>
+      <view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
+        <view
+          class="auto-reading-action auto-reading-action--primary"
+          role="button"
+          tabindex="0"
+          :aria-label="isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读'"
+          @click="handleToggleAutoReading"
+          @keydown.enter="handleToggleAutoReading"
+          @keydown.space.prevent="handleToggleAutoReading"
+        >
+          <text>{{ isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读' }}</text>
+        </view>
+        <view
+          class="auto-reading-action auto-reading-action--stop"
+          role="button"
+          tabindex="0"
+          aria-label="停止自动阅读"
+          @click="stopAutoReading"
+          @keydown.enter="stopAutoReading"
+          @keydown.space.prevent="stopAutoReading"
+        >
+          <text>停止</text>
+        </view>
       </view>
     </view>
 
+    <!-- 底部导航只在书库视图显示，且只出现一次 -->
     <AppBottomNavigation v-if="viewMode === 'library'" active-tab="reading" @unavailable="handleUnavailable" />
-  
-    </view></view>
+  </view>
 </template>
 
 <style scoped lang="scss">
+/* 样式保持不变 */
 .reading-page {
   position: relative;
   width: 100%;
@@ -1645,5 +1664,4 @@ function handleKeydown(e: KeyboardEvent) {
 @media (prefers-reduced-motion: reduce) {
   .reader-top-overlay, .reader-bottom-overlay, .reader-drawer { transition: none; }
 }
-
 </style>
