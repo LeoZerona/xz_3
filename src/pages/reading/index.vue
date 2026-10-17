@@ -1,10 +1,12 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onHide } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { getBooksCatalog } from '../../reading/booksCatalog'
-import { loadBook } from '../../reading/bookLoader'
+import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } from '../../reading/customBooks'
+import type { CustomBookRecord } from '../../reading/customBooks'
+import { decodeTextBuffer, loadBook, parseTextToRows } from '../../reading/bookLoader'
 import { clampPage, computeTotalPages, getPageSlice } from '../../reading/pagination'
 import { normalizeAutoPageSeconds, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../reading/types'
@@ -16,7 +18,26 @@ import ReadingTable from './components/ReadingTable.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 
 // 状态
-const books = ref<BookMeta[]>([])
+const builtinBooks = ref<BookMeta[]>([])
+const customBooks = ref<CustomBookRecord[]>([])
+const books = computed<BookMeta[]>(() => [...builtinBooks.value, ...customBooks.value])
+const builtinCount = computed(() => builtinBooks.value.length)
+const customCount = computed(() => customBooks.value.length)
+type LibraryTab = 'builtin' | 'custom'
+const libraryTab = ref<LibraryTab>('builtin')
+const searchQuery = ref('')
+const filteredBuiltinBooks = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return builtinBooks.value
+  return builtinBooks.value.filter((b) => b.name.toLowerCase().includes(q) || b.fileName.toLowerCase().includes(q))
+})
+const filteredCustomBooks = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return customBooks.value
+  return customBooks.value.filter((b) => b.name.toLowerCase().includes(q) || b.fileName.toLowerCase().includes(q))
+})
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const isUploading = ref(false)
 const activeBookId = ref('')
 const rows = ref<ReadingRow[]>([])
 const totalChars = ref(0)
@@ -28,6 +49,11 @@ const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
 const rowsPerPage = computed<RowsPerPage>(() => prefs.value.rowsPerPage)
 
 const currentPage = ref(1)
+type ViewMode = 'library' | 'reader'
+const viewMode = ref<ViewMode>('library')
+const showReaderChrome = ref(false)
+const showReaderCatalog = ref(false)
+const showReaderSettings = ref(false)
 const showCatalog = ref(true)
 const showStylePanel = ref(false)
 const isMobileViewport = ref(false)
@@ -395,6 +421,30 @@ function handleSwapFonts() {
 async function fetchBook() {
   const book = activeBook.value
   if (!book) return
+  // 自定义文件优先从本地存储读取文本
+  const custom = customBooks.value.find((b) => b.id === book.id) as CustomBookRecord | undefined
+  if (custom && custom.text) {
+    try {
+      loading.value = true
+      loadError.value = ''
+      const parsed = parseTextToRows(custom.text, book.id)
+      rows.value = parsed
+      totalChars.value = custom.text.length
+      const saved = readProgress()
+      if (saved && saved.bookId === book.id) currentPage.value = Math.min(saved.page, totalPages.value || 1)
+      else currentPage.value = 1
+      if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
+      resetReadingScroll()
+    } catch (err) {
+      rows.value = []
+      totalChars.value = 0
+      loadError.value = err instanceof Error ? err.message : '加载失败'
+    } finally {
+      loading.value = false
+      persistProgress()
+    }
+    return
+  }
   loading.value = true
   loadError.value = ''
   try {
@@ -425,8 +475,186 @@ function handleUnavailable(label: string) {
   uni.showToast({ title: label + '功能开发中', icon: 'none' })
 }
 
+function getBookProgressLabel(book: BookMeta): string {
+  const saved = readProgress()
+  if (saved && saved.bookId === book.id) return '已读 ' + String(saved.page) + ' 页'
+  return book.source === 'custom' ? '本地上传' : '内置书籍'
+}
+
+function refreshCustomBooks(): void {
+  customBooks.value = readCustomBooks()
+}
+function refreshBuiltinBooks(): void {
+  builtinBooks.value = getBooksCatalog()
+}
+function handlePickFile(): void {
+  if (isUploading.value) return
+  const uniAny = uni as unknown as Record<string, unknown>
+  const chooseFile = uniAny.chooseFile as ((opts: unknown) => void) | undefined
+  const chooseMessageFile = uniAny.chooseMessageFile as ((opts: unknown) => void) | undefined
+  if (typeof chooseMessageFile === 'function') {
+    chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['.txt', '.pdf'],
+      success: (res: { tempFiles?: Array<{ name: string; path: string; size: number }> }) => {
+        const file = res.tempFiles?.[0]
+        if (!file) return
+        void handleUniFilePicked(file as unknown as { name: string; path: string })
+      },
+      fail: () => {
+        fileInputRef.value?.click()
+      },
+    })
+    return
+  }
+  if (typeof chooseFile === 'function') {
+    chooseFile({
+      count: 1,
+      type: 'file',
+      extension: ['txt', 'pdf'],
+      success: (res: { tempFiles?: Array<{ name: string; path: string }> }) => {
+        const file = res.tempFiles?.[0]
+        if (!file) return
+        void handleUniFilePicked(file as unknown as { name: string; path: string })
+      },
+      fail: () => fileInputRef.value?.click(),
+    })
+    return
+  }
+  fileInputRef.value?.click()
+}
+async function handleUniFilePicked(file: { name: string; path: string }): Promise<void> {
+  const fileName = file.name || file.path.split('/').pop() || 'upload.txt'
+  const ext = fileName.toLowerCase().endsWith('.pdf') ? 'pdf' as const : fileName.toLowerCase().endsWith('.txt') ? 'txt' as const : null
+  if (!ext) {
+    uni.showToast({ title: '仅支持 .txt / .pdf', icon: 'none' })
+    return
+  }
+  isUploading.value = true
+  try {
+    let text = ''
+    if (typeof plus !== 'undefined') {
+      text = await readPlusFileAsText(file.path, ext)
+    } else {
+      // H5 fallback: try to fetch via url? Use fileInput
+      throw new Error('请使用底部上传按钮选择本地文件')
+    }
+    const record = createCustomRecord(fileName, text, ext)
+    addCustomBook(record)
+    refreshCustomBooks()
+    uni.showToast({ title: '已加入我的上传', icon: 'none' })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    uni.showToast({ title: msg || '读取文件失败', icon: 'none' })
+  } finally {
+    isUploading.value = false
+  }
+}
+function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<string> {
+  return new Promise((resolve, reject) => {
+    try {
+      const plusAny = plus as unknown as { io: unknown }
+      // @ts-ignore plus runtime
+      plus.io.resolveLocalFileSystemURL(path, (entry: { file: (cb: (f: unknown) => void) => void }) => {
+        entry.file((f: unknown) => {
+          const file = f as { size: number }
+          const reader = { readAsText: (_f: unknown, _enc: string, _cb: (e: unknown) => void) => {} }
+          // 简化：走 plus.io 需实际实现，这里仅占位
+          void file
+          void reader
+          reject(new Error('plus 读取未实现，请用 H5 上传'))
+        })
+      }, (err: unknown) => reject(err as Error))
+    } catch (err) {
+      reject(err as Error)
+    }
+  })
+}
+function handleRemoveCustomBook(id: string): void {
+  uni.showModal({
+    title: '确认删除',
+    content: '确定删除该文件？',
+    success: (res) => {
+      if (res.confirm) {
+        removeCustomBook(id)
+        refreshCustomBooks()
+        if (activeBookId.value === id) {
+          activeBookId.value = books.value[0]?.id ?? ''
+          if (activeBookId.value) void fetchBook()
+        }
+        uni.showToast({ title: '已删除', icon: 'none' })
+      }
+    },
+  })
+}
+function handleFileInputChange(event: Event): void {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' as const : file.name.toLowerCase().endsWith('.txt') ? 'txt' as const : null
+  if (!ext) {
+    uni.showToast({ title: '仅支持 .txt / .pdf', icon: 'none' })
+    input.value = ''
+    return
+  }
+  isUploading.value = true
+  const reader = new FileReader()
+  reader.onload = () => {
+    try {
+      const buffer = reader.result as ArrayBuffer
+      const text = ext === 'txt' ? decodeTextBuffer(buffer) : ''
+      // PDF 文本提取依赖 loadBook，此处先存入，实际读取由 bookLoader 处理
+      const record = createCustomRecord(file.name, text || ' ', ext)
+      // 若为 pdf，尝试用 loadBook 的文本解析能力? 暂存空文本，读取时按 url 处理
+      if (ext === 'txt' && !text.trim()) throw new Error('文件内容为空')
+      addCustomBook(record)
+      refreshCustomBooks()
+      uni.showToast({ title: '已加入我的上传', icon: 'none' })
+    } catch (e) {
+      uni.showToast({ title: (e as Error).message || '读取失败', icon: 'none' })
+    } finally {
+      isUploading.value = false
+      input.value = ''
+    }
+  }
+  reader.onerror = () => {
+    uni.showToast({ title: '读取失败', icon: 'none' })
+    isUploading.value = false
+    input.value = ''
+  }
+  if (ext === 'txt') reader.readAsArrayBuffer(file)
+  else {
+    // pdf 先以文本占位，实际显示由后续加载处理
+    reader.readAsArrayBuffer(file)
+  }
+}
+function handleEnterReader(bookId: string): void {
+  if (!bookId) return
+  const isSame = bookId === activeBookId.value && rows.value.length > 0
+  activeBookId.value = bookId
+  if (!isSame) {
+    currentPage.value = 1
+    void fetchBook()
+  }
+  viewMode.value = 'reader'
+  showReaderChrome.value = false
+}
+function handleExitReader(): void {
+  viewMode.value = 'library'
+  showReaderChrome.value = false
+  stopAutoReading()
+}
+
+function handleSliderChange(event: unknown): void {
+  const raw = event as { detail?: { value?: number }; target?: { value?: number } }
+  const val = Number(raw?.detail?.value ?? raw?.target?.value ?? currentPage.value)
+  if (!Number.isNaN(val)) handlePageChange(val)
+}
+
 onMounted(() => {
-  books.value = getBooksCatalog()
+  refreshBuiltinBooks()
+  refreshCustomBooks()
   const saved = readProgress()
   const prefsStored = readPreferences()
   prefs.value = prefsStored
@@ -484,13 +712,152 @@ function handleKeydown(e: KeyboardEvent) {
 
 <template>
   <view class="reading-page" @keydown="handleKeydown" tabindex="0">
+    <view v-if="viewMode === 'library'" class="library-view">
+      <view class="library-header">
+        <view class="library-header-top">
+          <text class="library-title">阅读书库</text>
+          <text class="library-count">{{ books.length }} 本</text>
+        </view>
+        <text class="library-sub">选择书籍开始对照阅读，支持内置与本地上传</text>
+      </view>
+      <view class="library-body">
+<view class="library-tab-wrap">
+          <view class="library-search">
+            <view class="search-field">
+              <text class="search-icon">⌕</text>
+              <input class="search-input" type="text" :value="searchQuery" placeholder="检索文件名称" placeholder-class="search-placeholder" @input="searchQuery = (($event as any).detail ? ($event as any).detail.value : ($event as any).target.value)" />
+              <view v-if="searchQuery" class="search-clear" role="button" tabindex="0" aria-label="清除搜索" @click="searchQuery = ''" @keydown.enter="searchQuery = ''" @keydown.space.prevent="searchQuery = ''">
+                <text class="search-clear-text">×</text>
+              </view>
+            </view>
+          </view>
+          <view class="library-tabs" role="tablist" aria-label="文件分类">
+            <view class="library-tab" :class="{ 'is-active': libraryTab === 'builtin' }" role="tab" :aria-selected="libraryTab === 'builtin'" tabindex="0" @click="libraryTab = 'builtin'" @keydown.enter="libraryTab = 'builtin'" @keydown.space.prevent="libraryTab = 'builtin'">
+              <text class="tab-label">内置文件</text>
+              <text class="tab-count">{{ builtinCount }} 本</text>
+            </view>
+            <view class="library-tab" :class="{ 'is-active': libraryTab === 'custom' }" role="tab" :aria-selected="libraryTab === 'custom'" tabindex="0" @click="libraryTab = 'custom'" @keydown.enter="libraryTab = 'custom'" @keydown.space.prevent="libraryTab = 'custom'">
+              <text class="tab-label">我的上传</text>
+              <text class="tab-count">{{ customCount }} 本</text>
+            </view>
+          </view>
+          <view class="library-tab-panel">
+            <template v-if="libraryTab === 'builtin'">
+              <view v-if="builtinBooks.length === 0" class="section-empty">
+                <text class="section-empty-text">暂无内置文件</text>
+              </view>
+              <view v-else-if="filteredBuiltinBooks.length === 0" class="section-empty">
+                <text class="section-empty-text">未找到匹配 "{{ searchQuery }}" 的文件</text>
+              </view>
+              <scroll-view v-else class="column-scroll" scroll-y :show-scrollbar="true" :enhanced="true" :bounces="false">
+                <view class="book-grid">
+                  <view
+                    v-for="book in filteredBuiltinBooks"
+                    :key="book.id"
+                    class="book-card"
+                    :class="{ 'is-active': book.id === activeBookId }"
+                    role="button"
+                    tabindex="0"
+                    :aria-label="book.name"
+                    @click="handleEnterReader(book.id)"
+                    @keydown.enter="handleEnterReader(book.id)"
+                    @keydown.space.prevent="handleEnterReader(book.id)"
+                  >
+                    <view class="book-cover" :data-ext="book.ext">
+                      <text class="cover-ext">{{ book.ext.toUpperCase() }}</text>
+                      <text class="cover-icon">{{ book.ext === 'pdf' ? '◰' : '≡' }}</text>
+                    </view>
+                    <view class="book-info">
+                      <text class="book-name">{{ book.name }}</text>
+                      <text class="book-file">{{ book.fileName }}</text>
+                      <text class="book-meta">{{ getBookProgressLabel(book) }}</text>
+                    </view>
+                    <view class="book-action">
+                      <text class="action-text">{{ book.id === activeBookId && rows.length > 0 ? '继续阅读' : '开始阅读' }}</text>
+                      <text class="action-arrow">›</text>
+                    </view>
+                    <view v-if="book.id === activeBookId" class="book-active-bar" aria-hidden="true" />
+                  </view>
+                </view>
+              </scroll-view>
+            </template>
+            <template v-else>
+              <view v-if="customBooks.length === 0" class="section-empty">
+                <text class="section-empty-text">暂未上传文件，点击底部按钮上传 .txt / .pdf</text>
+              </view>
+              <view v-else-if="filteredCustomBooks.length === 0" class="section-empty">
+                <text class="section-empty-text">未找到匹配 "{{ searchQuery }}" 的文件</text>
+              </view>
+              <scroll-view v-else class="column-scroll" scroll-y :show-scrollbar="true" :enhanced="true" :bounces="false">
+                <view class="book-grid">
+                  <view
+                    v-for="book in filteredCustomBooks"
+                    :key="book.id"
+                    class="book-card book-card--custom"
+                    :class="{ 'is-active': book.id === activeBookId }"
+                    role="button"
+                    tabindex="0"
+                    :aria-label="book.name"
+                    @click="handleEnterReader(book.id)"
+                    @keydown.enter="handleEnterReader(book.id)"
+                    @keydown.space.prevent="handleEnterReader(book.id)"
+                  >
+                    <view class="book-cover" :data-ext="book.ext">
+                      <text class="cover-ext">{{ book.ext.toUpperCase() }}</text>
+                      <text class="cover-icon">{{ book.ext === 'pdf' ? '◰' : '≡' }}</text>
+                    </view>
+                    <view class="book-info">
+                      <text class="book-name">{{ book.name }}</text>
+                      <text class="book-file">{{ book.fileName }}</text>
+                      <text class="book-meta">{{ getBookProgressLabel(book) }}</text>
+                    </view>
+                    <view class="book-actions">
+                      <view class="book-delete" role="button" tabindex="0" aria-label="删除文件" @click.stop="handleRemoveCustomBook(book.id)" @keydown.enter.stop="handleRemoveCustomBook(book.id)" @keydown.space.prevent.stop="handleRemoveCustomBook(book.id)">
+                        <text class="delete-text">删除</text>
+                      </view>
+                      <view class="book-action">
+                        <text class="action-text">{{ book.id === activeBookId && rows.length > 0 ? '继续阅读' : '开始阅读' }}</text>
+                        <text class="action-arrow">›</text>
+                      </view>
+                    </view>
+                    <view v-if="book.id === activeBookId" class="book-active-bar" aria-hidden="true" />
+                  </view>
+                </view>
+              </scroll-view>
+            </template>
+          </view>
+        </view>
+        <view v-if="books.length > 0" class="library-tip"><text class="tip-text">共 {{ books.length }} 本 · 点击卡片开始阅读</text></view>
+      </view>
+      <view class="library-upload-bar">
+        <view class="upload-main" :class="{ 'is-disabled': isUploading }" role="button" tabindex="0" aria-label="上传文件" @click="handlePickFile" @keydown.enter="handlePickFile" @keydown.space.prevent="handlePickFile">
+          <text class="upload-icon">＋</text>
+          <text class="upload-text">{{ isUploading ? '上传中...' : '上传本地文件 .txt / .pdf' }}</text>
+        </view>
+        <text class="upload-hint">支持 .txt / .pdf，已上传文件仅保存在本地</text>
+        <input ref="fileInputRef" class="upload-input" type="file" accept=".txt,.pdf" aria-hidden="true" tabindex="-1" @change="handleFileInputChange" />
+      </view>
+      <AppBottomNavigation activeTab="reading" />
+    </view>
+    <view v-else class="reader-view-wrap">
     <!-- 顶部栏 -->
     <view class="reading-topbar">
       <view class="topbar-left">
         <text class="topbar-title">对照阅读</text>
         <text class="topbar-sub">{{ activeBook?.name ?? '未选择书籍' }}</text>
       </view>
-      <view class="topbar-actions">
+            <view class="topbar-actions">
+        <view
+          class="topbar-btn"
+          role="button"
+          tabindex="0"
+          aria-label="返回书库"
+          @click="handleExitReader"
+          @keydown.enter="handleExitReader"
+          @keydown.space.prevent="handleExitReader"
+        >
+          <text class="btn-label">返回书库</text>
+        </view>
         <view
           class="topbar-btn"
           role="button"
@@ -662,7 +1029,8 @@ function handleKeydown(e: KeyboardEvent) {
     </view>
 
     <AppBottomNavigation active-tab="reading" @unavailable="handleUnavailable" />
-  </view>
+  
+    </view></view>
 </template>
 
 <style scoped lang="scss">
@@ -678,6 +1046,243 @@ function handleKeydown(e: KeyboardEvent) {
   outline: none;
   overscroll-behavior: none;
 }
+.library-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-page);
+}
+.library-header {
+  flex: none;
+  padding: calc(var(--app-top-safe-area) + 10px) 16px 14px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.library-header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.library-title { font-size: 17px; font-weight: 800; color: var(--color-text); letter-spacing: 0.02em; }
+.library-count { font-size: 11px; color: var(--color-text-muted); background: var(--color-surface-muted); border: 1px solid var(--color-border); padding: 3px 10px; border-radius: 999px; }
+.library-sub { margin-top: 6px; font-size: 11px; color: var(--color-text-muted); }
+.library-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.library-tab-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+.library-search {
+  flex: none;
+}
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+.search-icon {
+  flex: none;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+}
+.search-placeholder {
+  color: var(--color-text-muted);
+}
+.search-clear {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+.search-clear-text {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+.library-tabs {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+.library-tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.library-tab.is-active {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  box-shadow: 0 2px 10px var(--color-shadow);
+}
+.library-tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+.tab-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.library-tab.is-active .tab-label {
+  color: var(--color-text);
+}
+.tab-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.library-tab.is-active .tab-count {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+.library-tab-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+.column-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.library-continue {
+  flex: none;
+  margin-bottom: 0;
+}
+.library-tip {
+  flex: none;
+  margin-top: 0;
+  text-align: center;
+}
+.tip-text { font-size: 11px; color: var(--color-text-muted); }
+.library-upload-bar {
+  flex: none;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.upload-main { height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--color-primary); border-radius: 12px; cursor: pointer; transition: opacity 0.15s; }
+.upload-main.is-disabled { opacity: 0.55; pointer-events: none; }
+.upload-main:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.upload-icon { font-size: 16px; font-weight: 800; color: #fff; line-height: 1; }
+.upload-text { font-size: 13px; font-weight: 800; color: #fff; }
+.upload-hint { font-size: 10px; color: var(--color-text-muted); text-align: center; }
+.upload-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.reader-view-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.book-grid { display: flex; flex-direction: column; gap: 10px; }
+.book-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+.book-card:hover { border-color: #cbd5e1; transform: translateY(-1px); box-shadow: 0 6px 18px var(--color-shadow); }
+.book-card.is-active { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.book-card:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.book-cover {
+  flex: none;
+  width: 46px; height: 56px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+.book-cover[data-ext='pdf'] { background: #fff0f0; border-color: #fecaca; }
+.book-cover[data-ext='txt'] { background: #eef2ff; border-color: #c7d2fe; }
+.cover-ext { font-size: 10px; font-weight: 800; color: var(--color-text-muted); letter-spacing: 0.04em; }
+.cover-icon { font-size: 16px; color: var(--color-text-secondary); }
+.book-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.book-name { font-size: 13px; font-weight: 700; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-file { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-meta { font-size: 11px; color: var(--color-primary); font-weight: 600; }
+.book-action { flex: none; display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: var(--color-text); }
+.book-card.is-active .book-action { background: var(--color-primary); }
+.action-text { font-size: 11px; font-weight: 700; color: #fff; }
+.action-arrow { font-size: 14px; color: #fff; line-height: 1; }
+.book-active-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--color-primary); }
+.book-actions { flex: none; display: flex; align-items: center; gap: 8px; }
+.book-delete { padding: 6px 10px; border-radius: 999px; background: #fff1f2; border: 1px solid #fecdd3; cursor: pointer; }
+.book-delete:focus-visible { outline: 2px solid #f43f5e; outline-offset: 1px; }
+.delete-text { font-size: 11px; font-weight: 700; color: #e11d48; }
+.book-card--custom { border-style: dashed; }
+.section-empty { padding: 28px 12px; display: flex; align-items: center; justify-content: center; }
+.section-empty-text { font-size: 12px; color: var(--color-text-muted); text-align: center; }
 
 .auto-reading-actions {
   position: absolute;

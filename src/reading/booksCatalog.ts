@@ -1,38 +1,39 @@
-import type { BookFileType, BookMeta } from './types'
+import type { BookFileType, BookMeta } from "./types"
 
 function getFileName(path: string): string {
-  return path.split('/').pop() ?? path
+  return path.split("/").pop() ?? path
 }
 
 function getExt(fileName: string): BookFileType | null {
   const lower = fileName.toLowerCase()
-  if (lower.endsWith('.txt')) return 'txt'
-  if (lower.endsWith('.pdf')) return 'pdf'
+  if (lower.endsWith(".txt")) return "txt"
+  if (lower.endsWith(".pdf")) return "pdf"
   return null
 }
 
 function toBookId(fileName: string): string {
-  return fileName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '') || 'book'
+  return fileName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-").replace(/^-|-$/g, "") || "book"
 }
 
 function createMeta(fileName: string, url: string): BookMeta | null {
   const ext = getExt(fileName)
   if (!ext) return null
-  const name = fileName.replace(/\.(txt|pdf)$/i, '')
+  const name = fileName.replace(/\.(txt|pdf)$/i, "")
   return {
     id: toBookId(fileName),
     name,
     fileName,
     ext,
     url,
+    source: "builtin",
   }
 }
 
 // 只聚合资源 URL，不内联文本，保留原始字节供加载器识别 UTF-8 / GB18030。
-const bookModules = import.meta.glob<string>('../static/books/*.{txt,pdf}', {
+const bookModules = import.meta.glob<string>("../static/books/*.{txt,pdf}", {
   eager: true,
-  import: 'default',
-  query: '?url',
+  import: "default",
+  query: "?url",
 }) as Record<string, string>
 
 function buildFromGlob(): BookMeta[] {
@@ -46,7 +47,7 @@ function buildFromGlob(): BookMeta[] {
       entries.push(meta)
     }
   }
-  entries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+  entries.sort((a, b) => a.name.localeCompare(b.name, "zh-CN"))
   return entries
 }
 
@@ -63,5 +64,5 @@ export function getBookById(bookId: string): BookMeta | undefined {
 }
 
 export function getDefaultBookId(): string {
-  return getBooksCatalog()[0]?.id ?? ''
+  return getBooksCatalog()[0]?.id ?? ""
 }

@@ -80,6 +80,12 @@ function isStudyCharacterEntry(value: unknown): value is StudyCharacterEntry {
   return typeof entry.id === 'string' && typeof entry.script_forms?.simplified === 'string'
 }
 
+function syncStagesByCategory() {
+  STAGES_BY_CATEGORY.level1.splice(0, STAGES_BY_CATEGORY.level1.length, ...level1Stages)
+  const currentRadical = radicalStages ?? []
+  STAGES_BY_CATEGORY.radical.splice(0, STAGES_BY_CATEGORY.radical.length, ...currentRadical)
+}
+
 function rebuildLevel1Stages() {
   level1Stages = chunk(level1Characters, LEVEL1_STAGE_SIZE).map((characters, index) => ({
     id: `level1-stage-${String(index + 1).padStart(2, '0')}`,
@@ -90,6 +96,7 @@ function rebuildLevel1Stages() {
     isPlaceholder: false,
   }))
   radicalStages = null
+  syncStagesByCategory()
 }
 
 async function loadNextSource(): Promise<void> {
@@ -150,6 +157,7 @@ function buildRadicalStages(): LevelStage[] {
     characters,
     isPlaceholder: false,
   }))
+  syncStagesByCategory()
   return radicalStages
 }
 
@@ -184,14 +192,28 @@ export async function loadStage(category: LevelCategory, stageId: string): Promi
   return stages.find((stage) => stage.id === stageId)
 }
 
-// compatibility exports for level-study
+// 同步查询：仅在已加载缓存中查找
 export function getStage(category: LevelCategory, stageId: string): LevelStage | null {
-  // placeholder: find in loaded stages if available, otherwise null
+  if (category === "level1") {
+    const found = level1Stages.find((s) => s.id === stageId)
+    if (found) return found
+    return null
+  }
+  if (category === "radical") {
+    if (radicalStages) {
+      const found = radicalStages.find((s) => s.id === stageId)
+      if (found) return found
+    }
+    return null
+  }
+  if (category === "level2") return LEVEL2_STAGES.find((s) => s.id === stageId) ?? null
+  if (category === "level3") return LEVEL3_STAGES.find((s) => s.id === stageId) ?? null
   return null
 }
+
 export const STAGES_BY_CATEGORY: Record<LevelCategory, LevelStage[]> = {
   radical: [],
   level1: [],
-  level2: [],
-  level3: [],
+  level2: LEVEL2_STAGES,
+  level3: LEVEL3_STAGES,
 }

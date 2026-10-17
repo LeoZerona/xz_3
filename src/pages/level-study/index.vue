@@ -6,7 +6,7 @@ import type { LearningFont } from "../../fonts/types";
 import { useCharacterLearningStore } from "../../stores/characterLearning";
 import { useFontStore } from "../../stores/fonts";
 import { useLevelProgressStore } from "../../stores/levelProgress";
-import { getStage, STAGES_BY_CATEGORY, type LevelCategory } from "../../study/levelData";
+import { getStage, loadStage, STAGES_BY_CATEGORY, type LevelCategory, type LevelStage } from "../../study/levelData";
 import { getEffectiveStudyModes, STUDY_MODES } from "../../study/modes";
 import type { StudyMode } from "../../study/modes";
 import type { StudyCharacterEntry } from "../../study/types";
@@ -35,12 +35,56 @@ onLoad((options: any) => {
   const cat = (options?.category as LevelCategory | undefined) ?? "level1";
   if (cat === "radical" || cat === "level1" || cat === "level2" || cat === "level3") queryCategory.value = cat;
   queryStageId.value = options?.stageId ?? "";
+  void refreshStage();
 });
 
-const stage = computed(() => {
-  if (queryStageId.value) return getStage(queryCategory.value, queryStageId.value) ?? null;
-  return null;
+watch([queryCategory, queryStageId], () => {
+  showPreview.value = true;
+  void refreshStage();
 });
+
+const loadedStage = ref<LevelStage | null>(null);
+const stageLoadError = ref("");
+let stageLoadSeq = 0;
+const isStageLoading = ref(false);
+const stage = computed(() => loadedStage.value);
+
+async function refreshStage() {
+  const cat = queryCategory.value;
+  const sid = queryStageId.value;
+  if (!sid) {
+    loadedStage.value = null;
+    stageLoadError.value = "";
+    isStageLoading.value = false;
+    return;
+  }
+  const cached = getStage(cat, sid);
+  if (cached) {
+    loadedStage.value = cached;
+    stageLoadError.value = "";
+    isStageLoading.value = false;
+    return;
+  }
+  const seq = ++stageLoadSeq;
+  isStageLoading.value = true;
+  stageLoadError.value = "";
+  try {
+    const fetched = await loadStage(cat, sid);
+    if (seq !== stageLoadSeq) return;
+    if (fetched) {
+      loadedStage.value = fetched;
+    } else {
+      loadedStage.value = null;
+      stageLoadError.value = "未找到对应关卡";
+    }
+  } catch (e) {
+    if (seq !== stageLoadSeq) return;
+    loadedStage.value = null;
+    stageLoadError.value = e instanceof Error ? e.message : "关卡数据加载失败";
+  } finally {
+    if (seq === stageLoadSeq) isStageLoading.value = false;
+  }
+}
 
 const stageTitle = computed(() => stage.value?.title ?? "关卡学习");
 const categoryLabel = computed(() => {
@@ -97,7 +141,6 @@ const wrongCountMap = new Map<string, number>();
 function taskKey(id: string, mode: string){ return id + "::" + mode }
 function getWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const v=wrongCountMap.get(taskKey(c.id, activeMode.value)); if(v===undefined) return 0; return v }
 function incWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const k=taskKey(c.id, activeMode.value); let cur=wrongCountMap.get(k); if(cur===undefined) cur=0; const n=cur+1; wrongCountMap.set(k,n); return n }
-const isStageLoading = ref(false);
 const showPreview = ref(true);
 const isPreviewVisible = computed(() => { if(!showPreview.value) return false; if(isStageLoading.value) return false; if(!stage.value) return false; return true });
 function startPreviewLearning(){ showPreview.value = false; const idx=findFirstIncompleteIndex(); currentTaskIndex.value = idx; resetQuestionState(); }
@@ -216,7 +259,14 @@ const isLastMode = computed(() => {
 
 const isLastCharacter = computed(() => remainingTasks.value.length <= 1 && hasAnswered.value);
 
-const isStageComplete = computed(() => remainingTasks.value.length === 0 || (remainingTasks.value.length === 1 && hasAnswered.value && isLastCharacter.value) || allTasksInterleaved.value.length > 0 && allTasksInterleaved.value.every((t) => learningStore.isModeComplete(t.character.id, t.mode)));
+const isStageComplete = computed(() => {
+  if (isStageLoading.value) return false;
+  if (!stage.value) return false;
+  if (stage.value.isPlaceholder) return false;
+  if (stageCharacters.value.length === 0) return false;
+  if (allTasksInterleaved.value.length === 0) return false;
+  return remainingTasks.value.length === 0 || (remainingTasks.value.length === 1 && hasAnswered.value && isLastCharacter.value) || allTasksInterleaved.value.every((t) => learningStore.isModeComplete(t.character.id, t.mode));
+});
 
 const progressDone = computed(() => stageCharacters.value.length - remainingTasks.value.reduce((acc, t) => {
   // 去重按 character
@@ -447,7 +497,17 @@ onBeforeUnmount(()=>{
       </view>
     </view>
 
-        <view v-if="isPreviewVisible" class="preview-panel" role="region" aria-label="关卡预览">
+        <view v-if="isStageLoading" class="empty-study" role="status">
+      <text class="empty-study-title">关卡加载中</text>
+      <text class="empty-study-description">{{ stageLoadError || "正在加载关卡数据..." }}</text>
+    </view>
+    <view v-else-if="stageLoadError" class="empty-study" role="status">
+      <text class="empty-study-title">加载失败</text>
+      <text class="empty-study-description">{{ stageLoadError }}</text>
+      <view class="complete-return" role="button" tabindex="0" @click="refreshStage" @keydown.enter="refreshStage">重试</view>
+      <view class="complete-return" style="background:var(--color-surface);color:var(--color-text);border:1px solid var(--color-border);margin-top:8px" role="button" tabindex="0" @click="handleBack" @keydown.enter="handleBack">返回关卡</view>
+    </view>
+    <view v-else-if="isPreviewVisible" class="preview-panel" role="region" aria-label="关卡预览">
       <view class="preview-title">本关共 {{ stageCharacters.length }} 字 · {{ totalModeCount }} 种练习</view>
       <view class="preview-grid">
         <view v-for="ch in stageCharacters" :key="ch.id" class="preview-item">
@@ -458,7 +518,7 @@ onBeforeUnmount(()=>{
       <button class="primary-action" @click="startPreviewLearning">开始学习</button>
     </view>
     <StudyQuestionCard
-      v-if="currentQuestion"
+      v-else-if="currentQuestion"
       :key="currentQuestion.character.id + '-' + currentQuestion.mode"
       :question="currentQuestion"
       :selected-answer="selectedAnswer"
@@ -476,7 +536,7 @@ onBeforeUnmount(()=>{
       @submit-input="submitInputAnswer"
       @next="handleNext"
     />
-    <view v-else-if="!isPreviewVisible" class="empty-study" role="status">
+    <view v-else class="empty-study" role="status">
       <text class="empty-study-title">{{ isStageComplete ? "本关已完成" : "暂无可学习文字" }}</text>
       <text class="empty-study-description">{{ isStageComplete ? "该关卡的全部文字已完成全部练习" : "关卡数据为空" }}</text>
       <view class="complete-return" role="button" tabindex="0" @click="handleBack" @keydown.enter="handleBack">返回关卡</view>
@@ -506,6 +566,7 @@ onBeforeUnmount(()=>{
 .preview-pinyin{font-size:8px;color:var(--color-text-muted)}
 .complete-return { min-width: 132px; height: 44px; margin-top: 10px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: var(--color-primary); color: var(--color-on-primary); font-size: 13px; font-weight: 600; cursor: pointer; }
 </style>
+
 
 
 

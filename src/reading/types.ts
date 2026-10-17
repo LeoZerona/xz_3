@@ -1,4 +1,6 @@
-﻿export type BookFileType = 'txt' | 'pdf'
+export type BookFileType = "txt" | "pdf"
+
+export type BookSource = "builtin" | "custom"
 
 export interface BookMeta {
   id: string
@@ -6,6 +8,8 @@ export interface BookMeta {
   fileName: string
   ext: BookFileType
   url: string
+  source?: BookSource
+  createdAt?: number
 }
 
 export interface ReadingRow {
@@ -15,14 +19,14 @@ export interface ReadingRow {
 }
 
 export type TableStyleId =
-  | 'light-grid'
-  | 'light-shading'
-  | 'medium-grid'
-  | 'accent-stripe'
-  | 'borderless'
-  | 'dark-header'
-  | 'manuscript-grid'
-  | 'manuscript-line'
+  | "light-grid"
+  | "light-shading"
+  | "medium-grid"
+  | "accent-stripe"
+  | "borderless"
+  | "dark-header"
+  | "manuscript-grid"
+  | "manuscript-line"
 
 export type RowsPerPage = 8 | 10 | 12 | 16
 

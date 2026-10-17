@@ -1,10 +1,11 @@
-﻿import type { BookMeta, LoadResult, ReadingRow } from './types'
+import type { BookMeta, LoadResult, ReadingRow } from "./types"
 
-import { loadAssetBuffer } from '../utils/assetLoader'
-import { decodeGb18030, decodeUtf16, decodeUtf8 } from '../utils/textEncoding'
+import { loadAssetBuffer } from "../utils/assetLoader"
+import { decodeGb18030, decodeUtf16, decodeUtf8 } from "../utils/textEncoding"
+import { getCustomBookById } from "./customBooks"
 
 function normalizeLine(raw: string): string {
-  return raw.replace(/\uFEFF/g, '').trim()
+  return raw.replace(/\uFEFF/g, "").trim()
 }
 
 // 一行一行的对照：严格按原文换行切分，不按标点二次切句，不对长行做分段
@@ -19,7 +20,7 @@ function splitIntoLines(text: string): string[] {
 export function parseTextToRows(text: string, bookId: string): ReadingRow[] {
   const lines = splitIntoLines(text)
   return lines.map((line, idx) => ({
-    id: bookId + '-' + String(idx + 1),
+    id: bookId + "-" + String(idx + 1),
     index: idx + 1,
     text: line,
   }))
@@ -50,7 +51,7 @@ export function decodeTextBuffer(buffer: ArrayBuffer): string {
     try {
       return decodeGb18030(bytes)
     } catch {
-      throw new Error('文本编码无法识别，请将书籍转换为 UTF-8 或 GB18030 后重试')
+      throw new Error("文本编码无法识别，请将书籍转换为 UTF-8 或 GB18030 后重试")
     }
   }
 }
@@ -62,11 +63,11 @@ export async function loadTxtBook(book: BookMeta): Promise<LoadResult> {
 }
 
 export async function loadPdfBook(book: BookMeta): Promise<LoadResult> {
-  let pdfjs: typeof import('./pdfjsAdapter')
+  let pdfjs: typeof import("./pdfjsAdapter")
   try {
-    pdfjs = await import('./pdfjsAdapter')
+    pdfjs = await import("./pdfjsAdapter")
   } catch {
-    throw new Error('PDF 解析依赖加载失败，请将 PDF 转为 TXT 后重试')
+    throw new Error("PDF 解析依赖加载失败，请将 PDF 转为 TXT 后重试")
   }
   const { GlobalWorkerOptions, getDocument, workerSrc } = pdfjs
 
@@ -81,23 +82,34 @@ export async function loadPdfBook(book: BookMeta): Promise<LoadResult> {
     const page = await doc.getPage(pageNum)
     const content = await page.getTextContent()
     const texts = content.items
-      .filter((item): item is Extract<typeof item, { str: string }> => 'str' in item)
+      .filter((item): item is Extract<typeof item, { str: string }> => "str" in item)
       .map((item) => item.str)
       .filter(Boolean)
-    const pageText = texts.join('\n')
+    const pageText = texts.join("\n")
     const pageLines = splitIntoLines(pageText)
     for (const l of pageLines) lines.push(l)
   }
   const rows: ReadingRow[] = lines.map((line, idx) => ({
-    id: book.id + '-' + String(idx + 1),
+    id: book.id + "-" + String(idx + 1),
     index: idx + 1,
     text: line,
   }))
-  return { rows, totalChars: lines.join('').length }
+  return { rows, totalChars: lines.join("").length }
+}
+
+async function loadCustomBook(book: BookMeta): Promise<LoadResult> {
+  const custom = getCustomBookById(book.id)
+  const rawText = (custom?.text ?? (book as unknown as { text?: string }).text ?? "") as string
+  if (!rawText) throw new Error("自定义文件内容丢失，请重新上传")
+  const rows = parseTextToRows(rawText, book.id)
+  return { rows, totalChars: rawText.length }
 }
 
 export async function loadBook(book: BookMeta): Promise<LoadResult> {
-  if (book.ext === 'pdf') return loadPdfBook(book)
+  if (book.source === "custom") return loadCustomBook(book)
+  const maybeCustom = getCustomBookById(book.id)
+  if (maybeCustom) return loadCustomBook(maybeCustom)
+  if (book.ext === "pdf") return loadPdfBook(book)
   return loadTxtBook(book)
 }
 

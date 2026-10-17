@@ -19,16 +19,8 @@ const props = withDefaults(defineProps<Props>(), {
   isAutoReading: false,
 })
 
-const emit = defineEmits<{
-  (event: 'copy-row', row: ReadingRow): void
-}>()
-
 const safeAutoProgress = computed(() => Math.min(1, Math.max(0, props.autoProgress)))
 const progressStyle = computed(() => ({ transform: `scaleY(${safeAutoProgress.value})` }))
-
-function handleCopy(row: ReadingRow) {
-  emit('copy-row', row)
-}
 
 function splitChars(text: string): string[] {
   return [...text]
@@ -63,7 +55,6 @@ function splitChars(text: string): string[] {
         role="row"
         :aria-rowindex="row.index"
         :aria-label="`第 ${row.index} 行`"
-        @click="handleCopy(row)"
       >
         <view class="cell-content">
           <template v-if="tableStyleId === 'manuscript-grid'">
@@ -73,7 +64,7 @@ function splitChars(text: string): string[] {
                 :key="characterIndex"
                 class="grid-cell learn-cell"
               >
-                <text class="grid-char learn-char" :style="{ fontFamily: learningFontFamily }">{{ character }}</text>
+                <text selectable class="grid-char learn-char" :style="{ fontFamily: learningFontFamily }">{{ character }}</text>
               </view>
             </view>
             <view class="cell-divider manuscript-divider" aria-hidden="true" />
@@ -83,22 +74,22 @@ function splitChars(text: string): string[] {
                 :key="characterIndex"
                 class="grid-cell ref-cell"
               >
-                <text class="grid-char ref-char" :style="{ fontFamily: referenceFontFamily }">{{ character }}</text>
+                <text selectable class="grid-char ref-char" :style="{ fontFamily: referenceFontFamily }">{{ character }}</text>
               </view>
             </view>
           </template>
 
           <template v-else>
-            <view class="cell-line cell-learning" :style="{ fontFamily: learningFontFamily }">{{ row.text }}</view>
+            <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference" :style="{ fontFamily: referenceFontFamily }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily }">{{ row.text }}</view>
           </template>
         </view>
       </view>
     </view>
 
     <view class="table-caption" aria-hidden="true">
-      <text class="caption-text">第 {{ page }} / {{ totalPages }} 页 · 点击行可复制 · 上下为学习/对照字体</text>
+      <text class="caption-text">第 {{ page }} / {{ totalPages }} 页 · 长按可选取文字 · 上下为学习/对照字体</text>
     </view>
   </view>
 </template>
@@ -138,7 +129,13 @@ function splitChars(text: string): string[] {
 
 .reading-row:last-child { border-bottom: 0; }
 .reading-row:hover { background: var(--color-surface-muted); }
+.selectable-view { user-select: text; -webkit-user-select: text; }
 .cell-content { min-width: 0; padding: 10px 14px; }
+.cell-line, .grid-char {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+}
 .cell-line { line-height: 1.7; word-break: break-word; white-space: pre-wrap; }
 .cell-learning { color: var(--color-text); font-size: 16px; font-weight: 500; letter-spacing: 0.02em; }
 .cell-reference { color: var(--color-text-secondary); font-size: 14px; letter-spacing: 0.01em; }
@@ -158,7 +155,7 @@ function splitChars(text: string): string[] {
 .reading-table-wrap[data-table-style='light-shading'] {
   .reading-row { border-bottom-color: #eceef2; }
   .reading-row:nth-child(odd) { background: #fafafb; }
-  .reading-row:nth-child(even) { background: #fff; }
+  .reading-row:nth-child(even) { background: var(--color-surface); }
   .cell-content { padding: 12px 16px; }
   .cell-divider { opacity: 0.6; }
 }
@@ -188,14 +185,14 @@ function splitChars(text: string): string[] {
 }
 
 .reading-table-wrap[data-table-style='manuscript-grid'] {
-  border: 1.6px solid #6bbe6b;
+  border: 1.6px solid var(--color-primary);
   border-radius: 4px;
-  background: #fffef7;
-  .reading-table { background: #fffef7; }
+  background: var(--color-page);
+  .reading-table { background: var(--color-page); }
   .reading-row { border-bottom: 0; background: transparent; }
   .reading-row + .reading-row { margin-top: 10px; }
   .cell-content { padding: 2px; background: transparent; }
-  .manuscript-line { display: flex; flex-wrap: wrap; align-content: flex-start; padding: 1px 0 0 1px; border: 1px solid #7ac17a; border-radius: 1px; background: #fffef7; }
+  .manuscript-line { display: flex; flex-wrap: wrap; align-content: flex-start; padding: 1px 0 0 1px; border: 1px solid var(--color-border); border-radius: 1px; background: var(--color-page); }
   .manuscript-line--learn { min-height: 30px; }
   .manuscript-line--ref { min-height: 26px; opacity: 0.92; }
   .grid-cell {
@@ -208,31 +205,34 @@ function splitChars(text: string): string[] {
     align-items: center;
     justify-content: center;
     margin: 0;
-    border-right: 1px solid #a9d8a6;
-    border-bottom: 1px solid #a9d8a6;
-    background: #fff;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
   }
   .grid-char { display: block; color: #1a1a1a; font-size: 16px; line-height: 1; white-space: nowrap; }
-  .ref-cell { flex-basis: 26px; width: 26px; min-width: 26px; max-width: 26px; height: 26px; border-color: #c8e6c9; background: #fafffa; }
+  .ref-cell { flex-basis: 26px; width: 26px; min-width: 26px; max-width: 26px; height: 26px; border-color: var(--color-border); background: var(--color-surface); }
   .ref-char { color: #5a6b5a; font-size: 13px; }
-  .manuscript-divider { height: 6px; margin: 0; border-right: 1px solid #6bbe6b; border-left: 1px solid #6bbe6b; background: #fffef7; }
-  .table-caption { margin-top: 8px; border-top-color: #6bbe6b; background: #f6fff6; }
+  .manuscript-divider { height: 6px; margin: 0; border-right: 1px solid var(--color-primary); border-left: 1px solid var(--color-primary); background: var(--color-page); }
+  .table-caption { margin-top: 8px; border-top-color: var(--color-primary); background: var(--color-primary-soft); }
 }
 
 .reading-table-wrap[data-table-style='manuscript-line'] {
-  border: 1.6px solid #6bbe6b;
+  border: 1.6px solid var(--color-primary);
   border-radius: 4px;
-  background: #fffef7;
-  .reading-table { background: #fffef7; }
+  background: var(--color-page);
+  .reading-table { background: var(--color-page); }
   .reading-row { border-bottom: 0; background: transparent; }
-  .cell-content { min-height: 64px; padding: 6px 10px; background: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, #a8d8a6 31px, #a8d8a6 32px); }
+  .cell-content { min-height: 64px; padding: 6px 10px; background: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, color-mix(in srgb, var(--color-primary) 18%, transparent) 31px, color-mix(in srgb, var(--color-primary) 18%, transparent) 32px); }
   .cell-learning { min-height: 32px; padding-top: 1px; color: #1a1a1a; font-size: 16px; line-height: 32px; }
   .cell-reference { min-height: 28px; color: #5a6b5a; font-size: 13.5px; line-height: 28px; opacity: 0.92; }
   .cell-divider { height: 4px; margin: 0; background: transparent; }
-  .reading-row + .reading-row { border-top: 1px solid rgb(107 190 107 / 18%); }
-  .table-caption { border-top: 1.2px solid #6bbe6b; background: #f6fff6; }
+  .reading-row + .reading-row { border-top: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent); }
+  .table-caption { border-top: 1.2px solid var(--color-primary); background: var(--color-primary-soft); }
 }
 
+@supports not (color: color-mix(in srgb, black, white)) {
+  .reading-table-wrap[data-table-style='manuscript-line'] .cell-content { background: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--color-border) 31px, var(--color-border) 32px); }
+}
 @media (prefers-reduced-motion: reduce) {
   .reading-progress, .reading-row { transition: none; }
 }
