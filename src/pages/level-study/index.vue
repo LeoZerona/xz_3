@@ -89,6 +89,18 @@ function findFirstIncompleteIndex(): number {
 
 const currentTaskIndex = ref(0);
 const selectedAnswer = ref<string | null>(null);
+const hintLevel = ref(0);
+const forceDetail = ref(false);
+const isCorrectAnimating = ref(false);
+let pendingCorrectTimer: ReturnType<typeof setTimeout> | null = null;
+const wrongCountMap = new Map<string, number>();
+function taskKey(id: string, mode: string){ return id + "::" + mode }
+function getWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const v=wrongCountMap.get(taskKey(c.id, activeMode.value)); if(v===undefined) return 0; return v }
+function incWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const k=taskKey(c.id, activeMode.value); let cur=wrongCountMap.get(k); if(cur===undefined) cur=0; const n=cur+1; wrongCountMap.set(k,n); return n }
+const isStageLoading = ref(false);
+const showPreview = ref(true);
+const isPreviewVisible = computed(() => { if(!showPreview.value) return false; if(isStageLoading.value) return false; if(!stage.value) return false; return true });
+function startPreviewLearning(){ showPreview.value = false; const idx=findFirstIncompleteIndex(); currentTaskIndex.value = idx; resetQuestionState(); }
 const inputAnswer = ref("");
 const hasAttempted = ref(false);
 const hasAnswered = ref(false);
@@ -98,6 +110,10 @@ function resetQuestionState() {
   inputAnswer.value = "";
   hasAttempted.value = false;
   hasAnswered.value = false;
+  hintLevel.value = 0;
+  forceDetail.value = false;
+  isCorrectAnimating.value = false;
+  if (pendingCorrectTimer) { clearTimeout(pendingCorrectTimer); pendingCorrectTimer = null }
 }
 const hasPromptedResume = ref(false)
 
@@ -114,7 +130,7 @@ function maybePromptResume() {
   }
   hasPromptedResume.value = true
   const stageId = s.id
-  const charIds = s.characters.map((c) => c.id)
+  const charIds = s.characters.map((c: any) => c.id)
   try {
     uni.showModal({
       title: "继续学习",
@@ -226,7 +242,7 @@ const currentQuestion = computed<StudyQuestion | null>(() => {
   if (!task) return null;
   const char = task.character;
   const position = currentTaskIndex.value + 1;
-  const all = STAGES_BY_CATEGORY[queryCategory.value]?.flatMap((s) => s.characters) ?? stageCharacters.value;
+  const all = STAGES_BY_CATEGORY[queryCategory.value]?.flatMap((s: any) => s.characters) ?? stageCharacters.value;
   const seed = char.id.charCodeAt(char.id.length - 1) + position;
   return {
     mode: task.mode,
@@ -253,19 +269,42 @@ function buildChoiceOptions(entries: StudyCharacterEntry[], answer: StudyCharact
 
 function handleChoiceAnswer(character: string) {
   const current = currentCharacter.value;
-  if (hasAnswered.value || !current) return;
+  if (hasAnswered.value) return;
+  if (!current) return;
+  if (forceDetail.value) return;
   selectedAnswer.value = character;
   hasAttempted.value = true;
   const isAnswerCorrect = character === current.script_forms.simplified;
-  try {
-    learningStore.recordModeAttempt(current.id, activeMode.value, isAnswerCorrect);
-    if (isAnswerCorrect) levelProgressStore.markCharacterCompleted(queryStageId.value, current.id);
-  } catch {}
-  if (!isAnswerCorrect) return;
-  hasAnswered.value = true;
-  checkStageCompletion();
+  if (isAnswerCorrect) {
+    isCorrectAnimating.value = true;
+    if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer);
+    pendingCorrectTimer = setTimeout(() => {
+      hasAnswered.value = true;
+      isCorrectAnimating.value = false;
+      try { learningStore.recordModeAttempt(current.id, activeMode.value, true); levelProgressStore.markCharacterCompleted(queryStageId.value, current.id) } catch {}
+      checkStageCompletion();
+    }, 400);
+    return;
+  }
+  const n = incWrongCount();
+  if (n === 1) {
+    hintLevel.value = 1;
+    try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+    return;
+  }
+  hintLevel.value = 1;
+  forceDetail.value = true;
+  try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+  const firstMode = effectiveModes.value[0];
+  if (activeMode.value !== firstMode) {
+    try { learningStore.resetCharacterModes(current.id) } catch {}
+  }
+  if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer);
+  pendingCorrectTimer = setTimeout(() => {
+    hasAnswered.value = true;
+    isCorrectAnimating.value = false;
+  }, 400);
 }
-
 function handleInputAnswer(value: string) {
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("");
   hasAttempted.value = false;
@@ -273,27 +312,53 @@ function handleInputAnswer(value: string) {
 
 function submitInputAnswer(value: string) {
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("");
-  if (!inputAnswer.value || hasAnswered.value) return;
+  if (!inputAnswer.value) return;
+  if (hasAnswered.value) return;
+  if (forceDetail.value) return;
   hasAttempted.value = true;
-  const expected = currentCharacter.value?.script_forms;
-  if (!expected) return;
-  const isAnswerCorrect = inputAnswer.value === expected.simplified || inputAnswer.value === expected.traditional;
-  try {
-    learningStore.recordModeAttempt(currentCharacter.value!.id, activeMode.value, isAnswerCorrect);
-    if (isAnswerCorrect) levelProgressStore.markCharacterCompleted(queryStageId.value, currentCharacter.value!.id);
-  } catch {}
-  if (!isAnswerCorrect) return;
-  hasAnswered.value = true;
-  checkStageCompletion();
+  const curChar = currentCharacter.value;
+  if (!curChar) return;
+  const expected = curChar.script_forms;
+  let isAnswerCorrect = false;
+  if (inputAnswer.value === expected.simplified) isAnswerCorrect = true;
+  else if (inputAnswer.value === expected.traditional) isAnswerCorrect = true;
+  if (isAnswerCorrect) {
+    isCorrectAnimating.value = true;
+    if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer);
+    pendingCorrectTimer = setTimeout(() => {
+      hasAnswered.value = true;
+      isCorrectAnimating.value = false;
+      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true); levelProgressStore.markCharacterCompleted(queryStageId.value, curChar.id) } catch {}
+      checkStageCompletion();
+    }, 400);
+    return;
+  }
+  const n = incWrongCount();
+  if (n === 1) {
+    hintLevel.value = 1;
+    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+    return;
+  }
+  hintLevel.value = 1;
+  forceDetail.value = true;
+  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+  const firstMode = effectiveModes.value[0];
+  if (activeMode.value !== firstMode) {
+    try { learningStore.resetCharacterModes(curChar.id) } catch {}
+  }
+  if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer);
+  pendingCorrectTimer = setTimeout(() => {
+    hasAnswered.value = true;
+    isCorrectAnimating.value = false;
+  }, 400);
 }
-
 function checkStageCompletion() {
   if (!stage.value) return;
   const ch = currentCharacter.value;
   if (!ch) return;
   // 若该字已完成全部模式，可视为该字完成；若整关所有字都完成，则标记关卡完成
   const allChars = stage.value.characters;
-  const allDone = allChars.every((c) => learningStore.isCharacterComplete(c.id));
+  const allDone = allChars.every((c: any) => learningStore.isCharacterComplete(c.id));
   if (allDone) {
     levelProgressStore.markStageCompleted(stage.value.id);
   }
@@ -344,11 +409,14 @@ onMounted(() => {
   try { uni.pageScrollTo({ scrollTop: 0, duration: 0 }); } catch {}
 });
 
-onBeforeUnmount(() => {});
+onBeforeUnmount(()=>{
+  if(pendingCorrectTimer){ clearTimeout(pendingCorrectTimer); pendingCorrectTimer=null }
+});
 </script>
 
 <template>
   <view class="study-page">
+    <view v-if="isStageLoading" class="top-progress-bar" aria-hidden="true" />
     <view class="study-topbar">
       <button class="topbar-button" aria-label="返回" @click="handleBack">
         <text class="back-icon" aria-hidden="true">‹</text>
@@ -379,6 +447,16 @@ onBeforeUnmount(() => {});
       </view>
     </view>
 
+        <view v-if="isPreviewVisible" class="preview-panel" role="region" aria-label="关卡预览">
+      <view class="preview-title">本关共 {{ stageCharacters.length }} 字 · {{ totalModeCount }} 种练习</view>
+      <view class="preview-grid">
+        <view v-for="ch in stageCharacters" :key="ch.id" class="preview-item">
+          <text class="preview-char" :style="{ fontFamily: currentFont.fontFamily }">{{ ch.script_forms.simplified }}</text>
+          <text class="preview-pinyin">{{ ch.phonetics.pinyin }}</text>
+        </view>
+      </view>
+      <button class="primary-action" @click="startPreviewLearning">开始学习</button>
+    </view>
     <StudyQuestionCard
       v-if="currentQuestion"
       :key="currentQuestion.character.id + '-' + currentQuestion.mode"
@@ -390,12 +468,15 @@ onBeforeUnmount(() => {});
       :is-last-mode="isLastMode"
       :is-last-character="isLastCharacter"
       :mode-position="modePosition"
+      :hint-level="hintLevel"
+      :force-detail="forceDetail"
+      :is-correct-animating="isCorrectAnimating"
       @answer-choice="handleChoiceAnswer"
       @update:input-answer="handleInputAnswer"
       @submit-input="submitInputAnswer"
       @next="handleNext"
     />
-    <view v-else class="empty-study" role="status">
+    <view v-else-if="!isPreviewVisible" class="empty-study" role="status">
       <text class="empty-study-title">{{ isStageComplete ? "本关已完成" : "暂无可学习文字" }}</text>
       <text class="empty-study-description">{{ isStageComplete ? "该关卡的全部文字已完成全部练习" : "关卡数据为空" }}</text>
       <view class="complete-return" role="button" tabindex="0" @click="handleBack" @keydown.enter="handleBack">返回关卡</view>
@@ -417,6 +498,12 @@ onBeforeUnmount(() => {});
 .empty-study { min-height: 0; padding: 30px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; }
 .empty-study-title { font-size: 15px; font-weight: 700; }
 .empty-study-description { color: var(--color-text-muted); font-size: 11px; }
+.preview-panel{margin:12px 16px 0;padding:14px;border:1px solid var(--color-border);border-radius:16px;background:var(--color-surface);display:flex;flex-direction:column;gap:12px}
+.preview-title{font-size:12px;font-weight:700}
+.preview-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.preview-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface-muted)}
+.preview-char{font-size:22px;line-height:1}
+.preview-pinyin{font-size:8px;color:var(--color-text-muted)}
 .complete-return { min-width: 132px; height: 44px; margin-top: 10px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: var(--color-primary); color: var(--color-on-primary); font-size: 13px; font-weight: 600; cursor: pointer; }
 </style>
 

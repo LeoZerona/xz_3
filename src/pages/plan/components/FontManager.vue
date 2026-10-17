@@ -23,42 +23,42 @@ function isFontInUse(fontId: string): boolean {
 
 <template>
   <section class="font-manager" aria-label="字体设置">
-    <div class="manager-scroll">
-      <section class="pairing-section" aria-labelledby="pairing-title">
-        <div class="section-heading">
-          <div>
-            <h2 id="pairing-title" class="section-title">当前字体搭配</h2>
-            <p class="section-description">学习时会同时展示两种字形，便于观察笔画和结构差异。</p>
+    <section class="pairing-section" aria-labelledby="pairing-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="pairing-title" class="section-title">当前字体搭配</h2>
+          <p class="section-description">学习时会同时展示两种字形，便于观察笔画和结构差异。</p>
+        </div>
+        <button class="swap-button" type="button" role="button" aria-label="交换学习字体和对照字体" @click="fontStore.swapFonts">
+          <van-icon name="exchange" size="15" aria-hidden="true" />
+          <span>交换</span>
+        </button>
+      </div>
+
+      <div class="pairing-grid" role="group" aria-label="当前学习字体和对照字体">
+        <article class="role-card is-learning">
+          <div class="role-card-head">
+            <span class="role-label">学习字体</span>
+            <span class="selected-mark" aria-hidden="true">主</span>
           </div>
-          <button class="swap-button" type="button" role="button" aria-label="交换学习字体和对照字体" @click="fontStore.swapFonts">
-            <van-icon name="exchange" size="15" aria-hidden="true" />
-            <span>交换</span>
-          </button>
-        </div>
+          <span class="role-sample" :style="{ fontFamily: currentFont.fontFamily }">{{ currentFont.sample }}</span>
+          <strong class="role-font-name">{{ currentFont.name }}</strong>
+          <span class="role-hint">用于记忆与临摹</span>
+        </article>
 
-        <div class="pairing-grid" role="group" aria-label="当前学习字体和对照字体">
-          <article class="role-card is-learning">
-            <div class="role-card-head">
-              <span class="role-label">学习字体</span>
-              <span class="selected-mark" aria-hidden="true">主</span>
-            </div>
-            <span class="role-sample" :style="{ fontFamily: currentFont.fontFamily }">{{ currentFont.sample }}</span>
-            <strong class="role-font-name">{{ currentFont.name }}</strong>
-            <span class="role-hint">用于记忆与临摹</span>
-          </article>
+        <article class="role-card is-reference">
+          <div class="role-card-head">
+            <span class="role-label">对照字体</span>
+            <span class="selected-mark" aria-hidden="true">辅</span>
+          </div>
+          <span class="role-sample" :style="{ fontFamily: referenceFont.fontFamily }">{{ referenceFont.sample }}</span>
+          <strong class="role-font-name">{{ referenceFont.name }}</strong>
+          <span class="role-hint">用于辨认与比较</span>
+        </article>
+      </div>
+    </section>
 
-          <article class="role-card is-reference">
-            <div class="role-card-head">
-              <span class="role-label">对照字体</span>
-              <span class="selected-mark" aria-hidden="true">辅</span>
-            </div>
-            <span class="role-sample" :style="{ fontFamily: referenceFont.fontFamily }">{{ referenceFont.sample }}</span>
-            <strong class="role-font-name">{{ referenceFont.name }}</strong>
-            <span class="role-hint">用于辨认与比较</span>
-          </article>
-        </div>
-      </section>
-
+    <div class="library-scroll">
       <section class="library-section" aria-labelledby="library-title">
         <div class="library-heading">
           <div>
@@ -130,9 +130,8 @@ function isFontInUse(fontId: string): boolean {
 </template>
 
 <style scoped>
-.font-manager { height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); overflow: hidden; background: var(--color-surface-muted); }
-.manager-scroll { height: 100%; padding-bottom: calc(92px + env(safe-area-inset-bottom)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-.pairing-section { padding: 20px 16px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.font-manager { height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
+.pairing-section { flex: none; padding: 20px 16px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .section-heading, .library-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .section-title { margin: 0; color: var(--color-text); font-size: 16px; font-weight: 700; line-height: 1.3; }
 .section-description { max-width: 350px; margin: 5px 0 0; color: var(--color-text-secondary); font-size: 10px; line-height: 1.5; }
@@ -149,10 +148,11 @@ function isFontInUse(fontId: string): boolean {
 .role-sample { margin: 12px 0 7px; color: var(--color-text); font-size: 52px; font-weight: 500; line-height: 1; }
 .role-font-name { max-width: 100%; overflow: hidden; color: var(--color-text); font-size: 13px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .role-hint { margin-top: 3px; color: var(--color-text-muted); font-size: 8px; }
-.library-section { padding: 18px 12px 8px; }
+.library-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.library-section { padding: 18px 12px 16px; }
 .library-heading { padding: 0 4px 12px; }
 .font-count { flex: none; padding: 4px 8px; border-radius: 12px; background: var(--color-surface); color: var(--color-text-muted); font-size: 9px; }
-.managed-font-list { display: flex; flex-direction: column; gap: 10px; }
+.managed-font-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
 .font-card { min-height: 132px; padding: 14px; display: flex; align-items: flex-start; gap: 13px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px var(--color-shadow); }
 .font-card-body { min-width: 0; flex: 1; }
 .font-card-head { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }

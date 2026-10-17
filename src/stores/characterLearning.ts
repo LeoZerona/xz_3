@@ -141,6 +141,10 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     return effective.find((mode) => !isModeComplete(characterId, mode)) ?? null
   }
 
+  function resetCharacterModes(characterId: string, at = new Date().toISOString()) {
+    resetCharacters([characterId], at)
+  }
+
   function resetCharacters(characterIds: string[], at = new Date().toISOString()) {
     let changed = false
     for (const characterId of characterIds) {
@@ -177,6 +181,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     isModeComplete,
     isCharacterComplete,
     nextIncompleteMode,
+    resetCharacterModes,
     resetCharacters,
   }
 })

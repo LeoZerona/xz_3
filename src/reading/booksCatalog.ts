@@ -1,4 +1,4 @@
-﻿import type { BookFileType, BookMeta } from './types'
+import type { BookFileType, BookMeta } from './types'
 
 function getFileName(path: string): string {
   return path.split('/').pop() ?? path
@@ -28,54 +28,21 @@ function createMeta(fileName: string, url: string): BookMeta | null {
   }
 }
 
-// glob 兜底：仍保留，但不再强依赖资源哈希路径
+// 只聚合资源 URL，不内联文本，保留原始字节供加载器识别 UTF-8 / GB18030。
 const bookModules = import.meta.glob<string>('../static/books/*.{txt,pdf}', {
   eager: true,
   import: 'default',
   query: '?url',
 }) as Record<string, string>
 
-// 内联文本：txt 直接内联，避免 fetch 在 H5 静态拷贝失败时 404
-const txtRawModules = import.meta.glob<string>('../static/books/*.txt', {
-  eager: true,
-  import: 'default',
-  query: '?raw',
-}) as Record<string, string>
-
-const rawContentByFileName = new Map<string, string>()
-for (const [path, content] of Object.entries(txtRawModules)) {
-  const fileName = getFileName(path)
-  rawContentByFileName.set(fileName, content)
-}
-
-export function getRawContent(fileName: string): string | undefined {
-  return rawContentByFileName.get(fileName)
-}
-
-// H5 静态基路径：src/static 会被 uni 拷贝至 /static
-const STATIC_BASE = '/static/books/'
-const FALLBACK_FILES: Array<{ fileName: string; url: string }> = [
-  { fileName: '对照阅读示例.txt', url: STATIC_BASE + encodeURI('对照阅读示例.txt') },
-  { fileName: '失了老师说她全家搬去了国外再次见.txt', url: STATIC_BASE + encodeURI('失了老师说她全家搬去了国外再次见.txt') },
-  { fileName: 'sample-english.pdf', url: STATIC_BASE + 'sample-english.pdf' },
-]
-
 function buildFromGlob(): BookMeta[] {
   const entries: BookMeta[] = []
   const seen = new Set<string>()
   for (const [path, url] of Object.entries(bookModules)) {
     const fileName = getFileName(path)
-    const meta = createMeta(fileName, url as unknown as string)
+    const meta = createMeta(fileName, url)
     if (meta && !seen.has(meta.fileName)) {
       seen.add(meta.fileName)
-      entries.push(meta)
-    }
-  }
-  for (const f of FALLBACK_FILES) {
-    if (seen.has(f.fileName)) continue
-    const meta = createMeta(f.fileName, f.url)
-    if (meta) {
-      seen.add(f.fileName)
       entries.push(meta)
     }
   }
@@ -92,7 +59,7 @@ export function getBooksCatalog(): BookMeta[] {
 }
 
 export function getBookById(bookId: string): BookMeta | undefined {
-  return getBooksCatalog().find((b) => b.id === bookId)
+  return getBooksCatalog().find((book) => book.id === bookId)
 }
 
 export function getDefaultBookId(): string {

@@ -6,17 +6,22 @@ interface Props {
   seconds: number
   progress: number
   isRunning: boolean
+  isPaused?: boolean
   disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  isPaused: false,
   disabled: false,
 })
 
 const emit = defineEmits<{
   (event: 'update:seconds', value: number): void
   (event: 'toggle'): void
+  (event: 'stop'): void
 }>()
+
+const isActive = computed(() => props.isRunning || props.isPaused)
 
 const remainingSeconds = computed(() => {
   const remaining = props.seconds * (1 - Math.min(1, Math.max(0, props.progress)))
@@ -24,8 +29,14 @@ const remainingSeconds = computed(() => {
 })
 
 const statusLabel = computed(() => {
+  if (props.isPaused) return `已暂停 · 剩余 ${remainingSeconds.value} 秒`
   if (!props.isRunning) return '自动翻页未开启'
   return `${remainingSeconds.value} 秒后翻页`
+})
+
+const toggleLabel = computed(() => {
+  if (props.isPaused) return '继续'
+  return props.isRunning ? '暂停' : '开始'
 })
 
 function handleSecondsInput(event: Event) {
@@ -58,15 +69,18 @@ function handleSecondsInput(event: Event) {
       <text class="duration-unit">秒/页</text>
     </view>
 
-    <button
-      class="toggle-button"
-      :class="{ 'is-running': isRunning }"
-      :disabled="disabled"
-      :aria-pressed="isRunning"
-      @click="emit('toggle')"
-    >
-      {{ isRunning ? '暂停' : '开始' }}
-    </button>
+    <view class="control-actions">
+      <button
+        class="toggle-button"
+        :class="{ 'is-running': isRunning, 'is-paused': isPaused }"
+        :disabled="disabled"
+        :aria-pressed="isActive"
+        @click="emit('toggle')"
+      >
+        {{ toggleLabel }}
+      </button>
+      <button v-if="isActive" class="stop-button" aria-label="停止自动阅读" @click="emit('stop')">停止</button>
+    </view>
   </view>
 </template>
 
@@ -121,7 +135,6 @@ function handleSecondsInput(event: Event) {
 }
 
 .toggle-button {
-  flex: none;
   min-width: 66px;
   height: 36px;
   margin: 0;
@@ -135,13 +148,19 @@ function handleSecondsInput(event: Event) {
 }
 
 .toggle-button.is-running { background: var(--color-text-secondary); }
+.toggle-button.is-paused { background: var(--color-primary); }
 .toggle-button[disabled] { opacity: 0.45; cursor: not-allowed; }
 .toggle-button::after { border: 0; }
+
+.control-actions { flex: none; display: flex; align-items: center; gap: 6px; }
+.stop-button { height: 36px; margin: 0; padding: 0 10px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 11px; font-weight: 700; line-height: 34px; }
+.stop-button::after { border: 0; }
 
 @media (max-width: 430px) {
   .auto-page-control { flex-wrap: wrap; gap: 8px; }
   .control-copy { flex-basis: 100%; }
   .duration-field { flex: 1; }
   .duration-input { flex: 1; width: 48px; }
+  .control-actions { flex: none; }
 }
 </style>

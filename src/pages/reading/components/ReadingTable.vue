@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>()
 
 const safeAutoProgress = computed(() => Math.min(1, Math.max(0, props.autoProgress)))
-const progressStyle = computed(() => ({ height: `${safeAutoProgress.value * 100}%` }))
+const progressStyle = computed(() => ({ transform: `scaleY(${safeAutoProgress.value})` }))
 
 function handleCopy(row: ReadingRow) {
   emit('copy-row', row)
@@ -120,12 +120,13 @@ function splitChars(text: string): string[] {
   z-index: 2;
   top: 0;
   right: 0;
+  bottom: 0;
   left: 0;
-  min-height: 2px;
   pointer-events: none;
   background: rgb(144 181 255 / 20%);
   border-bottom: 2px solid var(--color-progress);
-  transition: height 100ms linear;
+  transform-origin: top;
+  will-change: transform;
 }
 
 .reading-row {

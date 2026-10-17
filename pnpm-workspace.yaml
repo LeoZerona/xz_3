@@ -1,6 +1,9 @@
+overrides:
+  '@vue/devtools-api': 6.6.4
+
 allowBuilds:
   '@parcel/watcher': true
-  canvas: set this to true or false
+  canvas: false
   core-js: true
   core-js-pure: true
   esbuild: true

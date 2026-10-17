@@ -7,8 +7,12 @@ test('mobile reading supports catalog, automatic paging, and module navigation',
   await page.getByRole('button', { name: '目录' }).click()
   await expect(page.locator('.catalog-panel')).toBeVisible()
 
-  await page.getByLabel('失了老师说她全家搬去了国外再次见').click()
-  await expect(page.locator('.topbar-sub')).toContainText('失了老师说她全家搬去了国外再次见')
+  const txtBook = page.locator('.catalog-item').filter({ has: page.locator('.type-txt') }).first()
+  const bookName = (await txtBook.locator('.item-name').textContent()) ?? ''
+  await txtBook.click()
+  await expect(page.locator('.topbar-sub')).toContainText(bookName)
+  await expect(page.locator('.cell-learning').first()).toContainText('资源来源于网络')
+  await expect(page.locator('.cell-learning').first()).not.toContainText('�')
 
   await page.getByRole('button', { name: '表格样式' }).click()
   await page.locator('.style-card').filter({ hasText: '方格稿纸' }).click()
@@ -26,11 +30,42 @@ test('mobile reading supports catalog, automatic paging, and module navigation',
   expect(firstCellPositions[1]!.left).toBeGreaterThan(firstCellPositions[0]!.left)
 
   const durationInput = page.locator('.duration-input input')
-  await durationInput.fill('1')
+  await durationInput.fill('8')
   await durationInput.blur()
   await page.locator('.toggle-button').click()
   await expect(page.locator('.reading-progress')).toBeVisible()
-  await expect(page.locator('.page-text')).toContainText('第 2 /', { timeout: 3_000 })
+  const readingScroller = page.locator('.reading-body .uni-scroll-view-scrollbar-hidden').first()
+  await expect.poll(() => readingScroller.evaluate((element) => element.scrollTop), { timeout: 2_500 }).toBeGreaterThan(0)
+  await expect(page.getByRole('button', { name: '暂停自动阅读' })).toBeVisible()
+  const scrollSamples: number[] = []
+  for (let index = 0; index < 10; index += 1) {
+    await page.waitForTimeout(40)
+    scrollSamples.push(await readingScroller.evaluate((element) => Math.round(element.scrollTop)))
+  }
+  expect(new Set(scrollSamples).size).toBeGreaterThanOrEqual(6)
+  expect(scrollSamples.every((value, index) => index === 0 || value >= scrollSamples[index - 1]!)).toBe(true)
+
+  await page.getByRole('button', { name: '暂停自动阅读' }).click()
+  await expect(page.getByRole('button', { name: '继续自动阅读' })).toBeVisible()
+  await expect(page.locator('.reading-progress')).toBeVisible()
+  const pausedScrollTop = await readingScroller.evaluate((element) => element.scrollTop)
+  const pausedProgressTransform = await page.locator('.reading-progress').evaluate((element) => getComputedStyle(element).transform)
+  await page.waitForTimeout(200)
+  expect(await readingScroller.evaluate((element) => element.scrollTop)).toBe(pausedScrollTop)
+  expect(await page.locator('.reading-progress').evaluate((element) => getComputedStyle(element).transform)).toBe(pausedProgressTransform)
+
+  await page.getByRole('button', { name: '继续自动阅读' }).click()
+  await expect.poll(() => readingScroller.evaluate((element) => element.scrollTop)).toBeGreaterThan(pausedScrollTop)
+  await readingScroller.dispatchEvent('wheel', { deltaY: -120 })
+  await expect(page.getByRole('button', { name: '继续自动阅读' })).toBeVisible()
+
+  await page.locator('.auto-reading-action--stop').click()
+  await expect(page.locator('.reading-progress')).toBeHidden()
+
+  await durationInput.fill('3')
+  await durationInput.blur()
+  await page.locator('.toggle-button').click()
+  await expect(page.locator('.page-text')).toContainText('第 2 /', { timeout: 5_000 })
 
   await page.getByRole('button', { name: '学习', exact: true }).click()
   await expect(page).toHaveURL(/\/#\/$/)

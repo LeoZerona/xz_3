@@ -25,6 +25,10 @@ interface Props {
   isCorrect: boolean
   isLastMode: boolean
   isLastCharacter: boolean
+  hintLevel?: number
+  forceDetail?: boolean
+  isCorrectAnimating?: boolean
+  detailAnimated?: boolean
   modePosition: number
 }
 
@@ -47,6 +51,8 @@ const totalModes = computed(() => {
   try { const e = getEffectiveStudyModes(); return e.length > 0 ? e.length : 3 } catch { return 3 }
 })
 const localInputAnswer = ref(props.inputAnswer)
+const showDetail = computed(() => props.isCorrect || Boolean(props.forceDetail))
+const showClues = computed(() => (props.hintLevel ?? (wrongAttemptCount.value>0 ? 1 : 0)) >= 1)
 const wrongAttemptCount = ref(0)
 const actionLabel = computed(() => {
   if (!props.isCorrect) return '确认'
@@ -73,7 +79,7 @@ watch(() => props.inputAnswer, (value) => {
 })
 
 function handlePrimaryAction() {
-  if (props.isCorrect) {
+  if (showDetail.value) {
     emit('next')
     return
   }
@@ -90,8 +96,8 @@ function handleChoiceAnswer(character: string) {
 
 <template>
   <view class="question-stage">
-    <view v-if="!isCorrect" class="question-content">
-      <view class="mode-status" role="status">
+    <view v-if="!showDetail" class="question-content">
+      <view v-if="false" class="mode-status" role="status">
         <text>本字第 {{ modePosition }}/{{ totalModes }} 种</text>
         <text>{{ modeName }}</text>
       </view>
@@ -100,7 +106,7 @@ function handleChoiceAnswer(character: string) {
         <text class="prompt-character" :style="{ fontFamily: question.promptFont.fontFamily }">
           {{ question.character.script_forms.simplified }}
         </text>
-        <view class="character-clues">
+        <view v-if="showClues" class="character-clues">
           <text>{{ question.character.phonetics.pinyin }}</text>
           <text aria-hidden="true">·</text>
           <text>{{ question.character.structure.total_strokes }} 画</text>
@@ -112,10 +118,11 @@ function handleChoiceAnswer(character: string) {
       <template v-if="!isInputMode">
         <view class="choice-grid" role="group" aria-label="请选择相同的文字">
           <button v-for="option in question.options"
-            :key="`${option.id}-${selectedAnswer === option.script_forms.simplified ? wrongAttemptCount : 0}`"
+             :key="option.id"
             class="character-option" role="button" :class="{
               'is-selected': selectedAnswer === option.script_forms.simplified,
               'is-wrong': selectedAnswer === option.script_forms.simplified && option.id !== question.character.id,
+              'is-correct': option.id===question.character.id && (isCorrect || Boolean(isCorrectAnimating)),
             }" :aria-label="`选择文字${option.script_forms.simplified}`"
             :aria-pressed="selectedAnswer === option.script_forms.simplified"
             @click="handleChoiceAnswer(option.script_forms.simplified)">
@@ -139,7 +146,7 @@ function handleChoiceAnswer(character: string) {
       </view>
     </view>
 
-    <scroll-view v-else class="detail-scroll" scroll-y :show-scrollbar="false" aria-label="文字详情">
+    <scroll-view v-else class="detail-scroll is-animated" scroll-y :show-scrollbar="false" aria-label="文字详情">
       <view class="detail-hero">
         <CharacterFontComparison :character="question.character.script_forms.simplified"
           :learning-font="question.learningFont" :reference-font="question.referenceFont" />
@@ -187,7 +194,7 @@ function handleChoiceAnswer(character: string) {
       </view>
     </scroll-view>
 
-    <button v-if="isInputMode || isCorrect" class="primary-action" role="button"
+    <button v-if="isInputMode || showDetail" class="primary-action" role="button"
       :disabled="!isCorrect && !localInputAnswer.trim()" :aria-label="actionAriaLabel" @click="handlePrimaryAction">
       <text>{{ actionLabel }}</text>
       <van-icon v-if="isCorrect && !(isLastMode && isLastCharacter)" name="arrow" size="16" aria-hidden="true" />

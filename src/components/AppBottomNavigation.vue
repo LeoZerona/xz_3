@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 
 type TabKey = "study" | "character" | "reading" | "profile";
 
@@ -11,6 +11,15 @@ type NavigationItem = {
 };
 
 const TAB_ORDER: TabKey[] = ["study", "character", "reading", "profile"];
+const isNavigating = ref(false);
+let navigationUnlockTimer: ReturnType<typeof setTimeout> | null = null;
+function releaseNavigationLock(delay = 0) {
+  if (navigationUnlockTimer) clearTimeout(navigationUnlockTimer);
+  navigationUnlockTimer = setTimeout(() => {
+    isNavigating.value = false;
+    navigationUnlockTimer = null;
+  }, delay);
+}
 
 const props = withDefaults(defineProps<{
   activeTab: TabKey;
@@ -30,27 +39,26 @@ const navigationItems: NavigationItem[] = [
   { key: "profile", label: "我", icon: "contact-o", url: "/pages/profile/index" },
 ];
 
-function getAnimationType(target: TabKey): "slide-in-right" | "slide-in-left" {
-  const currentIndex = TAB_ORDER.indexOf(props.activeTab);
-  const targetIndex = TAB_ORDER.indexOf(target);
-  if (currentIndex === -1 || targetIndex === -1) return "slide-in-right";
-  return targetIndex > currentIndex ? "slide-in-right" : "slide-in-left";
+function getAnimationType(target: TabKey): "fade-in" {
+  return "fade-in";
 }
 
 function navigateToTab(item: NavigationItem) {
-  if (item.key === props.activeTab) return;
+  if (item.key === props.activeTab || isNavigating.value) return;
   if (!item.url) {
     emit("unavailable", item.label);
     return;
   }
-  const animationType = getAnimationType(item.key);
-  const animationDuration = 220;
+  isNavigating.value = true;
+  const animationType = "fade-in" as const;
+  const animationDuration = 0;
   // 首页使用 reLaunch 以清空栈，其余使用 navigateTo 保持可返回；动画统一 220ms ease-out
   if (item.key === "study") {
     uni.reLaunch({
       url: item.url,
       animationType,
       animationDuration,
+      complete: () => releaseNavigationLock(600),
       fail: () => emit("unavailable", item.label),
     });
     return;
@@ -65,8 +73,10 @@ function navigateToTab(item: NavigationItem) {
         url: item.url as string,
         animationType,
         animationDuration,
+        complete: () => releaseNavigationLock(600),
       });
     },
+    success: () => releaseNavigationLock(600),
   });
 }
 
@@ -118,9 +128,14 @@ function handleTouchEnd(event: TouchEvent) {
     if (prevItem) navigateToTab(prevItem);
   }
 }
+
+onBeforeUnmount(() => {
+  if (navigationUnlockTimer) clearTimeout(navigationUnlockTimer);
+});
 </script>
 
 <template>
+  <view v-if="isNavigating" class="top-progress-bar" aria-hidden="true" />
   <view
     class="bottom-navigation"
     :class="{ 'is-fixed': fixed }"
@@ -151,7 +166,7 @@ function handleTouchEnd(event: TouchEvent) {
 
 <style scoped lang="scss">
 .bottom-navigation {
-  min-height: 72px;
+  min-height: 56px;
   margin-top: auto;
   padding-bottom: env(safe-area-inset-bottom);
   padding-bottom: constant(safe-area-inset-bottom);
@@ -190,7 +205,7 @@ function handleTouchEnd(event: TouchEvent) {
 .navigation-content {
   width: 100%;
   height: 100%;
-  min-height: 72px;
+  min-height: 56px;
   display: grid;
   grid-template-rows: 23px auto;
   align-content: center;

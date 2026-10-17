@@ -108,6 +108,14 @@ const selectedAnswer = ref<string | null>(null)
 const inputAnswer = ref('')
 const hasAttempted = ref(false)
 const hasAnswered = ref(false)
+const hintLevel = ref(0)
+const forceDetail = ref(false)
+const isCorrectAnimating = ref(false)
+let pendingCorrectTimer: ReturnType<typeof setTimeout> | null = null
+const wrongCountMap = new Map<string, number>()
+function taskKey(id: string, mode: string){ return id + "::" + mode }
+function getWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const v=wrongCountMap.get(taskKey(c.id, activeMode.value)); if(v===undefined) return 0; return v }
+function incWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const k=taskKey(c.id, activeMode.value); let cur=wrongCountMap.get(k); if(cur===undefined) cur=0; const n=cur+1; wrongCountMap.set(k,n); return n }
 const isInputMode = computed(() => activeMode.value === 'seal-to-reference-input')
 const isInputAnswerCorrect = computed(() => {
   if (!currentCharacter.value) return false
@@ -182,17 +190,42 @@ function isPageVisible(): boolean {
 
 function handleChoiceAnswer(character: string) {
   const current = currentCharacter.value
-  if (hasAnswered.value || !current) return
+  if (hasAnswered.value) return
+  if (!current) return
+  if (forceDetail.value) return
   touchActive()
   selectedAnswer.value = character
   hasAttempted.value = true
   const isAnswerCorrect = character === current.script_forms.simplified
-  try {
-    learningStore.recordModeAttempt(current.id, activeMode.value, isAnswerCorrect)
-  } catch {}
-  if (!isAnswerCorrect) return
-  hasAnswered.value = true
-  if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
+  if (isAnswerCorrect) {
+    isCorrectAnimating.value = true
+    if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
+    pendingCorrectTimer = setTimeout(() => {
+      hasAnswered.value = true
+      isCorrectAnimating.value = false
+      try { learningStore.recordModeAttempt(current.id, activeMode.value, true) } catch {}
+      if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
+    }, 400)
+    return
+  }
+  const n = incWrongCount()
+  if (n === 1) {
+    hintLevel.value = 1
+    try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+    return
+  }
+  hintLevel.value = 1
+  forceDetail.value = true
+  try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+  const firstMode = effectiveModes.value[0]
+  if (activeMode.value !== firstMode) {
+    try { learningStore.resetCharacterModes(current.id) } catch {}
+  }
+  if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
+  pendingCorrectTimer = setTimeout(() => {
+    hasAnswered.value = true
+    isCorrectAnimating.value = false
+  }, 400)
 }
 
 function handleInputAnswer(value: string) {
@@ -202,28 +235,58 @@ function handleInputAnswer(value: string) {
 }
 
 function submitInputAnswer(value: string) {
-  inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
-  if (!inputAnswer.value || hasAnswered.value) return
+  inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("")
+  if (!inputAnswer.value) return
+  if (hasAnswered.value) return
+  if (forceDetail.value) return
   touchActive()
   hasAttempted.value = true
-  const expected = currentCharacter.value?.script_forms
-  if (!expected) return
-  const isAnswerCorrect = inputAnswer.value === expected.simplified || inputAnswer.value === expected.traditional
-  try {
-    learningStore.recordModeAttempt(currentCharacter.value!.id, activeMode.value, isAnswerCorrect)
-  } catch {}
-  if (!isAnswerCorrect) return
-  hasAnswered.value = true
-  if (learningStore.isCharacterComplete(currentCharacter.value!.id)) {
-    dailyProgressStore.addLearned(currentCharacter.value!.id)
+  const curChar = currentCharacter.value
+  if (!curChar) return
+  const expected = curChar.script_forms
+  let isAnswerCorrect = false
+  if (inputAnswer.value === expected.simplified) isAnswerCorrect = true
+  else if (inputAnswer.value === expected.traditional) isAnswerCorrect = true
+  if (isAnswerCorrect) {
+    isCorrectAnimating.value = true
+    if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
+    pendingCorrectTimer = setTimeout(() => {
+      hasAnswered.value = true
+      isCorrectAnimating.value = false
+      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true) } catch {}
+      if (learningStore.isCharacterComplete(curChar.id)) dailyProgressStore.addLearned(curChar.id)
+    }, 400)
+    return
   }
+  const n = incWrongCount()
+  if (n === 1) {
+    hintLevel.value = 1
+    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+    return
+  }
+  hintLevel.value = 1
+  forceDetail.value = true
+  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+  const firstMode = effectiveModes.value[0]
+  if (activeMode.value !== firstMode) {
+    try { learningStore.resetCharacterModes(curChar.id) } catch {}
+  }
+  if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
+  pendingCorrectTimer = setTimeout(() => {
+    hasAnswered.value = true
+    isCorrectAnimating.value = false
+  }, 400)
 }
 
 function resetQuestionState() {
   selectedAnswer.value = null
-  inputAnswer.value = ''
+  inputAnswer.value = ""
   hasAttempted.value = false
   hasAnswered.value = false
+  hintLevel.value = 0
+  forceDetail.value = false
+  isCorrectAnimating.value = false
+  if (pendingCorrectTimer) { clearTimeout(pendingCorrectTimer); pendingCorrectTimer = null }
 }
 
 function advanceToNextIncomplete() {
@@ -237,80 +300,43 @@ function advanceToNextIncomplete() {
 
 function handleNext() {
   const current = currentCharacter.value
-  if (!isCorrect.value || !current) return
+  if (!hasAnswered.value) return
+  if (!current) return
   touchActive()
   resetQuestionState()
   advanceToNextIncomplete()
-  const nextTask = allTasksInterleaved.value[currentTaskIndex.value] ?? null
-  try {
-    dailyProgressStore.setCurrentCharacter(nextTask?.character.id ?? null)
-  } catch {}
-  if (!nextTask) {
+  let nextTask: any = allTasksInterleaved.value[currentTaskIndex.value]
+  if (nextTask === undefined) nextTask = null
+  if (nextTask) {
+    try { dailyProgressStore.setCurrentCharacter(nextTask.character.id) } catch {}
+  } else {
     try { dailyProgressStore.setCurrentCharacter(null) } catch {}
+  }
+  if (!nextTask) {
     if (isDayComplete.value) {
       try {
         uni.showModal({
-          title: '今日学习完成',
-          content: `已完成 ${dailyTarget.value} 个文字的 ${totalModeCount.value} 种练习`,
+          title: "今日学习完成",
+          content: "已完成 " + dailyTarget.value + " 个文字的 " + totalModeCount.value + " 种练习",
           showCancel: false,
           success: () => {
-            try { uni.reLaunch({ url: '/pages/index/index' }) } catch {}
+            try { uni.reLaunch({ url: "/pages/index/index" }) } catch {}
           },
         })
       } catch {}
     }
   }
 }
-
-function openSearch() {
-  try { uni.navigateTo({ url: '/pages/search/index' }) } catch {}
+function openSearch(){
+  try{ uni.navigateTo({ url: "/pages/search/index" }) }catch{}
 }
-
-function toggleFavorite() {
-  const character = currentCharacter.value
-  if (!character) return
-  learningStore.toggleFavorite(character.id)
-  try { uni.showToast({ title: learningStore.isFavorite(character.id) ? '已收藏' : '已取消收藏', icon: 'none' }) } catch {}
+function toggleFavorite(){
+  const ch=currentCharacter.value
+  if(!ch) return
+  learningStore.toggleFavorite(ch.id)
+  try{ uni.showToast({ title: learningStore.isFavorite(ch.id) ? "已收藏" : "已取消收藏", icon: "none" }) }catch{}
 }
-
-function startStudyTimer() {
-  if (studyTimer) return
-  lastActiveAt = Date.now()
-  studyTimer = setInterval(() => {
-    if (!isPageVisible()) return
-    if (Date.now() - lastActiveAt > IDLE_TIMEOUT_MS) return
-    dailyProgressStore.addStudySeconds(1)
-  }, 1000)
-}
-
-function stopStudyTimer() {
-  if (studyTimer) {
-    clearInterval(studyTimer)
-    studyTimer = null
-  }
-  try { dailyProgressStore.persist() } catch {}
-}
-
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') touchActive()
-  else try { dailyProgressStore.persist() } catch {}
-}
-
-onMounted(() => {
-  try { uni.pageScrollTo({ scrollTop: 0, duration: 0 }) } catch {}
-  startStudyTimer()
-  if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-  }
-  if (currentCharacter.value) {
-    try { dailyProgressStore.setCurrentCharacter(currentCharacter.value.id) } catch {}
-  }
-})
-
-onBeforeUnmount(() => {
-  stopStudyTimer()
-  if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', handleVisibilityChange)
-})
+onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer) })
 </script>
 
 <template>
@@ -352,7 +378,10 @@ onBeforeUnmount(() => {
       :selected-answer="selectedAnswer"
       :input-answer="inputAnswer"
       :has-attempted="hasAttempted"
-      :is-correct="isCorrect"
+       :is-correct="isCorrect"
+      :hint-level="hintLevel"
+      :force-detail="forceDetail"
+      :is-correct-animating="isCorrectAnimating"
       :is-last-mode="isLastMode"
       :is-last-character="isLastCharacter"
       :mode-position="modePosition"

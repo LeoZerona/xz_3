@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onHide } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
@@ -31,10 +31,27 @@ const currentPage = ref(1)
 const showCatalog = ref(true)
 const showStylePanel = ref(false)
 const isMobileViewport = ref(false)
-const isAutoReading = ref(false)
+type AutoReadingState = 'idle' | 'running' | 'paused'
+const autoReadingState = ref<AutoReadingState>('idle')
+const isAutoReading = computed(() => autoReadingState.value === 'running')
+const isAutoReadingPaused = computed(() => autoReadingState.value === 'paused')
+const isAutoReadingActive = computed(() => autoReadingState.value !== 'idle')
 const autoProgress = ref(0)
-let autoPageTimer: ReturnType<typeof setInterval> | null = null
+const readingScrollTop = ref(0)
+const readingMaxScroll = ref(0)
+const readingViewportHeight = ref(0)
+let autoPageFrame: number | null = null
+let autoPageFrameUsesTimeout = false
+let readingMetricsTimer: ReturnType<typeof setTimeout> | null = null
 let autoPageStartedAt = 0
+let currentAutoProgress = 0
+let lastAutoUiUpdateAt = 0
+let pausedScrollTop = 0
+
+const AUTO_SCROLL_START = 0.12
+const AUTO_SCROLL_END = 0.88
+const AUTO_UI_UPDATE_INTERVAL = 200
+const READING_SCROLLER_SELECTOR = '#reading-scroll .uni-scroll-view-scrollbar-hidden'
 
 // 字体
 const fontStore = useFontStore()
@@ -86,50 +103,199 @@ function persistProgress() {
 }
 
 function resetAutoCountdown() {
-  autoPageStartedAt = Date.now()
+  autoPageStartedAt = getAnimationTime()
+  currentAutoProgress = 0
+  pausedScrollTop = getCurrentScrollTop()
   autoProgress.value = 0
+  renderAutoProgress(0)
+}
+
+function getAnimationTime() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+}
+
+function scheduleAutoPageFrame() {
+  if (!isAutoReading.value || autoPageFrame !== null) return
+  if (typeof requestAnimationFrame === 'function') {
+    autoPageFrameUsesTimeout = false
+    autoPageFrame = requestAnimationFrame(tickAutoPage)
+    return
+  }
+  autoPageFrameUsesTimeout = true
+  autoPageFrame = setTimeout(tickAutoPage, 16) as unknown as number
+}
+
+function cancelAutoPageFrame() {
+  if (autoPageFrame === null) return
+  if (autoPageFrameUsesTimeout) clearTimeout(autoPageFrame)
+  else if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(autoPageFrame)
+  autoPageFrame = null
+}
+
+function getReadingScrollerElement(): HTMLElement | null {
+  if (typeof document === 'undefined') return null
+  return document.querySelector<HTMLElement>(READING_SCROLLER_SELECTOR)
+}
+
+function getCurrentScrollTop() {
+  return getReadingScrollerElement()?.scrollTop ?? readingScrollTop.value
+}
+
+function writeAutoScrollTop(value: number) {
+  const scroller = getReadingScrollerElement()
+  if (scroller) {
+    scroller.scrollTop = value
+    return
+  }
+  // 非 WebView 平台回退到 scroll-view 的响应式属性。
+  readingScrollTop.value = value
+}
+
+function renderAutoProgress(progress: number) {
+  if (typeof document === 'undefined') return
+  const progressElement = document.querySelector<HTMLElement>('#reading-scroll .reading-progress')
+  if (progressElement) progressElement.style.transform = `scaleY(${progress})`
+}
+
+interface RectLike {
+  height?: number | null
+}
+
+interface ReadingScrollEvent {
+  detail?: {
+    scrollTop?: number
+    scrollHeight?: number
+  }
+}
+
+function measureReadingArea() {
+  void nextTick(() => {
+    if (readingMetricsTimer) clearTimeout(readingMetricsTimer)
+    readingMetricsTimer = setTimeout(() => {
+      const query = uni.createSelectorQuery()
+      query.select('.reading-body').boundingClientRect()
+      query.select('.reading-body-content').boundingClientRect()
+      query.exec((result) => {
+        const rects = result as Array<RectLike | null>
+        const viewportHeight = Number(rects[0]?.height ?? 0)
+        const contentHeight = Number(rects[1]?.height ?? 0)
+        readingViewportHeight.value = viewportHeight
+        readingMaxScroll.value = Math.max(0, contentHeight - viewportHeight)
+      })
+      readingMetricsTimer = null
+    }, 0)
+  })
+}
+
+function resetReadingScroll() {
+  readingScrollTop.value = 0
+  const scroller = getReadingScrollerElement()
+  if (scroller) scroller.scrollTop = 0
+  measureReadingArea()
+}
+
+function updateAutoScroll(progress: number) {
+  if (readingMaxScroll.value <= 0) return
+  const scrollProgress = Math.min(1, Math.max(0, (progress - AUTO_SCROLL_START) / (AUTO_SCROLL_END - AUTO_SCROLL_START)))
+  writeAutoScrollTop(readingMaxScroll.value * scrollProgress)
+}
+
+function handleReadingScroll(event: ReadingScrollEvent) {
+  const scrollTop = Number(event.detail?.scrollTop ?? 0)
+  const scrollHeight = Number(event.detail?.scrollHeight ?? 0)
+  // 自动阅读期间 scrollTop 是下一帧的目标值，不能用稍晚到达的滚动事件反写，
+  // 否则目标位置与实际位置会在相邻帧之间互相覆盖，造成上下抖动。
+  if (!isAutoReading.value) readingScrollTop.value = scrollTop
+  if (scrollHeight > 0 && readingViewportHeight.value > 0) {
+    readingMaxScroll.value = Math.max(0, scrollHeight - readingViewportHeight.value)
+  }
+}
+
+function handleReadingScrollIntent() {
+  if (isAutoReading.value) pauseAutoReading()
+}
+
+function pauseAutoReading() {
+  if (!isAutoReading.value) return
+  cancelAutoPageFrame()
+  pausedScrollTop = getCurrentScrollTop()
+  readingScrollTop.value = pausedScrollTop
+  autoProgress.value = currentAutoProgress
+  autoReadingState.value = 'paused'
+}
+
+function resumeAutoReading() {
+  if (!isAutoReadingPaused.value) return
+  const currentScrollTop = getCurrentScrollTop()
+  if (readingMaxScroll.value > 0 && Math.abs(currentScrollTop - pausedScrollTop) > 1) {
+    const scrollProgress = Math.min(1, Math.max(0, currentScrollTop / readingMaxScroll.value))
+    currentAutoProgress = AUTO_SCROLL_START + scrollProgress * (AUTO_SCROLL_END - AUTO_SCROLL_START)
+    autoProgress.value = currentAutoProgress
+  }
+  autoPageStartedAt = getAnimationTime() - currentAutoProgress * autoPageSeconds.value * 1000
+  autoReadingState.value = 'running'
+  lastAutoUiUpdateAt = 0
+  scheduleAutoPageFrame()
 }
 
 function stopAutoReading() {
-  if (autoPageTimer) {
-    clearInterval(autoPageTimer)
-    autoPageTimer = null
-  }
-  isAutoReading.value = false
+  cancelAutoPageFrame()
+  autoReadingState.value = 'idle'
+  currentAutoProgress = 0
   autoProgress.value = 0
+  renderAutoProgress(0)
 }
 
 function tickAutoPage() {
+  autoPageFrame = null
+  const now = getAnimationTime()
   const durationMs = autoPageSeconds.value * 1000
-  autoProgress.value = Math.min(1, (Date.now() - autoPageStartedAt) / durationMs)
-  if (autoProgress.value < 1) return
+  currentAutoProgress = Math.min(1, (now - autoPageStartedAt) / durationMs)
+  updateAutoScroll(currentAutoProgress)
+  renderAutoProgress(currentAutoProgress)
+  if (now - lastAutoUiUpdateAt >= AUTO_UI_UPDATE_INTERVAL || currentAutoProgress >= 1) {
+    autoProgress.value = currentAutoProgress
+    lastAutoUiUpdateAt = now
+  }
+  if (currentAutoProgress < 1) {
+    scheduleAutoPageFrame()
+    return
+  }
   if (currentPage.value >= totalPages.value) {
     stopAutoReading()
     uni.showToast({ title: '已读到最后一页', icon: 'none' })
     return
   }
   currentPage.value += 1
+  resetReadingScroll()
   persistProgress()
   resetAutoCountdown()
+  lastAutoUiUpdateAt = 0
+  scheduleAutoPageFrame()
 }
 
 function startAutoReading() {
   if (loading.value || loadError.value || rows.value.length === 0) return
   if (currentPage.value >= totalPages.value && totalPages.value > 1) currentPage.value = 1
-  isAutoReading.value = true
+  resetReadingScroll()
+  autoReadingState.value = 'running'
   resetAutoCountdown()
-  autoPageTimer = setInterval(tickAutoPage, 100)
+  lastAutoUiUpdateAt = 0
+  scheduleAutoPageFrame()
 }
 
 function handleToggleAutoReading() {
-  if (isAutoReading.value) stopAutoReading()
+  if (isAutoReading.value) pauseAutoReading()
+  else if (isAutoReadingPaused.value) resumeAutoReading()
   else startAutoReading()
 }
 
 function handleAutoPageSecondsChange(value: number) {
   prefs.value = { ...prefs.value, autoPageSeconds: normalizeAutoPageSeconds(value) }
   writePreferences(prefs.value)
-  if (isAutoReading.value) resetAutoCountdown()
+  if (isAutoReadingActive.value) {
+    autoPageStartedAt = getAnimationTime() - currentAutoProgress * autoPageSeconds.value * 1000
+  }
 }
 
 function handleViewportChange() {
@@ -162,6 +328,7 @@ function handleSelectBook(bookId: string) {
 function handleStyleChange(id: TableStyleId) {
   prefs.value = { ...prefs.value, tableStyleId: id }
   persistProgress()
+  measureReadingArea()
 }
 
 function handleRowsPerPageChange(value: RowsPerPage) {
@@ -169,29 +336,33 @@ function handleRowsPerPageChange(value: RowsPerPage) {
   const firstRowIndex = (currentPage.value - 1) * rowsPerPage.value
   prefs.value = { ...prefs.value, rowsPerPage: value }
   currentPage.value = Math.floor(firstRowIndex / value) + 1
+  resetReadingScroll()
   persistProgress()
-  if (isAutoReading.value) resetAutoCountdown()
+  if (isAutoReadingActive.value) resetAutoCountdown()
 }
 
 function handlePageChange(page: number) {
   currentPage.value = clampPage(page, totalPages.value)
+  resetReadingScroll()
   persistProgress()
-  if (isAutoReading.value) resetAutoCountdown()
+  if (isAutoReadingActive.value) resetAutoCountdown()
 }
 
 function handlePrevPage() {
   if (currentPage.value > 1) {
     currentPage.value -= 1
+    resetReadingScroll()
     persistProgress()
-    if (isAutoReading.value) resetAutoCountdown()
+    if (isAutoReadingActive.value) resetAutoCountdown()
   }
 }
 
 function handleNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value += 1
+    resetReadingScroll()
     persistProgress()
-    if (isAutoReading.value) resetAutoCountdown()
+    if (isAutoReadingActive.value) resetAutoCountdown()
   }
 }
 
@@ -239,6 +410,7 @@ async function fetchBook() {
       currentPage.value = 1
     }
     if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
+    resetReadingScroll()
   } catch (err) {
     rows.value = []
     totalChars.value = 0
@@ -278,13 +450,14 @@ onMounted(() => {
 })
 
 function handleVisibilityChange() {
-  if (document.visibilityState !== 'visible') stopAutoReading()
+  if (document.visibilityState !== 'visible') pauseAutoReading()
 }
 
-onHide(stopAutoReading)
+onHide(pauseAutoReading)
 
 onBeforeUnmount(() => {
   stopAutoReading()
+  if (readingMetricsTimer) clearTimeout(readingMetricsTimer)
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleViewportChange)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -294,6 +467,8 @@ onBeforeUnmount(() => {
 watch(totalPages, (next) => {
   if (currentPage.value > next) currentPage.value = next
 })
+
+watch([currentPage, tableStyleId, rowsPerPage, showStylePanel], measureReadingArea)
 
 // 键盘翻页
 function handleKeydown(e: KeyboardEvent) {
@@ -353,7 +528,19 @@ function handleKeydown(e: KeyboardEvent) {
       </view>
     </view>
 
-    <view class="reading-body" :class="{ 'is-catalog-hidden': !showCatalog }">
+    <scroll-view
+      id="reading-scroll"
+      class="reading-body"
+      scroll-y
+      :scroll-top="readingScrollTop"
+      :scroll-with-animation="false"
+      :show-scrollbar="false"
+      :bounces="false"
+      @scroll="handleReadingScroll"
+      @touchmove.passive="handleReadingScrollIntent"
+      @wheel.passive="handleReadingScrollIntent"
+    >
+      <view class="reading-body-content" :class="{ 'is-catalog-hidden': !showCatalog }">
       <!-- 目录侧栏 -->
       <view v-if="showCatalog" class="catalog-column" @click.self="handleCloseCatalog">
         <view class="catalog-sheet">
@@ -397,9 +584,11 @@ function handleKeydown(e: KeyboardEvent) {
           :seconds="autoPageSeconds"
           :progress="autoProgress"
           :is-running="isAutoReading"
+          :is-paused="isAutoReadingPaused"
           :disabled="loading || Boolean(loadError) || rows.length === 0"
           @update:seconds="handleAutoPageSecondsChange"
           @toggle="handleToggleAutoReading"
+          @stop="stopAutoReading"
         />
 
         <!-- 加载 / 错误 -->
@@ -425,7 +614,7 @@ function handleKeydown(e: KeyboardEvent) {
           :page="currentPage"
           :total-pages="totalPages"
           :auto-progress="autoProgress"
-          :is-auto-reading="isAutoReading"
+          :is-auto-reading="isAutoReadingActive"
           @copy-row="handleCopyRow"
         />
 
@@ -441,8 +630,34 @@ function handleKeydown(e: KeyboardEvent) {
 
         <!-- 底部说明 -->
         <view class="reading-foot">
-          <text class="foot-text">左右滑动或键盘 ← → 翻页 · 点击行复制 · 自动翻页进度会在文字背景中向下移动</text>
+          <text class="foot-text">左右滑动或键盘 ← → 翻页 · 点击行复制 · 自动阅读会提前平滑推进并保留视线缓冲区</text>
         </view>
+      </view>
+      </view>
+    </scroll-view>
+
+    <view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
+      <view
+        class="auto-reading-action auto-reading-action--primary"
+        role="button"
+        tabindex="0"
+        :aria-label="isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读'"
+        @click="handleToggleAutoReading"
+        @keydown.enter="handleToggleAutoReading"
+        @keydown.space.prevent="handleToggleAutoReading"
+      >
+        <text>{{ isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读' }}</text>
+      </view>
+      <view
+        class="auto-reading-action auto-reading-action--stop"
+        role="button"
+        tabindex="0"
+        aria-label="停止自动阅读"
+        @click="stopAutoReading"
+        @keydown.enter="stopAutoReading"
+        @keydown.space.prevent="stopAutoReading"
+      >
+        <text>停止</text>
       </view>
     </view>
 
@@ -452,6 +667,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 <style scoped lang="scss">
 .reading-page {
+  position: relative;
   width: 100%;
   height: 100vh;
   height: 100dvh;
@@ -462,6 +678,36 @@ function handleKeydown(e: KeyboardEvent) {
   outline: none;
   overscroll-behavior: none;
 }
+
+.auto-reading-actions {
+  position: absolute;
+  z-index: 20;
+  right: 16px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auto-reading-action {
+  height: 42px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px var(--color-shadow);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 42px;
+  cursor: pointer;
+}
+
+.auto-reading-action--primary { min-width: 112px; background: var(--color-primary); color: var(--color-on-primary); }
+.auto-reading-action--stop { background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); }
+.auto-reading-action:focus-visible { outline: 2px solid var(--color-text); outline-offset: 2px; }
+
+.reading-body :deep(.uni-scroll-view-scrollbar-hidden) { scroll-behavior: auto !important; }
 
 .reading-topbar {
   flex: none;
@@ -500,6 +746,14 @@ function handleKeydown(e: KeyboardEvent) {
 .reading-body {
   flex: 1;
   min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.reading-body-content {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   gap: 14px;
@@ -508,13 +762,9 @@ function handleKeydown(e: KeyboardEvent) {
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
 }
 
-.reading-body.is-catalog-hidden { grid-template-columns: minmax(0, 1fr); }
+.reading-body-content.is-catalog-hidden { grid-template-columns: minmax(0, 1fr); }
 
 .catalog-column { min-width: 0; }
 .catalog-sheet { width: 100%; }
@@ -580,7 +830,7 @@ function handleKeydown(e: KeyboardEvent) {
 .foot-text { font-size: 10px; color: var(--color-text-muted); }
 
 @media (max-width: 900px) {
-  .reading-body { display: block; padding: 12px; }
+  .reading-body-content { display: block; padding: 12px; }
   .catalog-column {
     position: fixed;
     z-index: 30;

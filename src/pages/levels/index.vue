@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 
 import AppBottomNavigation from "../../components/AppBottomNavigation.vue";
-import { LEVEL_CATEGORIES, STAGES_BY_CATEGORY, type LevelCategory } from "../../study/levelData";
+import { getCategoryStageCount, LEVEL_CATEGORIES, loadLevelStages, type LevelCategory, type LevelStage } from "../../study/levelData";
 import { useLevelProgressStore } from "../../stores/levelProgress";
 import { useCharacterLearningStore } from "../../stores/characterLearning";
 
@@ -11,50 +11,80 @@ const levelProgressStore = useLevelProgressStore();
 const characterStore = useCharacterLearningStore();
 
 const activeCategory = ref<LevelCategory>("level1");
+const STAGE_BATCH_SIZE = 24;
+const visibleStageCount = ref(STAGE_BATCH_SIZE);
+const isNavigating = ref(false);
+const currentStages = ref<LevelStage[]>([]);
+const isLoadingStages = ref(false);
+const stageLoadError = ref("");
+let stageLoadRequestId = 0;
 
 onShow(() => {
+  isNavigating.value = false;
   levelProgressStore.hydrate();
+  void loadCurrentStages(false);
 });
 
 const currentMeta = computed(() => LEVEL_CATEGORIES.find((c) => c.key === activeCategory.value)!);
-const currentStages = computed(() => STAGES_BY_CATEGORY[activeCategory.value] ?? []);
 
-const completedCount = computed(() => {
-  const stages = currentStages.value;
-  return stages.filter((s) => levelProgressStore.isStageCompleted(s.id)).length;
-});
-const totalCount = computed(() => currentStages.value.length);
+const completedCount = computed(() => levelProgressStore.completedCountByCategory[activeCategory.value] ?? 0);
+const totalCount = computed(() => getCategoryStageCount(activeCategory.value));
 const progressPercent = computed(() => (totalCount.value === 0 ? 0 : Math.round((completedCount.value / totalCount.value) * 100)));
+const hasMoreStages = computed(() => currentStages.value.length < totalCount.value);
+const completedCharacterIds = computed(() => new Set(characterStore.completedIds));
+
+interface StageView {
+  stage: LevelStage;
+  completedChars: number;
+  isDone: boolean;
+  progress: number;
+}
+
+const visibleStages = computed<StageView[]>(() => currentStages.value.map((stage) => {
+    const isDone = levelProgressStore.isStageCompleted(stage.id);
+    if (stage.isPlaceholder) return { stage, completedChars: 0, isDone: false, progress: 0 };
+    const tracked = levelProgressStore.getStageCompletedCount(stage.id);
+    let learned = 0;
+    for (const character of stage.characters) {
+      if (completedCharacterIds.value.has(character.id)) learned += 1;
+    }
+    const completedChars = isDone ? stage.characters.length : Math.max(tracked, learned);
+    const progress = stage.characters.length === 0 ? 0 : Math.min(1, completedChars / stage.characters.length);
+    return { stage, completedChars, isDone, progress };
+  }));
 
 const categoryTabs = LEVEL_CATEGORIES;
 
 function switchCategory(key: LevelCategory) {
+  if (key === activeCategory.value) return;
   activeCategory.value = key;
+  visibleStageCount.value = STAGE_BATCH_SIZE;
+  currentStages.value = [];
+  void loadCurrentStages(true);
 }
 
-function stageCompletedChars(stageId: string): number {
-  const stage = currentStages.value.find((s) => s.id === stageId);
-  if (!stage || stage.isPlaceholder) return 0;
-  const tracked = levelProgressStore.getStageCompletedCount(stageId);
-  let fallback = 0;
-  for (const ch of stage.characters) {
-    if (characterStore.isCharacterComplete(ch.id)) fallback += 1;
+function loadMoreStages() {
+  if (!hasMoreStages.value || isLoadingStages.value) return;
+  visibleStageCount.value = Math.min(totalCount.value, visibleStageCount.value + STAGE_BATCH_SIZE);
+  void loadCurrentStages(false);
+}
+
+async function loadCurrentStages(reset: boolean) {
+  const category = activeCategory.value;
+  if (reset) visibleStageCount.value = Math.min(STAGE_BATCH_SIZE, getCategoryStageCount(category));
+  const requestId = ++stageLoadRequestId;
+  isLoadingStages.value = true;
+  stageLoadError.value = "";
+  try {
+    const stages = await loadLevelStages(category, visibleStageCount.value);
+    if (requestId !== stageLoadRequestId || category !== activeCategory.value) return;
+    currentStages.value = stages;
+  } catch (error) {
+    if (requestId !== stageLoadRequestId || category !== activeCategory.value) return;
+    stageLoadError.value = error instanceof Error ? error.message : "关卡数据加载失败";
+  } finally {
+    if (requestId === stageLoadRequestId) isLoadingStages.value = false;
   }
-  // 取较大值，保证每次答对都能及时反映；若已完成关卡直接满额
-  if (levelProgressStore.isStageCompleted(stageId)) return stage.characters.length;
-  return Math.max(tracked, fallback);
-}
-
-function stageProgress(stageId: string, total: number): number {
-  if (total === 0) return 0;
-  const stage = currentStages.value.find((s) => s.id === stageId);
-  if (!stage) return 0;
-  if (levelProgressStore.isStageCompleted(stageId)) return 1;
-  return Math.min(1, stageCompletedChars(stageId) / total);
-}
-
-function isStageDone(stageId: string): boolean {
-  return levelProgressStore.isStageCompleted(stageId);
 }
 
 function handleStageTap(stageId: string, isPlaceholder: boolean) {
@@ -62,12 +92,17 @@ function handleStageTap(stageId: string, isPlaceholder: boolean) {
     uni.showToast({ title: "该关卡敬请期待", icon: "none" });
     return;
   }
+  if (isNavigating.value) return;
+  isNavigating.value = true;
   const cat = activeCategory.value;
   uni.navigateTo({
     url: "/pages/level-study/index?category=" + cat + "&stageId=" + stageId,
     animationType: "slide-in-right",
     animationDuration: 220,
-    fail: () => uni.showToast({ title: "暂时无法进入学习", icon: "none" }),
+    fail: () => {
+      isNavigating.value = false;
+      uni.showToast({ title: "暂时无法进入学习", icon: "none" });
+    },
   });
 }
 
@@ -126,26 +161,42 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
       <text v-else-if="activeCategory === 'radical'" class="summary-tip">以高频部首为线索，每关 10 个部首代表字，识部首更快记字形</text>
     </view>
 
-    <scroll-view class="levels-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
+    <scroll-view
+      class="levels-scroll"
+      scroll-y
+      :show-scrollbar="false"
+      :bounces="false"
+      :enhanced="false"
+      :lower-threshold="160"
+      @scrolltolower="loadMoreStages"
+    >
+      <view v-if="isLoadingStages && visibleStages.length === 0" class="stage-load-state" role="status">
+        <text class="stage-load-title">正在加载关卡…</text>
+        <text class="stage-load-desc">仅加载当前屏需要的字表分片</text>
+      </view>
+      <view v-else-if="stageLoadError && visibleStages.length === 0" class="stage-load-state is-error" role="alert">
+        <text class="stage-load-title">{{ stageLoadError }}</text>
+        <view class="stage-retry" role="button" tabindex="0" @click="loadCurrentStages(false)" @keydown.enter="loadCurrentStages(false)">重试</view>
+      </view>
       <view class="stage-grid">
         <view
-          v-for="stage in currentStages"
-          :key="stage.id"
+          v-for="item in visibleStages"
+          :key="item.stage.id"
           class="stage-card"
-          :class="{ 'is-done': isStageDone(stage.id), 'is-placeholder': stage.isPlaceholder }"
+          :class="{ 'is-done': item.isDone, 'is-placeholder': item.stage.isPlaceholder }"
           role="button"
           tabindex="0"
-          :aria-label="stage.title + (stage.isPlaceholder ? ' 敬请期待' : ' ' + stage.characters.length + '字')"
-          @click="handleStageTap(stage.id, stage.isPlaceholder)"
-          @keydown.enter="handleStageTap(stage.id, stage.isPlaceholder)"
-          @keydown.space.prevent="handleStageTap(stage.id, stage.isPlaceholder)"
+          :aria-label="item.stage.title + (item.stage.isPlaceholder ? ' 敬请期待' : ' ' + item.stage.characters.length + '字')"
+          @click="handleStageTap(item.stage.id, item.stage.isPlaceholder)"
+          @keydown.enter="handleStageTap(item.stage.id, item.stage.isPlaceholder)"
+          @keydown.space.prevent="handleStageTap(item.stage.id, item.stage.isPlaceholder)"
         >
           <view class="stage-card-header">
-            <text class="stage-index">{{ String(stage.index).padStart(2, "0") }}</text>
-            <text class="stage-title">{{ stage.title }}</text>
-            <view v-if="!stage.isPlaceholder" class="stage-badge" :class="isStageDone(stage.id) ? 'badge-done' : stageCompletedChars(stage.id) > 0 ? 'badge-progress' : 'badge-ready'">
-              <van-icon v-if="isStageDone(stage.id)" name="success" size="12" />
-              <text>{{ isStageDone(stage.id) ? "已完成" : stageCompletedChars(stage.id) > 0 ? "进行中" : "去学习" }}</text>
+            <text class="stage-index">{{ String(item.stage.index).padStart(2, "0") }}</text>
+            <text class="stage-title">{{ item.stage.title }}</text>
+            <view v-if="!item.stage.isPlaceholder" class="stage-badge" :class="item.isDone ? 'badge-done' : item.completedChars > 0 ? 'badge-progress' : 'badge-ready'">
+              <van-icon v-if="item.isDone" name="success" size="12" />
+              <text>{{ item.isDone ? "已完成" : item.completedChars > 0 ? "进行中" : "去学习" }}</text>
             </view>
             <view v-else class="stage-badge badge-lock">
               <van-icon name="lock" size="12" />
@@ -153,8 +204,8 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
             </view>
           </view>
 
-          <view v-if="!stage.isPlaceholder" class="stage-chars" aria-hidden="true">
-            <text v-for="ch in previewChars(stage.characters)" :key="ch" class="stage-char">{{ ch }}</text>
+          <view v-if="!item.stage.isPlaceholder" class="stage-chars" aria-hidden="true">
+            <text v-for="ch in previewChars(item.stage.characters)" :key="ch" class="stage-char">{{ ch }}</text>
           </view>
           <view v-else class="stage-chars is-empty" aria-hidden="true">
             <text v-for="i in 10" :key="i" class="stage-char is-placeholder-char">·</text>
@@ -163,16 +214,27 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
           <view class="stage-footer">
             <view class="stage-progress">
               <view class="stage-progress-track">
-                <view class="stage-progress-fill" :style="{ width: (stageProgress(stage.id, stage.characters.length) * 100) + '%' }" />
+                <view class="stage-progress-fill" :style="{ width: (item.progress * 100) + '%' }" />
               </view>
-              <text class="stage-progress-text">{{ stage.isPlaceholder ? "0/10" : stageCompletedChars(stage.id) + "/" + stage.characters.length }}</text>
+              <text class="stage-progress-text">{{ item.stage.isPlaceholder ? "0/10" : item.completedChars + "/" + item.stage.characters.length }}</text>
             </view>
-            <view class="stage-action" :class="stage.isPlaceholder ? 'is-disabled' : isStageDone(stage.id) ? 'is-done' : ''">
-              <text>{{ stage.isPlaceholder ? "敬请期待" : isStageDone(stage.id) ? "复习" : stageCompletedChars(stage.id) > 0 ? "继续" : "开始" }}</text>
+            <view class="stage-action" :class="item.stage.isPlaceholder ? 'is-disabled' : item.isDone ? 'is-done' : ''">
+              <text>{{ item.stage.isPlaceholder ? "敬请期待" : item.isDone ? "复习" : item.completedChars > 0 ? "继续" : "开始" }}</text>
               <van-icon name="arrow" size="10" />
             </view>
           </view>
         </view>
+      </view>
+      <view
+        v-if="hasMoreStages"
+        class="load-more-stages"
+        role="button"
+        tabindex="0"
+        @click="loadMoreStages"
+        @keydown.enter="loadMoreStages"
+        @keydown.space.prevent="loadMoreStages"
+      >
+        <text>{{ isLoadingStages ? "正在加载…" : "继续加载关卡" }}（已显示 {{ visibleStages.length }}/{{ totalCount }}）</text>
       </view>
       <view class="levels-foot-hint">
         <text>左右滑动可切换底部导航 · 点击关卡进入固定 10 字学习</text>
@@ -336,6 +398,48 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+.stage-load-state {
+  min-height: 160px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+.stage-load-title { color: var(--color-text); font-size: 13px; font-weight: 700; }
+.stage-load-desc { color: var(--color-text-muted); font-size: 9px; }
+.stage-load-state.is-error { color: #c92d32; }
+.stage-retry {
+  min-width: 82px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+.load-more-stages {
+  min-height: 42px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+.load-more-stages:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .stage-card {
   padding: 10px 10px 9px;
