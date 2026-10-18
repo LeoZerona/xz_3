@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
@@ -19,8 +20,17 @@ const isFavorite = computed(() => Boolean(character.value && favoriteIds.value.i
 const isExcluded = computed(() => Boolean(character.value && excludedIds.value.includes(character.value.id)))
 
 function goBack() {
-  uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/study-preview/index' }) })
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/study-preview/index' }) })
+    return
+  }
+  uni.reLaunch({ url: '/pages/study-preview/index' })
 }
+
+onBackPress(() => {
+  goBack()
+  return true
+})
 
 function openSearch() {
   uni.navigateTo({ url: '/pages/search/index' })

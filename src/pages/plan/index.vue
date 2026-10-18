@@ -85,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'

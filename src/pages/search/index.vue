@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import characterTable from '../../static/character_table/first-level.json'
 import { searchCharacters } from '../../search/characterSearch'
@@ -34,8 +35,17 @@ const resultSummary = computed(() => `找到 ${results.value.length} 个单字`)
 const activeModeLabel = computed(() => modes.find((mode) => mode.id === activeMode.value)?.label ?? '')
 
 function goBack() {
-  uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+    return
+  }
+  uni.reLaunch({ url: '/pages/index/index' })
 }
+
+onBackPress(() => {
+  goBack()
+  return true
+})
 
 function clearQuery() {
   query.value = ''

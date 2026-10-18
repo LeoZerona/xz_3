@@ -1,14 +1,14 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { onHide } from '@dcloudio/uni-app'
+import { onBackPress, onHide } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { getBooksCatalog } from '../../reading/booksCatalog'
 import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } from '../../reading/customBooks'
 import type { CustomBookRecord } from '../../reading/customBooks'
-import { decodeTextBuffer, loadBook, parseTextToRows } from '../../reading/bookLoader'
+import { decodeTextBuffer, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
 import { clampPage, computeTotalPages, getPageSlice } from '../../reading/pagination'
-import { normalizeAutoPageSeconds, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
+import { normalizeAutoPageSeconds, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
@@ -16,6 +16,7 @@ import AutoPageControl from './components/AutoPageControl.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
+import FontSizeControl from './components/FontSizeControl.vue'
 
 // 状态
 const builtinBooks = ref<BookMeta[]>([])
@@ -47,6 +48,7 @@ const loadError = ref('')
 const prefs = ref(readPreferences())
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
 const rowsPerPage = computed<RowsPerPage>(() => prefs.value.rowsPerPage)
+const readingFontSize = computed(() => prefs.value.readingFontSize)
 
 const currentPage = ref(1)
 type ViewMode = 'library' | 'reader'
@@ -63,21 +65,15 @@ const isAutoReading = computed(() => autoReadingState.value === 'running')
 const isAutoReadingPaused = computed(() => autoReadingState.value === 'paused')
 const isAutoReadingActive = computed(() => autoReadingState.value !== 'idle')
 const autoProgress = ref(0)
-const readingScrollTop = ref(0)
-const readingMaxScroll = ref(0)
-const readingViewportHeight = ref(0)
+const effectiveRowsPerPage = ref<number>(prefs.value.rowsPerPage)
 let autoPageFrame: number | null = null
 let autoPageFrameUsesTimeout = false
 let readingMetricsTimer: ReturnType<typeof setTimeout> | null = null
+let paginationRemeasureTimer: ReturnType<typeof setTimeout> | null = null
 let autoPageStartedAt = 0
 let currentAutoProgress = 0
 let lastAutoUiUpdateAt = 0
-let pausedScrollTop = 0
-
-const AUTO_SCROLL_START = 0.12
-const AUTO_SCROLL_END = 0.88
 const AUTO_UI_UPDATE_INTERVAL = 200
-const READING_SCROLLER_SELECTOR = '#reading-scroll .uni-scroll-view-scrollbar-hidden'
 
 // 字体
 const fontStore = useFontStore()
@@ -87,12 +83,22 @@ const { currentThemeId } = storeToRefs(themeStore)
 
 const activeBook = computed<BookMeta | undefined>(() => books.value.find((b) => b.id === activeBookId.value))
 
-const totalPages = computed(() => computeTotalPages(rows.value.length, rowsPerPage.value))
-const pageRows = computed(() => getPageSlice(rows.value, currentPage.value, rowsPerPage.value))
+const totalPages = computed(() => {
+  const per = Math.max(1, effectiveRowsPerPage.value)
+  if (rows.value.length === 0) return 1
+  return Math.max(1, Math.ceil(rows.value.length / per))
+})
+const pageRows = computed(() => {
+  const per = Math.max(1, effectiveRowsPerPage.value)
+  const safePage = clampPage(currentPage.value, totalPages.value)
+  const start = (safePage - 1) * per
+  return rows.value.slice(start, start + per)
+})
 const rangeLabel = computed(() => {
   if (rows.value.length === 0) return '0 行'
-  const start = (currentPage.value - 1) * rowsPerPage.value + 1
-  const end = Math.min(currentPage.value * rowsPerPage.value, rows.value.length)
+  const per = Math.max(1, effectiveRowsPerPage.value)
+  const start = (currentPage.value - 1) * per + 1
+  const end = Math.min(currentPage.value * per, rows.value.length)
   return '第 ' + String(start) + '-' + String(end) + ' 行 / 共 ' + String(rows.value.length) + ' 行 · ' + String(totalChars.value) + ' 字'
 })
 
@@ -136,18 +142,17 @@ function persistProgress() {
 function resetAutoCountdown() {
   autoPageStartedAt = getAnimationTime()
   currentAutoProgress = 0
-  pausedScrollTop = getCurrentScrollTop()
   autoProgress.value = 0
   renderAutoProgress(0)
 }
 
 function getAnimationTime() {
-  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+  return typeof performance !== "undefined" ? performance.now() : Date.now()
 }
 
 function scheduleAutoPageFrame() {
   if (!isAutoReading.value || autoPageFrame !== null) return
-  if (typeof requestAnimationFrame === 'function') {
+  if (typeof requestAnimationFrame === "function") {
     autoPageFrameUsesTimeout = false
     autoPageFrame = requestAnimationFrame(tickAutoPage)
     return
@@ -159,87 +164,95 @@ function scheduleAutoPageFrame() {
 function cancelAutoPageFrame() {
   if (autoPageFrame === null) return
   if (autoPageFrameUsesTimeout) clearTimeout(autoPageFrame)
-  else if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(autoPageFrame)
+  else if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(autoPageFrame)
   autoPageFrame = null
 }
 
-function getReadingScrollerElement(): HTMLElement | null {
-  if (typeof document === 'undefined') return null
-  return document.querySelector<HTMLElement>(READING_SCROLLER_SELECTOR)
-}
-
-function getCurrentScrollTop() {
-  return getReadingScrollerElement()?.scrollTop ?? readingScrollTop.value
-}
-
-function writeAutoScrollTop(value: number) {
-  const scroller = getReadingScrollerElement()
-  if (scroller) {
-    scroller.scrollTop = value
-    return
-  }
-  // 非 WebView 平台回退到 scroll-view 的响应式属性。
-  readingScrollTop.value = value
-}
-
 function renderAutoProgress(progress: number) {
-  if (typeof document === 'undefined') return
-  const progressElement = document.querySelector<HTMLElement>('#reading-scroll .reading-progress')
+  if (typeof document === "undefined") return
+  const progressElement = document.querySelector<HTMLElement>("#reading-scroll .reading-progress")
   if (progressElement) progressElement.style.transform = `scaleY(${progress})`
 }
 
-interface RectLike {
-  height?: number | null
-}
-
-interface ReadingScrollEvent {
-  detail?: {
-    scrollTop?: number
-    scrollHeight?: number
-  }
-}
-
-function measureReadingArea() {
-  void nextTick(() => {
-    if (readingMetricsTimer) clearTimeout(readingMetricsTimer)
-    readingMetricsTimer = setTimeout(() => {
-      const query = uni.createSelectorQuery()
-      query.select('.reading-body').boundingClientRect()
-      query.select('.reading-body-content').boundingClientRect()
-      query.exec((result) => {
-        const rects = result as Array<RectLike | null>
-        const viewportHeight = Number(rects[0]?.height ?? 0)
-        const contentHeight = Number(rects[1]?.height ?? 0)
-        readingViewportHeight.value = viewportHeight
-        readingMaxScroll.value = Math.max(0, contentHeight - viewportHeight)
-      })
-      readingMetricsTimer = null
-    }, 0)
-  })
-}
-
 function resetReadingScroll() {
-  readingScrollTop.value = 0
-  const scroller = getReadingScrollerElement()
-  if (scroller) scroller.scrollTop = 0
-  measureReadingArea()
+  // 无滚动分页：仅触发重算，不操作 scrollTop
+  scheduleRecalcVisibleRows()
 }
 
-function updateAutoScroll(progress: number) {
-  if (readingMaxScroll.value <= 0) return
-  const scrollProgress = Math.min(1, Math.max(0, (progress - AUTO_SCROLL_START) / (AUTO_SCROLL_END - AUTO_SCROLL_START)))
-  writeAutoScrollTop(readingMaxScroll.value * scrollProgress)
+function scheduleRecalcVisibleRows() {
+  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
+  paginationRemeasureTimer = setTimeout(() => {
+    paginationRemeasureTimer = null
+    void recalcVisibleRows()
+  }, 30)
 }
 
-function handleReadingScroll(event: ReadingScrollEvent) {
-  const scrollTop = Number(event.detail?.scrollTop ?? 0)
-  const scrollHeight = Number(event.detail?.scrollHeight ?? 0)
-  // 自动阅读期间 scrollTop 是下一帧的目标值，不能用稍晚到达的滚动事件反写，
-  // 否则目标位置与实际位置会在相邻帧之间互相覆盖，造成上下抖动。
-  if (!isAutoReading.value) readingScrollTop.value = scrollTop
-  if (scrollHeight > 0 && readingViewportHeight.value > 0) {
-    readingMaxScroll.value = Math.max(0, scrollHeight - readingViewportHeight.value)
+async function recalcVisibleRows() {
+  await nextTick()
+  if (viewMode.value !== "reader") return
+  await new Promise<void>((resolve) => setTimeout(resolve, 30))
+  const cap = Math.max(1, rowsPerPage.value)
+  if (rows.value.length === 0) {
+    if (effectiveRowsPerPage.value !== cap) effectiveRowsPerPage.value = cap
+    return
   }
+  const query = uni.createSelectorQuery()
+  // @ts-ignore
+  query.select("#reading-scroll").boundingClientRect()
+  // @ts-ignore
+  query.select(".reader-content-inner").boundingClientRect()
+  // @ts-ignore
+  query.selectAll(".reading-row").boundingClientRect()
+  // @ts-ignore
+  query.select(".table-header").boundingClientRect()
+  // @ts-ignore
+  query.select(".table-caption").boundingClientRect()
+  query.exec((result: unknown) => {
+    try {
+      const rects = result as Array<unknown>
+      const viewportRect = rects[0] as { height?: number } | null
+      const innerRect = rects[1] as { height?: number } | null
+      const rowRects = (rects[2] as Array<{ height?: number }> | null) ?? []
+      const viewportH = Number(viewportRect?.height ?? 0)
+      const innerH = Number(innerRect?.height ?? 0)
+      if (!viewportH || !innerH) {
+        if (effectiveRowsPerPage.value !== cap) effectiveRowsPerPage.value = Math.min(cap, Math.max(1, effectiveRowsPerPage.value))
+        return
+      }
+      const rowCount = rowRects.length
+      if (rowCount === 0) return
+      if (innerH > viewportH + 1) {
+        const next = Math.max(1, effectiveRowsPerPage.value - 1)
+        if (next !== effectiveRowsPerPage.value) {
+          effectiveRowsPerPage.value = Math.min(next, cap)
+          scheduleRecalcVisibleRows()
+        }
+        return
+      }
+      if (effectiveRowsPerPage.value < cap) {
+        const remainingOnPage = rows.value.length - (currentPage.value - 1) * effectiveRowsPerPage.value
+        if (remainingOnPage > effectiveRowsPerPage.value) {
+          const sumRowH = rowRects.reduce((sum, r) => sum + Number((r as any).height ?? 0), 0)
+          const avgRowH = rowCount > 0 ? sumRowH / rowCount : 40
+          const spare = viewportH - innerH
+          if (spare > avgRowH + 8) {
+            const next = Math.min(cap, effectiveRowsPerPage.value + 1)
+            effectiveRowsPerPage.value = next
+            scheduleRecalcVisibleRows()
+          }
+        } else if (remainingOnPage <= effectiveRowsPerPage.value && rowCount < effectiveRowsPerPage.value) {
+          // 最后一页行数不足，尝试填满
+          const sumRowH = rowRects.reduce((sum, r) => sum + Number((r as any).height ?? 0), 0)
+          const avgRowH = rowCount > 0 ? sumRowH / rowCount : 40
+          const spare = viewportH - innerH
+          if (spare > avgRowH + 8 && effectiveRowsPerPage.value < cap) {
+            effectiveRowsPerPage.value = Math.min(cap, effectiveRowsPerPage.value + 1)
+            scheduleRecalcVisibleRows()
+          }
+        }
+      }
+    } catch {}
+  })
 }
 
 function handleReadingScrollIntent() {
@@ -249,20 +262,12 @@ function handleReadingScrollIntent() {
 function pauseAutoReading() {
   if (!isAutoReading.value) return
   cancelAutoPageFrame()
-  pausedScrollTop = getCurrentScrollTop()
-  readingScrollTop.value = pausedScrollTop
   autoProgress.value = currentAutoProgress
   autoReadingState.value = 'paused'
 }
 
 function resumeAutoReading() {
   if (!isAutoReadingPaused.value) return
-  const currentScrollTop = getCurrentScrollTop()
-  if (readingMaxScroll.value > 0 && Math.abs(currentScrollTop - pausedScrollTop) > 1) {
-    const scrollProgress = Math.min(1, Math.max(0, currentScrollTop / readingMaxScroll.value))
-    currentAutoProgress = AUTO_SCROLL_START + scrollProgress * (AUTO_SCROLL_END - AUTO_SCROLL_START)
-    autoProgress.value = currentAutoProgress
-  }
   autoPageStartedAt = getAnimationTime() - currentAutoProgress * autoPageSeconds.value * 1000
   autoReadingState.value = 'running'
   lastAutoUiUpdateAt = 0
@@ -282,7 +287,6 @@ function tickAutoPage() {
   const now = getAnimationTime()
   const durationMs = autoPageSeconds.value * 1000
   currentAutoProgress = Math.min(1, (now - autoPageStartedAt) / durationMs)
-  updateAutoScroll(currentAutoProgress)
   renderAutoProgress(currentAutoProgress)
   if (now - lastAutoUiUpdateAt >= AUTO_UI_UPDATE_INTERVAL || currentAutoProgress >= 1) {
     autoProgress.value = currentAutoProgress
@@ -334,6 +338,7 @@ function handleViewportChange() {
   const wasMobile = isMobileViewport.value
   isMobileViewport.value = window.innerWidth < 900
   if (wasMobile !== isMobileViewport.value) showCatalog.value = !isMobileViewport.value
+  if (viewMode.value === 'reader') scheduleRecalcVisibleRows()
 }
 
 function handleToggleCatalog() {
@@ -353,7 +358,7 @@ function handleOpenSettings() {
 }
 
 function handleNightToggle() {
-  themeStore.toggleTheme()
+  themeStore.selectTheme(currentThemeId.value === 'ink-night' ? 'ocean-blue' : 'ink-night')
 }
 
 function handleReaderTap() {
@@ -380,17 +385,26 @@ function handleSelectBook(bookId: string) {
 function handleStyleChange(id: TableStyleId) {
   prefs.value = { ...prefs.value, tableStyleId: id }
   persistProgress()
-  measureReadingArea()
+  scheduleRecalcVisibleRows()
+}
+
+function handleReadingFontSizeChange(value: number): void {
+  const normalized = normalizeReadingFontSize(value)
+  if (normalized === prefs.value.readingFontSize) return
+  prefs.value = { ...prefs.value, readingFontSize: normalized }
+  writePreferences(prefs.value)
+  persistProgress()
+  nextTick(() => scheduleRecalcVisibleRows())
 }
 
 function handleRowsPerPageChange(value: RowsPerPage) {
-  // 保持当前阅读位置近似不变
-  const firstRowIndex = (currentPage.value - 1) * rowsPerPage.value
+  const firstRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
   prefs.value = { ...prefs.value, rowsPerPage: value }
+  effectiveRowsPerPage.value = value
   currentPage.value = Math.floor(firstRowIndex / value) + 1
-  resetReadingScroll()
   persistProgress()
   if (isAutoReadingActive.value) resetAutoCountdown()
+  scheduleRecalcVisibleRows()
 }
 
 function handlePageChange(page: number) {
@@ -556,21 +570,64 @@ async function handleUniFilePicked(file: { name: string; path: string }): Promis
     isUploading.value = false
   }
 }
-function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<string> {
+function readPlusArrayBuffer(path: string): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     try {
       // @ts-ignore plus runtime
-      plus.io.resolveLocalFileSystemURL(path, (entry: { file: (cb: (f: unknown) => void) => void }) => {
-        entry.file((f: unknown) => {
-          void ext
-          void f
-          reject(new Error('plus 读取未实现，请用 H5 上传'))
-        })
-      }, (err: unknown) => reject(err as Error))
+      plus.io.resolveLocalFileSystemURL(
+        path,
+        (entry: unknown) => {
+          const fileEntry = entry as { file: (cb: (f: unknown) => void, err?: (e: unknown) => void) => void }
+          fileEntry.file(
+            (f: unknown) => {
+              try {
+                // @ts-ignore plus FileReader
+                const reader = new plus.io.FileReader()
+                // @ts-ignore onloadend
+                reader.onloadend = (e: unknown) => {
+                  try {
+                    const target = e as { target: { result: string } }
+                    const dataUrl: string = target.target.result as string
+                    const base64 = dataUrl.split(',')[1] || ''
+                    const binary = atob(base64)
+                    const bytes = new Uint8Array(binary.length)
+                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+                    resolve(bytes.buffer)
+                  } catch (err) {
+                    reject(err as Error)
+                  }
+                }
+                // @ts-ignore onerror
+                reader.onerror = (err: unknown) => reject(err as Error)
+                // @ts-ignore readAsDataURL
+                reader.readAsDataURL(f as never)
+              } catch (err) {
+                reject(err as Error)
+              }
+            },
+            (err: unknown) => reject(err as Error)
+          )
+        },
+        (err: unknown) => reject(err as Error)
+      )
     } catch (err) {
       reject(err as Error)
     }
   })
+}
+
+async function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<string> {
+  const buffer = await readPlusArrayBuffer(path)
+  if (ext === 'txt') {
+    const text = decodeTextBuffer(buffer)
+    if (!text.trim()) throw new Error('文件内容为空')
+    return text
+  }
+  const tmpId = 'plus-pdf-' + String(Date.now())
+  const result = await loadPdfFromBuffer(buffer, tmpId)
+  const text = result.rows.map((r) => r.text).join('\n')
+  if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
+  return text
 }
 function handleRemoveCustomBook(id: string): void {
   uni.showModal({
@@ -589,7 +646,7 @@ function handleRemoveCustomBook(id: string): void {
     },
   })
 }
-function handleFileInputChange(event: Event): void {
+async function handleFileInputChange(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
@@ -600,34 +657,28 @@ function handleFileInputChange(event: Event): void {
     return
   }
   isUploading.value = true
-  const reader = new FileReader()
-  reader.onload = () => {
-    try {
-      const buffer = reader.result as ArrayBuffer
-      const text = ext === 'txt' ? decodeTextBuffer(buffer) : ''
-      // PDF 文本提取依赖 loadBook，此处先存入，实际读取由 bookLoader 处理
-      const record = createCustomRecord(file.name, text || ' ', ext)
-      // 若为 pdf，尝试用 loadBook 的文本解析能力? 暂存空文本，读取时按 url 处理
-      if (ext === 'txt' && !text.trim()) throw new Error('文件内容为空')
-      addCustomBook(record)
-      refreshCustomBooks()
-      uni.showToast({ title: '已加入我的上传', icon: 'none' })
-    } catch (e) {
-      uni.showToast({ title: (e as Error).message || '读取失败', icon: 'none' })
-    } finally {
-      isUploading.value = false
-      input.value = ''
+  try {
+    const buffer = await file.arrayBuffer()
+    let text = ''
+    if (ext === 'txt') {
+      text = decodeTextBuffer(buffer)
+      if (!text.trim()) throw new Error('文件内容为空')
+    } else {
+      const tmpId = 'h5-pdf-' + String(Date.now())
+      const result = await loadPdfFromBuffer(buffer, tmpId)
+      text = result.rows.map((r) => r.text).join('\n')
+      if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
     }
-  }
-  reader.onerror = () => {
-    uni.showToast({ title: '读取失败', icon: 'none' })
+    const record = createCustomRecord(file.name, text, ext)
+    addCustomBook(record)
+    refreshCustomBooks()
+    uni.showToast({ title: '已加入我的上传', icon: 'none' })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    uni.showToast({ title: msg || '读取失败', icon: 'none' })
+  } finally {
     isUploading.value = false
     input.value = ''
-  }
-  if (ext === 'txt') reader.readAsArrayBuffer(file)
-  else {
-    // pdf 先以文本占位，实际显示由后续加载处理
-    reader.readAsArrayBuffer(file)
   }
 }
 function handleEnterReader(bookId: string): void {
@@ -647,6 +698,30 @@ function handleExitReader(): void {
   stopAutoReading()
 }
 
+onBackPress(() => {
+  if (showReaderSettings.value) {
+    showReaderSettings.value = false
+    return true
+  }
+  if (showReaderCatalog.value) {
+    showReaderCatalog.value = false
+    return true
+  }
+  if (showStylePanel.value) {
+    showStylePanel.value = false
+    return true
+  }
+  if (viewMode.value === 'reader') {
+    handleExitReader()
+    return true
+  }
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1 })
+    return true
+  }
+  return false
+})
+
 function handleSliderChange(event: unknown): void {
   const raw = event as { detail?: { value?: number }; target?: { value?: number } }
   const val = Number(raw?.detail?.value ?? raw?.target?.value ?? currentPage.value)
@@ -659,6 +734,7 @@ onMounted(() => {
   const saved = readProgress()
   const prefsStored = readPreferences()
   prefs.value = prefsStored
+  effectiveRowsPerPage.value = prefsStored.rowsPerPage
   if (books.value.length === 0) {
     loadError.value = '未在 src/static/books/ 发现书籍'
     return
@@ -687,6 +763,7 @@ onHide(pauseAutoReading)
 onBeforeUnmount(() => {
   stopAutoReading()
   if (readingMetricsTimer) clearTimeout(readingMetricsTimer)
+  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleViewportChange)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -697,7 +774,11 @@ watch(totalPages, (next) => {
   if (currentPage.value > next) currentPage.value = next
 })
 
-watch([currentPage, tableStyleId, rowsPerPage, showStylePanel], measureReadingArea)
+watch([currentPage, tableStyleId, rowsPerPage, showStylePanel, readingFontSize], () => scheduleRecalcVisibleRows())
+watch([rows, effectiveRowsPerPage], () => scheduleRecalcVisibleRows())
+watch(effectiveRowsPerPage, () => {
+  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
+})
 
 // 键盘翻页
 function handleKeydown(e: KeyboardEvent) {
@@ -861,15 +942,11 @@ function handleKeydown(e: KeyboardEvent) {
         </view>
       </view>
 
-      <scroll-view
+      <view
         id="reading-scroll"
-        class="reader-body immersive-reader-body"
-        scroll-y
-        :scroll-top="readingScrollTop"
-        :scroll-with-animation="false"
-        :show-scrollbar="false"
-        :bounces="false"
-        @scroll="handleReadingScroll"
+        class="reader-body immersive-reader-body reader-body--paged"
+        @touchstart="handleTouchStart"
+        @touchend="handleTouchEnd"
         @touchmove.passive="handleReadingScrollIntent"
         @wheel.passive="handleReadingScrollIntent"
         @click="handleReaderTap"
@@ -895,11 +972,12 @@ function handleKeydown(e: KeyboardEvent) {
             :reference-font-family="referenceFont.fontFamily"
             :page="currentPage"
             :total-pages="totalPages"
+            :font-size="readingFontSize"
             :auto-progress="autoProgress"
             :is-auto-reading="isAutoReadingActive"
           />
         </view>
-      </scroll-view>
+      </view>
 
       <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
         <view class="bottom-slider-row">
@@ -955,6 +1033,9 @@ function handleKeydown(e: KeyboardEvent) {
                   @update:modelValue="handleStyleChange"
                   @update:rowsPerPage="handleRowsPerPageChange"
                 />
+              </view>
+              <view class="settings-section">
+                <FontSizeControl :model-value="readingFontSize" @update:modelValue="handleReadingFontSizeChange" />
               </view>
               <view class="settings-section">
                 <AutoPageControl
@@ -1540,6 +1621,24 @@ function handleKeydown(e: KeyboardEvent) {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
 }
+.reader-body--paged {
+  overflow: hidden !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.reader-body--paged::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+/* 全局隐藏滚动条，保证对照阅读无滚动条 */
+.reader-body--paged *::-webkit-scrollbar {
+  display: none;
+}
+.reader-body--paged * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 .reader-content-inner {
   padding: calc(var(--app-top-safe-area) + 56px) 14px calc(140px + env(safe-area-inset-bottom));
   max-width: 760px;
@@ -1665,3 +1764,5 @@ function handleKeydown(e: KeyboardEvent) {
   .reader-top-overlay, .reader-bottom-overlay, .reader-drawer { transition: none; }
 }
 </style>
+
+

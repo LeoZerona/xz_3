@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../../stores/theme'
 import { themes } from '../../theme/themes'
@@ -78,6 +79,10 @@ function goBack() {
   }
   uni.reLaunch({ url: '/pages/index/index' })
 }
+onBackPress(() => {
+  goBack()
+  return true
+})
 </script>
 
 <style scoped>

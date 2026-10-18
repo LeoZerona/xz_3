@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { formatProfileLocation } from '../../profile/profileModel'
@@ -64,6 +65,10 @@ function handleAvatarEdit() {
 function showIpExplanation() {
   uni.showToast({ title: 'IP 属地根据网络信息展示', icon: 'none' })
 }
+onBackPress(() => {
+  goBack()
+  return true
+})
 </script>
 
 <template>

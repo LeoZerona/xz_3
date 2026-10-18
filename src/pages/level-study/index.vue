@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from "@dcloudio/uni-app";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { storeToRefs } from "pinia";
@@ -434,19 +435,40 @@ function handleNext() {
           content: stage.value.title + " 已完成" + stage.value.characters.length + "字的 " + totalModeCount.value + " 种练习",
           showCancel: false,
           success: () => {
-            try { uni.navigateBack({ delta: 1 }); } catch { uni.reLaunch({ url: "/pages/levels/index" }); }
+            if (getCurrentPages().length > 1) {
+            uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/levels/index" }) })
+          } else {
+            uni.reLaunch({ url: "/pages/levels/index" })
+          }
           },
         });
       } catch {
-        uni.navigateBack({ delta: 1 });
+        if (getCurrentPages().length > 1) {
+          uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/levels/index" }) })
+        } else {
+          uni.reLaunch({ url: "/pages/levels/index" })
+        }
       }
     }
   }
 }
 
 function handleBack() {
-  try { uni.navigateBack({ delta: 1 }); } catch { uni.reLaunch({ url: "/pages/levels/index" }); }
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/levels/index" }) })
+    return
+  }
+  uni.reLaunch({ url: "/pages/levels/index" })
 }
+
+onBackPress(() => {
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/levels/index" }) })
+    return true
+  }
+  uni.reLaunch({ url: "/pages/levels/index" })
+  return true
+})
 
 function toggleFavorite() {
   const ch = currentCharacter.value;

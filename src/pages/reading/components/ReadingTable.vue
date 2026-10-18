@@ -9,12 +9,14 @@ interface Props {
   referenceFontFamily: string
   page: number
   totalPages: number
+  fontSize?: number
   autoProgress?: number
   isAutoReading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   rows: () => [],
+  fontSize: 16,
   autoProgress: 0,
   isAutoReading: false,
 })
@@ -22,16 +24,30 @@ const props = withDefaults(defineProps<Props>(), {
 const safeAutoProgress = computed(() => Math.min(1, Math.max(0, props.autoProgress)))
 const progressStyle = computed(() => ({ transform: `scaleY(${safeAutoProgress.value})` }))
 
+const normalizedFontSize = computed(() => {
+  const v = props.fontSize
+  if (!Number.isFinite(v)) return 16
+  return Math.min(28, Math.max(12, Math.round(v)))
+})
+const learningFontSize = computed(() => normalizedFontSize.value)
+const referenceFontSize = computed(() => Math.max(11, Math.round(normalizedFontSize.value * 0.875)))
+const gridFontSize = computed(() => normalizedFontSize.value)
+const gridRefFontSize = computed(() => Math.max(11, Math.round(normalizedFontSize.value * 0.8125)))
+const gridCellSize = computed(() => normalizedFontSize.value + 14)
+const gridRefCellSize = computed(() => gridRefFontSize.value + 13)
+const manuscriptLineHeight = computed(() => `${normalizedFontSize.value + 16}px`)
+const manuscriptRefLineHeight = computed(() => `${gridRefFontSize.value + 15}px`)
+
 function splitChars(text: string): string[] {
   return [...text]
 }
 </script>
-
 <template>
   <view
     class="reading-table-wrap"
     :class="{ 'is-auto-reading': isAutoReading }"
     :data-table-style="tableStyleId"
+    :style="{ '--reading-font-size': normalizedFontSize + 'px' }"
     role="table"
     :aria-rowcount="rows.length"
     aria-label="对照阅读表格"
@@ -63,8 +79,9 @@ function splitChars(text: string): string[] {
                 v-for="(character, characterIndex) in splitChars(row.text)"
                 :key="characterIndex"
                 class="grid-cell learn-cell"
+                :style="{ width: gridCellSize + 'px', height: gridCellSize + 'px', minWidth: gridCellSize + 'px', maxWidth: gridCellSize + 'px', flexBasis: gridCellSize + 'px' }"
               >
-                <text selectable class="grid-char learn-char" :style="{ fontFamily: learningFontFamily }">{{ character }}</text>
+                <text selectable class="grid-char learn-char" :style="{ fontFamily: learningFontFamily, fontSize: gridFontSize + 'px' }">{{ character }}</text>
               </view>
             </view>
             <view class="cell-divider manuscript-divider" aria-hidden="true" />
@@ -73,16 +90,23 @@ function splitChars(text: string): string[] {
                 v-for="(character, characterIndex) in splitChars(row.text)"
                 :key="characterIndex"
                 class="grid-cell ref-cell"
+                :style="{ width: gridRefCellSize + 'px', height: gridRefCellSize + 'px', minWidth: gridRefCellSize + 'px', maxWidth: gridRefCellSize + 'px', flexBasis: gridRefCellSize + 'px' }"
               >
-                <text selectable class="grid-char ref-char" :style="{ fontFamily: referenceFontFamily }">{{ character }}</text>
+                <text selectable class="grid-char ref-char" :style="{ fontFamily: referenceFontFamily, fontSize: gridRefFontSize + 'px' }">{{ character }}</text>
               </view>
             </view>
           </template>
 
-          <template v-else>
-            <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily }">{{ row.text }}</view>
+          <template v-else-if="tableStyleId === 'manuscript-line'">
+            <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px', lineHeight: manuscriptLineHeight, minHeight: manuscriptLineHeight }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px', lineHeight: manuscriptRefLineHeight, minHeight: manuscriptRefLineHeight }">{{ row.text }}</view>
+          </template>
+
+          <template v-else>
+            <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px' }">{{ row.text }}</view>
+            <view class="cell-divider" aria-hidden="true" />
+            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px' }">{{ row.text }}</view>
           </template>
         </view>
       </view>
@@ -93,7 +117,6 @@ function splitChars(text: string): string[] {
     </view>
   </view>
 </template>
-
 <style scoped lang="scss">
 .reading-table-wrap {
   width: 100%;
@@ -140,16 +163,23 @@ function splitChars(text: string): string[] {
 .cell-line::selection, .grid-char::selection {
   background: var(--color-selection);
 }
-.cell-learning { color: var(--color-text); font-size: 16px; font-weight: 500; letter-spacing: 0.02em; }
-.cell-reference { color: var(--color-text-secondary); font-size: 14px; letter-spacing: 0.01em; }
+.cell-learning { color: var(--color-text); font-size: var(--reading-font-size, 16px); font-weight: 500; letter-spacing: 0.02em; }
+.cell-reference { color: var(--color-text-secondary); font-size: calc(var(--reading-font-size, 16px) * 0.875); letter-spacing: 0.01em; }
 
 .cell-divider {
   height: 1px;
   margin: 7px 0;
-  background: repeating-linear-gradient(90deg, var(--color-border) 0 6px, transparent 6px 12px);
+  background: repeating-linear-gradient(to right, var(--color-border) 0 6px, transparent 6px 10px);
 }
 
-.empty-state { padding: 48px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  text-align: center;
+}
 .empty-title { color: var(--color-text); font-size: 14px; font-weight: 600; }
 .empty-desc { color: var(--color-text-muted); font-size: 12px; }
 .table-caption { padding: 8px 12px; border-top: 1px solid var(--color-border); background: var(--color-surface-muted); text-align: center; }

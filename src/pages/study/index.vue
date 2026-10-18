@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { LearningFont } from '../../fonts/types'
@@ -320,13 +321,34 @@ function handleNext() {
           content: "已完成 " + dailyTarget.value + " 个文字的 " + totalModeCount.value + " 种练习",
           showCancel: false,
           success: () => {
-            try { uni.reLaunch({ url: "/pages/index/index" }) } catch {}
+            if (getCurrentPages().length > 1) {
+              uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/index/index" }) })
+            } else {
+              uni.reLaunch({ url: "/pages/index/index" })
+            }
           },
         })
       } catch {}
     }
   }
 }
+function handleBack(){
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/index/index" }) })
+    return
+  }
+  uni.reLaunch({ url: "/pages/index/index" })
+}
+
+onBackPress(() => {
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/index/index" }) })
+    return true
+  }
+  uni.reLaunch({ url: "/pages/index/index" })
+  return true
+})
+
 function openSearch(){
   try{ uni.navigateTo({ url: "/pages/search/index" }) }catch{}
 }
@@ -342,9 +364,9 @@ onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTime
 <template>
   <view class="study-page">
     <view class="study-topbar">
-      <navigator class="topbar-button" url="/pages/index/index" open-type="reLaunch" hover-class="none" role="button" aria-label="返回">
+      <button class="topbar-button" role="button" aria-label="返回" @click="handleBack">
         <svg class="back-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
-      </navigator>
+      </button>
       <view class="header-space" aria-hidden="true" />
       <view class="topbar-actions">
         <button class="topbar-button" role="button" aria-label="搜索" @click="openSearch">

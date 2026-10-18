@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { chinaRegions, type RegionNode } from '../../regions/chinaRegions'
 import type { ProfileLocation, RegionReference } from '../../profile/types'
@@ -96,6 +97,10 @@ function goBack() {
 function goToProfile() {
   uni.reLaunch({ url: '/pages/personal-profile/index' })
 }
+onBackPress(() => {
+  goBack()
+  return true
+})
 </script>
 
 <template>

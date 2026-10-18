@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 
 interface SettingItem {
@@ -70,6 +71,10 @@ function saveSeniorMode(nextValue: boolean) {
 
   uni.showToast({ title: nextValue ? '已开启长辈版' : '已关闭长辈版', icon: 'none' })
 }
+onBackPress(() => {
+  goBack()
+  return true
+})
 </script>
 
 <template>
