@@ -3,11 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
-        CSS.supports('top: constant(a)'))
+      // 旧版 Android WebView (< Chrome 119) 缺 Promise.withResolvers，pdfjs 4.x 会直接崩
+      // 必须在任何 type="module" 执行前同步注入，否则 pdf.mjs 顶层 Promise.withResolvers 调用即抛
+      (function () {
+        try {
+          if (typeof Promise !== "undefined" && typeof Promise.withResolvers !== "function") {
+            Promise.withResolvers = function () {
+              var resolve, reject;
+              var promise = new Promise(function (res, rej) { resolve = res; reject = rej; });
+              return { promise: promise, resolve: resolve, reject: reject };
+            };
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script>
+      var coverSupport = "CSS" in window && typeof CSS.supports === "function" && (CSS.supports("top: env(a)") ||
+        CSS.supports("top: constant(a)"))
       document.write(
-        '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
-        (coverSupport ? ', viewport-fit=cover' : '') + '" />')
+        "<meta name=\"viewport\" content=\"width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" +
+        (coverSupport ? ", viewport-fit=cover" : "") + "\" />")
     </script>
     <title>学习</title>
     <link rel="icon" type="image/svg+xml" href="/static/sunrise.svg" />

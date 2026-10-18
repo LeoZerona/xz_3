@@ -130,7 +130,7 @@ function isFontInUse(fontId: string): boolean {
 </template>
 
 <style scoped>
-.font-manager { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
+.font-manager { flex: 1 1 0; min-height: 0; height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
 .pairing-section { flex: none; padding: 20px 16px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .section-heading, .library-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .section-title { margin: 0; color: var(--color-text); font-size: 16px; font-weight: 700; line-height: 1.3; }
@@ -148,7 +148,7 @@ function isFontInUse(fontId: string): boolean {
 .role-sample { margin: 12px 0 7px; color: var(--color-text); font-size: 52px; font-weight: 500; line-height: 1; }
 .role-font-name { max-width: 100%; overflow: hidden; color: var(--color-text); font-size: 13px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .role-hint { margin-top: 3px; color: var(--color-text-muted); font-size: 8px; }
-.library-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.library-scroll { flex: 1 1 0; min-height: 0; height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
 .library-section { padding: 18px 12px 16px; }
 .library-heading { padding: 0 4px 12px; }
 .font-count { flex: none; padding: 4px 8px; border-radius: 12px; background: var(--color-surface); color: var(--color-text-muted); font-size: 9px; }
@@ -172,4 +172,5 @@ function isFontInUse(fontId: string): boolean {
 button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 @media (max-width: 370px) { .pairing-section { padding-right: 12px; padding-left: 12px; } .role-card { padding: 10px; } .font-card { padding: 12px; gap: 10px; } .role-action { padding: 0 4px; font-size: 8px; } }
 </style>
+
 

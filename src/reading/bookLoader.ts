@@ -174,9 +174,9 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
     // pdfjs \u7684 TextContent \u6BCF\u4E2A item \u53EF\u80FD\u662F\u884C\u5185\u7247\u6BB5\uFF0ChasEOL \u6807\u8BB0\u884C\u672B\uFF1B\u6CA1\u6709 hasEOL \u65F6\u7528 transform[5] (y) \u5206\u7EC4\u4F5C\u4E3A\u515C\u5E95
     type PdfTextItem = Extract<(typeof content.items)[number], { str: string }> & { hasEOL?: boolean; transform?: number[] }
     const rawItems = content.items.filter((item): item is PdfTextItem => 'str' in (item as Record<string, unknown>)) as PdfTextItem[]
-    const textItems = rawItems.filter((it) => typeof it.str === 'string')
+    const textItems = rawItems.filter((it: PdfTextItem) => typeof it.str === 'string')
     if (textItems.length === 0) continue
-    const hasAnyEOL = textItems.some((it) => it.hasEOL === true)
+    const hasAnyEOL = textItems.some((it: PdfTextItem) => it.hasEOL === true)
     if (hasAnyEOL) {
       let buf = ''
       for (const it of textItems) {
@@ -248,3 +248,4 @@ export async function loadBook(book: BookMeta): Promise<LoadResult> {
 }
 
 export const __testing = { splitIntoLines, normalizeLine }
+

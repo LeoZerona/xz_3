@@ -1,3 +1,4 @@
+import './utils/polyfills'
 import { createSSRApp } from 'vue'
 import { createPinia } from 'pinia'
 import { Button, Icon, Progress, Switch } from 'vant'
