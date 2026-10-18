@@ -1,4 +1,4 @@
-﻿import type { BookMeta, LoadResult, ReadingRow } from './types'
+import type { BookMeta, LoadResult, ReadingRow } from './types'
 
 import { loadAssetBuffer } from '../utils/assetLoader'
 import { decodeGb18030, decodeUtf16, decodeUtf8 } from '../utils/textEncoding'
@@ -8,8 +8,8 @@ function normalizeLine(raw: string): string {
   return raw.replace(/\uFEFF/g, '').trim()
 }
 
-// 一行一行的对照：严格按原文换行切分，不按标点二次切句，不对长行做分段
-// 每一个非空原文行即为一个 ReadingRow，保持原文行号对应
+// \u4E00\u884C\u4E00\u884C\u7684\u5BF9\u7167\uFF1A\u4E25\u683C\u6309\u539F\u6587\u6362\u884C\u5207\u5206\uFF0C\u4E0D\u6309\u6807\u70B9\u4E8C\u6B21\u5207\u53E5\uFF0C\u4E0D\u5BF9\u957F\u884C\u505A\u5206\u6BB5
+// \u6BCF\u4E00\u4E2A\u975E\u7A7A\u539F\u6587\u884C\u5373\u4E3A\u4E00\u4E2A ReadingRow\uFF0C\u4FDD\u6301\u539F\u6587\u884C\u53F7\u5BF9\u5E94
 function splitIntoLines(text: string): string[] {
   return text
     .split(/\r?\n/)
@@ -31,8 +31,8 @@ function hasPrefix(bytes: Uint8Array, prefix: number[]): boolean {
 }
 
 /**
- * 书籍来源中既有 UTF-8 也有 GB18030。先用 fatal UTF-8 解码避免静默产生乱码，
- * 失败后再回退到 GB18030；BOM 文件则按 BOM 明确处理。
+ * \u4E66\u7C4D\u6765\u6E90\u4E2D\u65E2\u6709 UTF-8 \u4E5F\u6709 GB18030\u3002\u5148\u7528 fatal UTF-8 \u89E3\u7801\u907F\u514D\u9759\u9ED8\u4EA7\u751F\u4E71\u7801\uFF0C
+ * \u5931\u8D25\u540E\u518D\u56DE\u9000\u5230 GB18030\uFF1BBOM \u6587\u4EF6\u5219\u6309 BOM \u660E\u786E\u5904\u7406\u3002
  */
 export function decodeTextBuffer(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -51,7 +51,7 @@ export function decodeTextBuffer(buffer: ArrayBuffer): string {
     try {
       return decodeGb18030(bytes)
     } catch {
-      throw new Error('文本编码无法识别，请将书籍转换为 UTF-8 或 GB18030 后重试')
+      throw new Error('\u6587\u672C\u7F16\u7801\u65E0\u6CD5\u8BC6\u522B\uFF0C\u8BF7\u5C06\u4E66\u7C4D\u8F6C\u6362\u4E3A UTF-8 \u6216 GB18030 \u540E\u91CD\u8BD5')
     }
   }
 }
@@ -69,16 +69,21 @@ function isPlusEnv(): boolean {
 async function getPdfModule(): Promise<typeof import('./pdfjsAdapter')> {
   try {
     const mod = await import('./pdfjsAdapter')
+    // \u786E\u4FDD URL/Blob \u7B49\u5168\u5C40\u517C\u5BB9\uFF08\u79FB\u52A8\u7AEF WebView \u4E2D globalThis.URL \u53EF\u80FD\u672A\u5B9A\u4E49\uFF09
+    try {
+      mod.ensurePdfGlobalPolyfill()
+    } catch {}
     return mod
   } catch {
-    throw new Error('PDF 解析依赖加载失败，请将 PDF 转为 TXT 后重试')
+    throw new Error('PDF \u89E3\u6790\u4F9D\u8D56\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u5C06 PDF \u8F6C\u4E3A TXT \u540E\u91CD\u8BD5')
   }
 }
 
 /**
- * 将 PDF 二进制数据解析为行，内部兼容 Worker 失败后退。
- * 移动端 H5 若 Worker 加载失败（网络、MIME、CSP、iOS 兼容等），自动重试 disableWorker 模式，确保手机端可查阅。
- * App-plus 环境默认使用 disableWorker，避免通过 URL 加载 Worker 失败。
+ * \u5C06 PDF \u4E8C\u8FDB\u5236\u6570\u636E\u89E3\u6790\u4E3A\u884C\uFF0C\u5185\u90E8\u517C\u5BB9 Worker \u5931\u8D25\u540E\u9000\u3002
+ * \u79FB\u52A8\u7AEF H5 \u82E5 Worker \u52A0\u8F7D\u5931\u8D25\uFF08\u7F51\u7EDC\u3001MIME\u3001CSP\u3001iOS \u517C\u5BB9\u7B49\uFF09\uFF0C\u81EA\u52A8\u91CD\u8BD5 fake worker \u6A21\u5F0F\uFF0C\u786E\u4FDD\u624B\u673A\u7AEF\u53EF\u67E5\u9605\u3002
+ * App-plus \u73AF\u5883\u9ED8\u8BA4\u4F7F\u7528 fake worker\uFF0C\u907F\u514D\u901A\u8FC7 URL \u52A0\u8F7D Worker \u5931\u8D25\u3002
+ * pdfjs-dist 4.x \u5DF2\u79FB\u9664 disableWorker\uFF0C\u672C\u51FD\u6570\u901A\u8FC7\u517C\u5BB9\u53C2\u6570\u4E0E Worker \u5B58\u6839\u4F2A\u88C5\u5B9E\u73B0\u540C\u6837\u7684\u540E\u9000\u3002
  */
 export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promise<LoadResult> {
   const pdfjs = await getPdfModule()
@@ -86,38 +91,78 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
   try {
     pdfjs.configurePdfWorker()
   } catch {}
+  try {
+    pdfjs.ensurePdfGlobalPolyfill()
+  } catch {}
 
   const data = new Uint8Array(buffer)
   const plusEnv = isPlusEnv()
 
-  async function tryLoad(disableWorker: boolean) {
-    const opts: Record<string, unknown> = { data, disableWorker }
-    if (disableWorker) {
-      ;(opts as { isEvalSupported?: boolean }).isEvalSupported = false
-      ;(opts as { useWorkerFetch?: boolean }).useWorkerFetch = false
-    }
-    const task = getDocument(opts as never)
-    return task.promise
+  async function loadWithWorker(): Promise<Awaited<ReturnType<typeof getDocument>> extends { promise: Promise<infer T> } ? T : never> {
+    // pdfjs-dist 4.x \u6CA1\u6709 disableWorker\uFF0C\u4F20\u5165\u672A\u77E5\u9009\u9879\u4F1A\u88AB\u5FFD\u7565\uFF0C\u6240\u4EE5\u76F4\u63A5\u4F20 data\uFF0C\u8BA9\u5185\u90E8\u81EA\u52A8\u56DE\u9000\u5230 fake worker
+    const task = getDocument({ data } as never)
+    return (await task.promise) as never
   }
 
-  let doc: Awaited<ReturnType<typeof getDocument>>['promise'] extends Promise<infer T> ? T : never
+  async function loadWithFakeWorker(): Promise<Awaited<ReturnType<typeof getDocument>> extends { promise: Promise<infer T> } ? T : never> {
+    // \u5F3A\u5236\u8D70 fake worker\uFF1A\u6682\u65F6\u5C4F\u853D\u5168\u5C40 Worker\uFF0C\u8BA9 PDFWorker \u81EA\u52A8\u9009\u62E9 LoopbackPort
+    const g = globalThis as unknown as { Worker?: unknown }
+    const originalWorker = g.Worker
+    const hadWorker = typeof g.Worker !== 'undefined'
+    try {
+      // @ts-ignore
+      g.Worker = undefined
+      const task = getDocument({
+        data,
+        useWorkerFetch: false,
+        isEvalSupported: false,
+        isOffscreenCanvasSupported: false,
+      } as never)
+      return (await task.promise) as never
+    } finally {
+      if (hadWorker) g.Worker = originalWorker
+      else {
+        try {
+          // @ts-ignore
+          delete (globalThis as unknown as { Worker?: unknown }).Worker
+          if (typeof originalWorker !== 'undefined') g.Worker = originalWorker
+        } catch {}
+      }
+    }
+  }
+
+  let doc: Awaited<ReturnType<typeof getDocument>> extends { promise: Promise<infer T> } ? T : never
+  // \u9996\u5148\u5C1D\u8BD5\u6B63\u5E38 worker\uFF08\u6709\u6548\u65F6\u6027\u80FD\u66F4\u597D\uFF09\uFF0C\u5931\u8D25\u5219\u56DE\u9000\u5230 fake worker
+  // App-plus \u76F4\u63A5\u8D70 fake\uFF0C\u907F\u514D URL/Worker \u52A0\u8F7D\u95EE\u9898
   if (!plusEnv) {
     try {
-      doc = (await tryLoad(false)) as never
+      doc = (await loadWithWorker()) as never
     } catch (e) {
-      try {
-        doc = (await tryLoad(true)) as never
-      } catch (e2) {
-        const msg = e2 instanceof Error ? e2.message : String(e2)
-        throw new Error('手机端 PDF 解析失败：' + msg + '，可尝试转为 TXT 后重试')
+      const msg0 = e instanceof Error ? e.message : String(e)
+      // URL is not defined \u7B49\u73AF\u5883\u517C\u5BB9\u95EE\u9898\u7ACB\u5373\u91CD\u8BD5 fake worker
+      if (/URL is not defined|Worker|createObjectURL|import/i.test(msg0)) {
+        try {
+          doc = (await loadWithFakeWorker()) as never
+        } catch (e2) {
+          const msg = e2 instanceof Error ? e2.message : String(e2)
+          throw new Error('\u624B\u673A\u7AEF PDF \u89E3\u6790\u5931\u8D25\uFF1A' + msg + '\uFF0C\u53EF\u5C1D\u8BD5\u8F6C\u4E3A TXT \u540E\u91CD\u8BD5')
+        }
+      } else {
+        // \u5176\u4ED6\u9519\u8BEF\u4E5F\u5C1D\u8BD5\u4E00\u6B21 fake worker\uFF0C\u517C\u5BB9 CSP/MIME \u7B49\u95EE\u9898
+        try {
+          doc = (await loadWithFakeWorker()) as never
+        } catch (e2) {
+          const msg = e2 instanceof Error ? e2.message : String(e2)
+          throw new Error('\u624B\u673A\u7AEF PDF \u89E3\u6790\u5931\u8D25\uFF1A' + msg + '\uFF0C\u53EF\u5C1D\u8BD5\u8F6C\u4E3A TXT \u540E\u91CD\u8BD5')
+        }
       }
     }
   } else {
     try {
-      doc = (await tryLoad(true)) as never
+      doc = (await loadWithFakeWorker()) as never
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      throw new Error('PDF 解析失败：' + msg)
+      throw new Error('PDF \u89E3\u6790\u5931\u8D25\uFF1A' + msg)
     }
   }
 
@@ -125,24 +170,24 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
   for (let pageNum = 1; pageNum <= doc.numPages; pageNum += 1) {
     const page = await doc.getPage(pageNum)
     const content = await page.getTextContent()
-    // 一行一对照：严格按原始换行还原，不按标点切句、不分段长行
-    // pdfjs 的 TextContent 每个 item 可能是行内片段，hasEOL 标记行末；没有 hasEOL 时用 transform[5] (y) 分组作为兜底
+    // \u4E00\u884C\u4E00\u5BF9\u7167\uFF1A\u4E25\u683C\u6309\u539F\u59CB\u6362\u884C\u8FD8\u539F\uFF0C\u4E0D\u6309\u6807\u70B9\u5207\u53E5\u3001\u4E0D\u5206\u6BB5\u957F\u884C
+    // pdfjs \u7684 TextContent \u6BCF\u4E2A item \u53EF\u80FD\u662F\u884C\u5185\u7247\u6BB5\uFF0ChasEOL \u6807\u8BB0\u884C\u672B\uFF1B\u6CA1\u6709 hasEOL \u65F6\u7528 transform[5] (y) \u5206\u7EC4\u4F5C\u4E3A\u515C\u5E95
     type PdfTextItem = Extract<(typeof content.items)[number], { str: string }> & { hasEOL?: boolean; transform?: number[] }
     const rawItems = content.items.filter((item): item is PdfTextItem => 'str' in (item as Record<string, unknown>)) as PdfTextItem[]
     const textItems = rawItems.filter((it) => typeof it.str === 'string')
     if (textItems.length === 0) continue
     const hasAnyEOL = textItems.some((it) => it.hasEOL === true)
     if (hasAnyEOL) {
-      let buffer = ''
+      let buf = ''
       for (const it of textItems) {
-        buffer += it.str
+        buf += it.str
         if (it.hasEOL) {
-          const line = normalizeLine(buffer)
+          const line = normalizeLine(buf)
           if (line.length > 0) lines.push(line)
-          buffer = ''
+          buf = ''
         }
       }
-      const tail = normalizeLine(buffer)
+      const tail = normalizeLine(buf)
       if (tail.length > 0) lines.push(tail)
     } else {
       const groups: Array<{ y: number; parts: string[] }> = []
@@ -166,7 +211,7 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
     }
   }
   if (lines.length === 0) {
-    throw new Error('PDF 未解析到文本行，可能是扫描版 PDF，请转为 TXT 后重试')
+    throw new Error('PDF \u672A\u89E3\u6790\u5230\u6587\u672C\u884C\uFF0C\u53EF\u80FD\u662F\u626B\u63CF\u7248 PDF\uFF0C\u8BF7\u8F6C\u4E3A TXT \u540E\u91CD\u8BD5')
   }
   const rows: ReadingRow[] = lines.map((line, idx) => ({
     id: bookId + '-' + String(idx + 1),
@@ -188,9 +233,9 @@ export async function loadPdfBook(book: BookMeta): Promise<LoadResult> {
 async function loadCustomBook(book: BookMeta): Promise<LoadResult> {
   const custom = getCustomBookById(book.id)
   const rawText = (custom?.text ?? (book as unknown as { text?: string }).text ?? '') as string
-  if (!rawText) throw new Error('自定义文件内容丢失，请重新上传')
+  if (!rawText) throw new Error('\u81EA\u5B9A\u4E49\u6587\u4EF6\u5185\u5BB9\u4E22\u5931\uFF0C\u8BF7\u91CD\u65B0\u4E0A\u4F20')
   const rows = parseTextToRows(rawText, book.id)
-  if (rows.length === 0) throw new Error('自定义文件未解析到可显示的文本行')
+  if (rows.length === 0) throw new Error('\u81EA\u5B9A\u4E49\u6587\u4EF6\u672A\u89E3\u6790\u5230\u53EF\u663E\u793A\u7684\u6587\u672C\u884C')
   return { rows, totalChars: rawText.length }
 }
 

@@ -58,7 +58,7 @@ function isFontInUse(fontId: string): boolean {
       </div>
     </section>
 
-    <div class="library-scroll">
+    <scroll-view class="library-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
       <section class="library-section" aria-labelledby="library-title">
         <div class="library-heading">
           <div>
@@ -118,7 +118,7 @@ function isFontInUse(fontId: string): boolean {
           </article>
         </div>
       </section>
-    </div>
+    </scroll-view>
 
     <div class="add-font-footer">
       <button class="add-font-button" type="button" role="button" aria-label="添加字体" @click="emit('browse')">
@@ -130,7 +130,7 @@ function isFontInUse(fontId: string): boolean {
 </template>
 
 <style scoped>
-.font-manager { height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
+.font-manager { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
 .pairing-section { flex: none; padding: 20px 16px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .section-heading, .library-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .section-title { margin: 0; color: var(--color-text); font-size: 16px; font-weight: 700; line-height: 1.3; }
@@ -172,3 +172,4 @@ function isFontInUse(fontId: string): boolean {
 button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 @media (max-width: 370px) { .pairing-section { padding-right: 12px; padding-left: 12px; } .role-card { padding: 10px; } .font-card { padding: 12px; gap: 10px; } .role-action { padding: 0 4px; font-size: 8px; } }
 </style>
+

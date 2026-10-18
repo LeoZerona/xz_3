@@ -409,7 +409,7 @@ function setActiveTab(tab: 'builtin' | 'custom') {
 </template>
 
 <style scoped>
-.catalog-page { height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); padding-bottom: calc(92px + env(safe-area-inset-bottom)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: var(--color-page); -webkit-overflow-scrolling: touch; }
+.catalog-page { flex: 1; min-height: 0; height: calc(100vh - 58px - var(--app-top-safe-area)); height: calc(100dvh - 58px - var(--app-top-safe-area)); padding-bottom: calc(92px + env(safe-area-inset-bottom)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; overscroll-behavior-y: contain; background: var(--color-page); -webkit-overflow-scrolling: touch; touch-action: pan-y; }
 .catalog-intro { padding: 22px 18px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .catalog-title { display: block; font-size: 16px; font-weight: 700; }
 .catalog-description { display: block; max-width: 430px; margin-top: 7px; color: var(--color-text-secondary); font-size: 10px; line-height: 1.55; }
@@ -440,3 +440,4 @@ function setActiveTab(tab: 'builtin' | 'custom') {
 .add-font-button.is-disabled { opacity: .6; pointer-events: none; }
 @media (max-width: 360px) { .catalog-list { padding-right: 12px; padding-left: 12px; } .catalog-item { gap: 14px; } }
 </style>
+

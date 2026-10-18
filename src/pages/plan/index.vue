@@ -211,8 +211,8 @@ onBackPress(() => {
 </script>
 
 <style scoped>
-.plan-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--color-page); color: var(--color-text); }
-.plan-content { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+.plan-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; background: var(--color-page); color: var(--color-text); }
+.plan-content { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 .nav-bar { height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 46px 1fr 46px; align-items: stretch; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
 .back-button { width: 44px; height: 44px; margin: 0; padding: 0; color: var(--color-text); background: transparent; font-size: 40px; font-weight: 300; line-height: 38px; }
 .back-button { align-self: center; }
@@ -250,6 +250,7 @@ onBackPress(() => {
 .save-button { width: min(calc(100% - 36px), 524px); height: 44px; margin: 0 auto; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--color-primary); color: var(--color-on-primary); font-size: 14px; line-height: 1; }
 @media (max-width: 370px) { .nav-tab { padding: 0 5px; font-size: 12px; } .schedule-summary { align-items: flex-start; flex-direction: column; } .mode-card { font-size: 10px; } }
 </style>
+
 
 
 
