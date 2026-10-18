@@ -41,4 +41,5 @@ export interface ReadingProgress {
 export interface LoadResult {
   rows: ReadingRow[]
   totalChars: number
+  rawText?: string
 }

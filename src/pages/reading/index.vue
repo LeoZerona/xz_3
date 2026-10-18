@@ -6,9 +6,9 @@ import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { getBooksCatalog } from '../../reading/booksCatalog'
 import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } from '../../reading/customBooks'
 import type { CustomBookRecord } from '../../reading/customBooks'
-import { decodeTextBuffer, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
+import { decodeTextBuffer, extractPdfRawText, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
 import { clampPage, computeTotalPages, getPageSlice } from '../../reading/pagination'
-import { normalizeAutoPageSeconds, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
+import { normalizeAutoPageSeconds, normalizeCharsPerLine, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
@@ -84,10 +84,13 @@ const rows = ref<ReadingRow[]>([])
 const totalChars = ref(0)
 const loading = ref(false)
 const loadError = ref('')
+const rawTextRef = ref('')
+let lastPdfBufferRef: ArrayBuffer | null = null
 
 const prefs = ref(readPreferences())
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
 const rowsPerPage = computed<RowsPerPage>(() => prefs.value.rowsPerPage)
+const charsPerLine = computed(() => prefs.value.charsPerLine)
 const readingFontSize = computed(() => prefs.value.readingFontSize)
 
 const currentPage = ref(1)
@@ -108,11 +111,9 @@ const autoProgress = ref(0)
 const effectiveRowsPerPage = ref<number>(prefs.value.rowsPerPage)
 let autoPageFrame: number | null = null
 let autoPageFrameUsesTimeout = false
-let readingMetricsTimer: ReturnType<typeof setTimeout> | null = null
 let paginationRemeasureTimer: ReturnType<typeof setTimeout> | null = null
-let recalcDepth = 0
-const MAX_RECALC_DEPTH = 8
-const recalcHistory: number[] = []
+let isRecalculating = false
+let pendingRecalc = false
 let autoPageStartedAt = 0
 let currentAutoProgress = 0
 let lastAutoUiUpdateAt = 0
@@ -220,96 +221,18 @@ function renderAutoProgress(progress: number) {
 
 function resetReadingScroll() {
   // 无滚动分页：仅触发重算，不操作 scrollTop
-  scheduleRecalcVisibleRows({ resetHistory: true })
+  scheduleRecalcVisibleRows()
 }
 
-function scheduleRecalcVisibleRows(options: { resetHistory?: boolean } = {}) {
-  if (options.resetHistory) {
-    recalcDepth = 0
-    recalcHistory.length = 0
-  }
-  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
-  paginationRemeasureTimer = setTimeout(() => {
-    paginationRemeasureTimer = null
-    void recalcVisibleRows()
-  }, 80)
+function scheduleRecalcVisibleRows() {
+  // 已移除视口自适应分页以消除闪烁：分页完全由每行字数 N 与用户 rowsPerPage 决定
+  // 保持 effectiveRowsPerPage 与用户设置一致，避免异步测量导致的少行/闪烁
+  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
 }
 
 async function recalcVisibleRows() {
-  await nextTick()
-  if (viewMode.value !== 'reader') return
-  recalcDepth += 1
-  if (recalcDepth > MAX_RECALC_DEPTH) {
-    recalcDepth = 0
-    recalcHistory.length = 0
-    return
-  }
-  recalcHistory.push(effectiveRowsPerPage.value)
-  if (recalcHistory.length > 6) recalcHistory.shift()
-  if (recalcHistory.length >= 4) {
-    const len = recalcHistory.length
-    if (recalcHistory[len - 1] === recalcHistory[len - 3] && recalcHistory[len - 2] === recalcHistory[len - 4]) {
-      const stable = Math.min(recalcHistory[len - 1], recalcHistory[len - 2])
-      if (effectiveRowsPerPage.value !== stable) effectiveRowsPerPage.value = stable
-      recalcDepth = 0
-      recalcHistory.length = 0
-      return
-    }
-  }
-  await new Promise<void>((resolve) => setTimeout(resolve, 30))
-  const cap = Math.max(1, rowsPerPage.value)
-  if (rows.value.length === 0) {
-    if (effectiveRowsPerPage.value !== cap) effectiveRowsPerPage.value = cap
-    return
-  }
-  const query = uni.createSelectorQuery()
-  // @ts-ignore
-  query.select("#reading-scroll").boundingClientRect()
-  // @ts-ignore
-  query.select(".reader-content-inner").boundingClientRect()
-  // @ts-ignore
-  query.selectAll(".reading-row").boundingClientRect()
-  // @ts-ignore
-  query.select(".table-header").boundingClientRect()
-  // @ts-ignore
-  query.select(".table-caption").boundingClientRect()
-  query.exec((result: unknown) => {
-    try {
-      const rects = result as Array<unknown>
-      const viewportRect = rects[0] as { height?: number } | null
-      const innerRect = rects[1] as { height?: number } | null
-      const rowRects = (rects[2] as Array<{ height?: number }> | null) ?? []
-      const viewportH = Number(viewportRect?.height ?? 0)
-      const innerH = Number(innerRect?.height ?? 0)
-      if (!viewportH || !innerH) {
-        if (effectiveRowsPerPage.value !== cap) effectiveRowsPerPage.value = Math.min(cap, Math.max(1, effectiveRowsPerPage.value))
-        return
-      }
-      const rowCount = rowRects.length
-      if (rowCount === 0) return
-      if (innerH > viewportH + 2) {
-        const next = Math.max(1, effectiveRowsPerPage.value - 1)
-        if (next !== effectiveRowsPerPage.value) {
-          effectiveRowsPerPage.value = Math.min(next, cap)
-          scheduleRecalcVisibleRows()
-        }
-        return
-      }
-      if (effectiveRowsPerPage.value < cap) {
-        const remainingOnPage = rows.value.length - (currentPage.value - 1) * effectiveRowsPerPage.value
-        if (remainingOnPage > effectiveRowsPerPage.value) {
-          const sumRowH = rowRects.reduce((sum, r) => sum + Number((r as any).height ?? 0), 0)
-          const avgRowH = rowCount > 0 ? sumRowH / rowCount : 40
-          const spare = viewportH - innerH
-          if (spare > avgRowH + 12) {
-            const next = Math.min(cap, effectiveRowsPerPage.value + 1)
-            effectiveRowsPerPage.value = next
-            scheduleRecalcVisibleRows()
-          }
-        }
-      }
-    } catch {}
-  })
+  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
+  return
 }
 
 function handleReadingScrollIntent() {
@@ -395,7 +318,7 @@ function handleViewportChange() {
   const wasMobile = isMobileViewport.value
   isMobileViewport.value = window.innerWidth < 900
   if (wasMobile !== isMobileViewport.value) showCatalog.value = !isMobileViewport.value
-  if (viewMode.value === 'reader') scheduleRecalcVisibleRows({ resetHistory: true })
+  if (viewMode.value === 'reader') scheduleRecalcVisibleRows()
 }
 
 function handleToggleCatalog() {
@@ -445,13 +368,62 @@ function handleStyleChange(id: TableStyleId) {
   scheduleRecalcVisibleRows()
 }
 
-function handleReadingFontSizeChange(value: number): void {
-  const normalized = normalizeReadingFontSize(value)
-  if (normalized === prefs.value.readingFontSize) return
-  prefs.value = { ...prefs.value, readingFontSize: normalized }
+function charsToFontSize(chars: number): number {
+  if (chars >= 20) return 12
+  if (chars >= 18) return 14
+  if (chars >= 16) return 16
+  if (chars >= 14) return 18
+  if (chars >= 12) return 20
+  if (chars >= 10) return 24
+  return 28
+}
+
+async function reparseWithCharsPerLine(chars: number): Promise<void> {
+  const book = activeBook.value
+  if (!book) return
+  if (rawTextRef.value) {
+    try {
+      const reparsed = parseTextToRows(rawTextRef.value, book.id, chars)
+      rows.value = reparsed
+      totalChars.value = rawTextRef.value.length
+      const per = Math.max(1, effectiveRowsPerPage.value)
+      const firstIdx = (currentPage.value - 1) * per
+      currentPage.value = Math.floor(firstIdx / per) + 1
+      if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
+      else loadError.value = ''
+      persistProgress()
+      return
+    } catch {}
+  }
+  if (lastPdfBufferRef) {
+    try {
+      const result = await loadPdfFromBuffer(lastPdfBufferRef.slice(0), book.id, chars)
+      rows.value = result.rows
+    rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
+      totalChars.value = result.totalChars
+      persistProgress()
+      return
+    } catch {}
+  }
+  await fetchBook()
+}
+
+function handleCharsPerLineChange(value: number): void {
+  const normalized = normalizeCharsPerLine(value)
+  if (normalized === prefs.value.charsPerLine) return
+  const nextFont = charsToFontSize(normalized)
+  prefs.value = { ...prefs.value, charsPerLine: normalized, readingFontSize: nextFont }
   writePreferences(prefs.value)
   persistProgress()
+  void reparseWithCharsPerLine(normalized)
   nextTick(() => scheduleRecalcVisibleRows())
+}
+
+function handleReadingFontSizeChange(value: number): void {
+  const normalized = normalizeReadingFontSize(value)
+  const map: Record<number, number> = { 12: 20, 14: 18, 16: 16, 18: 14, 20: 12, 24: 10, 28: 8, 32: 8 }
+  const mapped = map[normalized] ?? 14
+  handleCharsPerLineChange(mapped)
 }
 
 function handleRowsPerPageChange(value: RowsPerPage) {
@@ -503,7 +475,9 @@ async function fetchBook() {
     try {
       loading.value = true
       loadError.value = ''
-      const parsed = parseTextToRows(custom.text, book.id)
+      const parsed = parseTextToRows(custom.text, book.id, prefs.value.charsPerLine)
+      rawTextRef.value = custom.text
+      lastPdfBufferRef = null
       rows.value = parsed
       totalChars.value = custom.text.length
       const saved = readProgress()
@@ -524,9 +498,11 @@ async function fetchBook() {
   loading.value = true
   loadError.value = ''
   try {
-    const result = await loadBook(book)
+    const result = await loadBook(book, prefs.value.charsPerLine)
     rows.value = result.rows
     totalChars.value = result.totalChars
+    rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
+    lastPdfBufferRef = null
     // 恢复进度或校正页码
     const saved = readProgress()
     if (saved && saved.bookId === book.id) {
@@ -681,8 +657,7 @@ async function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<str
     return text
   }
   const tmpId = 'plus-pdf-' + String(Date.now())
-  const result = await loadPdfFromBuffer(buffer, tmpId)
-  const text = result.rows.map((r) => r.text).join('\n')
+    const text = await extractPdfRawText(buffer, tmpId)
   if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
   return text
 }
@@ -722,8 +697,7 @@ async function handleFileInputChange(event: Event): Promise<void> {
       if (!text.trim()) throw new Error('文件内容为空')
     } else {
       const tmpId = 'h5-pdf-' + String(Date.now())
-      const result = await loadPdfFromBuffer(buffer, tmpId)
-      text = result.rows.map((r) => r.text).join('\n')
+      text = await extractPdfRawText(buffer, tmpId)
       if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
     }
     const record = createCustomRecord(file.name, text, ext)
@@ -820,7 +794,6 @@ onHide(pauseAutoReading)
 
 onBeforeUnmount(() => {
   stopAutoReading()
-  if (readingMetricsTimer) clearTimeout(readingMetricsTimer)
   if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleViewportChange)
@@ -832,7 +805,9 @@ watch(totalPages, (next) => {
   if (currentPage.value > next) currentPage.value = next
 })
 
-watch([currentPage, tableStyleId, rowsPerPage, showStylePanel, readingFontSize, rows], () => scheduleRecalcVisibleRows({ resetHistory: true }))
+watch([tableStyleId, rowsPerPage], () => {
+  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
+})
 watch(effectiveRowsPerPage, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
@@ -1056,7 +1031,7 @@ function handleKeydown(e: KeyboardEvent) {
             :reference-font-family="referenceFont.fontFamily"
             :page="currentPage"
             :total-pages="totalPages"
-            :font-size="readingFontSize"
+            :chars-per-line="charsPerLine" :font-size="readingFontSize"
             :auto-progress="autoProgress"
             :is-auto-reading="isAutoReadingActive"
           />
@@ -1116,7 +1091,7 @@ function handleKeydown(e: KeyboardEvent) {
                 />
               </view>
               <view class="settings-section">
-                <FontSizeControl :model-value="readingFontSize" @update:modelValue="handleReadingFontSizeChange" />
+                <FontSizeControl :model-value="charsPerLine" @update:modelValue="handleCharsPerLineChange" />
               </view>
               <view class="settings-section">
                 <AutoPageControl
