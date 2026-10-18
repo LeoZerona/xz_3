@@ -27,6 +27,46 @@ const customCount = computed(() => customBooks.value.length)
 type LibraryTab = 'builtin' | 'custom'
 const libraryTab = ref<LibraryTab>('builtin')
 const searchQuery = ref('')
+// 最近阅读（检索上方可点击入口）
+const recentProgressVersion = ref(0)
+const recentProgress = computed<import("../../reading/types").ReadingProgress | null>(() => {
+  void recentProgressVersion.value
+  void books.value.length
+  return readProgress()
+})
+const recentBook = computed<BookMeta | undefined>(() => {
+  const prog = recentProgress.value
+  if (!prog) return undefined
+  return books.value.find((b) => b.id === prog.bookId)
+})
+const recentBookDisplayName = computed(() => recentBook.value?.name ?? '暂无最近阅读')
+const recentProgressLabel = computed(() => {
+  const prog = recentProgress.value
+  const book = recentBook.value
+  if (!prog || !book) return '暂无阅读记录 · 选择一本书开始阅读'
+  const total = (() => {
+    try {
+      const r = readProgress()
+      if (r && r.bookId === book.id) return "已读 " + String(r.page) + " 页"
+      return getBookProgressLabel(book)
+    } catch { return getBookProgressLabel(book) }
+  })()
+  return total + " · " + book.fileName
+})
+function refreshRecentProgress(): void {
+  recentProgressVersion.value++
+}
+function handleContinueRecent(): void {
+  const book = recentBook.value
+  const prog = recentProgress.value
+  if (book && prog) {
+    handleEnterReader(book.id)
+    return
+  }
+  if (books.value.length > 0) {
+    uni.showToast({ title: '暂无最近阅读记录', icon: 'none' })
+  }
+}
 const filteredBuiltinBooks = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return builtinBooks.value
@@ -140,6 +180,7 @@ function persistProgress() {
     updatedAt: new Date().toISOString(),
   })
   writePreferences(prefs.value)
+  refreshRecentProgress() // sync recent
 }
 
 function resetAutoCountdown() {
@@ -767,6 +808,7 @@ onMounted(() => {
     window.addEventListener('resize', handleViewportChange)
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
+  refreshRecentProgress() // init
   void fetchBook()
 })
 
@@ -819,6 +861,33 @@ function handleKeydown(e: KeyboardEvent) {
       </view>
       <view class="library-body">
         <view class="library-tab-wrap">
+          <view
+            class="recent-entry-card"
+            role="button"
+            tabindex="0"
+            aria-label="最近阅读入口，点击继续阅读"
+            @click="handleContinueRecent"
+            @keydown.enter="handleContinueRecent"
+            @keydown.space.prevent="handleContinueRecent"
+          >
+            <view class="recent-entry-left" aria-hidden="true">
+              <view class="recent-entry-icon" :class="{ 'is-empty': !recentBook }">
+                <text class="recent-entry-icon-text">{{ recentBook ? recentBook.ext.toUpperCase() : '◷' }}</text>
+              </view>
+            </view>
+            <view class="recent-entry-center">
+              <view class="recent-entry-head">
+                <text class="recent-entry-label">最近阅读</text>
+                <text v-if="recentBook" class="recent-entry-badge">继续阅读</text>
+                <text v-else class="recent-entry-badge recent-entry-badge--muted">去浏览</text>
+              </view>
+              <text class="recent-entry-title">{{ recentBookDisplayName }}</text>
+              <text class="recent-entry-meta">{{ recentProgressLabel }}</text>
+            </view>
+            <view class="recent-entry-right" aria-hidden="true">
+              <text class="recent-entry-arrow">›</text>
+            </view>
+          </view>
           <view class="library-search">
             <view class="search-field">
               <text class="search-icon">⌕</text>
@@ -1152,6 +1221,123 @@ function handleKeydown(e: KeyboardEvent) {
   flex-direction: column;
   gap: 10px;
   overflow: hidden;
+}
+.recent-entry-card {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
+}
+.recent-entry-card:active {
+  transform: scale(0.99);
+  filter: brightness(0.99);
+}
+.recent-entry-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.recent-entry-left {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.recent-entry-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary);
+  box-sizing: border-box;
+}
+.recent-entry-icon.is-empty {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+.recent-entry-icon-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+.recent-entry-icon.is-empty .recent-entry-icon-text {
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+.recent-entry-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.recent-entry-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.recent-entry-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+}
+.recent-entry-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary);
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.recent-entry-badge--muted {
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+.recent-entry-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-entry-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-entry-right {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+.recent-entry-arrow {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  line-height: 1;
 }
 .library-search {
   flex: none;
