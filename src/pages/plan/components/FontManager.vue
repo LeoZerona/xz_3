@@ -58,17 +58,16 @@ function isFontInUse(fontId: string): boolean {
       </div>
     </section>
 
-    <scroll-view class="library-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
-      <section class="library-section" aria-labelledby="library-title">
-        <div class="library-heading">
-          <div>
-            <h2 id="library-title" class="section-title">选择字体</h2>
-            <p class="section-description">为每种字体指定用途；选择已占用的字体时会自动交换。</p>
-          </div>
-          <span class="font-count">{{ addedFonts.length }} 款</span>
-        </div>
+    <header class="library-header" aria-labelledby="library-title">
+      <div class="library-header-main">
+        <h2 id="library-title" class="section-title">选择字体</h2>
+        <p class="section-description">为每种字体指定用途；选择已占用的字体时会自动交换。</p>
+      </div>
+      <span class="font-count">{{ addedFonts.length }} 款</span>
+    </header>
 
-        <div class="managed-font-list">
+    <scroll-view class="library-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
+      <div class="managed-font-list">
           <article v-for="font in addedFonts" :key="font.id" class="font-card">
             <FontCover :font="font" />
             <div class="font-card-body">
@@ -117,7 +116,6 @@ function isFontInUse(fontId: string): boolean {
             </div>
           </article>
         </div>
-      </section>
     </scroll-view>
 
     <div class="add-font-footer">
@@ -131,28 +129,28 @@ function isFontInUse(fontId: string): boolean {
 
 <style scoped>
 .font-manager { flex: 1 1 0; min-height: 0; height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--color-surface-muted); }
-.pairing-section { flex: none; padding: 20px 16px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
-.section-heading, .library-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.section-title { margin: 0; color: var(--color-text); font-size: 16px; font-weight: 700; line-height: 1.3; }
+.pairing-section { flex: none; padding: 12px 16px 10px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.section-title { margin: 0; color: var(--color-text); font-size: 14px; font-weight: 700; line-height: 1.3; }
 .section-description { max-width: 350px; margin: 5px 0 0; color: var(--color-text-secondary); font-size: 10px; line-height: 1.5; }
 .swap-button { min-width: 60px; height: 32px; margin: 0; padding: 0 10px; flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 10px; line-height: 1; }
 .swap-button::after, .delete-button::after, .role-action::after, .add-font-button::after { border: 0; }
-.pairing-grid { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.role-card { min-width: 0; min-height: 164px; padding: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface-muted); }
+.pairing-grid { margin-top: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.role-card { min-width: 0; min-height: 124px; padding: 10px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface-muted); }
 .role-card.is-learning { border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border)); background: linear-gradient(180deg, var(--color-primary-soft), var(--color-surface) 82%); }
 .role-card-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .role-label { color: var(--color-text-secondary); font-size: 10px; font-weight: 600; }
 .is-learning .role-label { color: var(--color-primary); }
 .selected-mark { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--color-surface); color: var(--color-text-muted); font-size: 8px; font-weight: 700; }
 .is-learning .selected-mark { background: var(--color-primary); color: var(--color-on-primary); }
-.role-sample { margin: 12px 0 7px; color: var(--color-text); font-size: 52px; font-weight: 500; line-height: 1; }
+.role-sample { margin: 8px 0 5px; color: var(--color-text); font-size: 40px; font-weight: 500; line-height: 1; }
 .role-font-name { max-width: 100%; overflow: hidden; color: var(--color-text); font-size: 13px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .role-hint { margin-top: 3px; color: var(--color-text-muted); font-size: 8px; }
-.library-scroll { flex: 1 1 0; min-height: 0; height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
-.library-section { padding: 18px 12px 16px; }
-.library-heading { padding: 0 4px 12px; }
+.library-header { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 10px 16px 10px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.library-header-main { min-width: 0; flex: 1; }
+.library-scroll { flex: 1 1 0; min-height: 0; height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; background: var(--color-surface-muted); }
 .font-count { flex: none; padding: 4px 8px; border-radius: 12px; background: var(--color-surface); color: var(--color-text-muted); font-size: 9px; }
-.managed-font-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+.managed-font-list { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px calc(92px + env(safe-area-inset-bottom)); }
 .font-card { min-height: 132px; padding: 14px; display: flex; align-items: flex-start; gap: 13px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px var(--color-shadow); }
 .font-card-body { min-width: 0; flex: 1; }
 .font-card-head { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
