@@ -70,6 +70,9 @@ let autoPageFrame: number | null = null
 let autoPageFrameUsesTimeout = false
 let readingMetricsTimer: ReturnType<typeof setTimeout> | null = null
 let paginationRemeasureTimer: ReturnType<typeof setTimeout> | null = null
+let recalcDepth = 0
+const MAX_RECALC_DEPTH = 8
+const recalcHistory: number[] = []
 let autoPageStartedAt = 0
 let currentAutoProgress = 0
 let lastAutoUiUpdateAt = 0
@@ -176,20 +179,42 @@ function renderAutoProgress(progress: number) {
 
 function resetReadingScroll() {
   // 无滚动分页：仅触发重算，不操作 scrollTop
-  scheduleRecalcVisibleRows()
+  scheduleRecalcVisibleRows({ resetHistory: true })
 }
 
-function scheduleRecalcVisibleRows() {
+function scheduleRecalcVisibleRows(options: { resetHistory?: boolean } = {}) {
+  if (options.resetHistory) {
+    recalcDepth = 0
+    recalcHistory.length = 0
+  }
   if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   paginationRemeasureTimer = setTimeout(() => {
     paginationRemeasureTimer = null
     void recalcVisibleRows()
-  }, 30)
+  }, 80)
 }
 
 async function recalcVisibleRows() {
   await nextTick()
-  if (viewMode.value !== "reader") return
+  if (viewMode.value !== 'reader') return
+  recalcDepth += 1
+  if (recalcDepth > MAX_RECALC_DEPTH) {
+    recalcDepth = 0
+    recalcHistory.length = 0
+    return
+  }
+  recalcHistory.push(effectiveRowsPerPage.value)
+  if (recalcHistory.length > 6) recalcHistory.shift()
+  if (recalcHistory.length >= 4) {
+    const len = recalcHistory.length
+    if (recalcHistory[len - 1] === recalcHistory[len - 3] && recalcHistory[len - 2] === recalcHistory[len - 4]) {
+      const stable = Math.min(recalcHistory[len - 1], recalcHistory[len - 2])
+      if (effectiveRowsPerPage.value !== stable) effectiveRowsPerPage.value = stable
+      recalcDepth = 0
+      recalcHistory.length = 0
+      return
+    }
+  }
   await new Promise<void>((resolve) => setTimeout(resolve, 30))
   const cap = Math.max(1, rowsPerPage.value)
   if (rows.value.length === 0) {
@@ -221,7 +246,7 @@ async function recalcVisibleRows() {
       }
       const rowCount = rowRects.length
       if (rowCount === 0) return
-      if (innerH > viewportH + 1) {
+      if (innerH > viewportH + 2) {
         const next = Math.max(1, effectiveRowsPerPage.value - 1)
         if (next !== effectiveRowsPerPage.value) {
           effectiveRowsPerPage.value = Math.min(next, cap)
@@ -235,18 +260,9 @@ async function recalcVisibleRows() {
           const sumRowH = rowRects.reduce((sum, r) => sum + Number((r as any).height ?? 0), 0)
           const avgRowH = rowCount > 0 ? sumRowH / rowCount : 40
           const spare = viewportH - innerH
-          if (spare > avgRowH + 8) {
+          if (spare > avgRowH + 12) {
             const next = Math.min(cap, effectiveRowsPerPage.value + 1)
             effectiveRowsPerPage.value = next
-            scheduleRecalcVisibleRows()
-          }
-        } else if (remainingOnPage <= effectiveRowsPerPage.value && rowCount < effectiveRowsPerPage.value) {
-          // 最后一页行数不足，尝试填满
-          const sumRowH = rowRects.reduce((sum, r) => sum + Number((r as any).height ?? 0), 0)
-          const avgRowH = rowCount > 0 ? sumRowH / rowCount : 40
-          const spare = viewportH - innerH
-          if (spare > avgRowH + 8 && effectiveRowsPerPage.value < cap) {
-            effectiveRowsPerPage.value = Math.min(cap, effectiveRowsPerPage.value + 1)
             scheduleRecalcVisibleRows()
           }
         }
@@ -338,7 +354,7 @@ function handleViewportChange() {
   const wasMobile = isMobileViewport.value
   isMobileViewport.value = window.innerWidth < 900
   if (wasMobile !== isMobileViewport.value) showCatalog.value = !isMobileViewport.value
-  if (viewMode.value === 'reader') scheduleRecalcVisibleRows()
+  if (viewMode.value === 'reader') scheduleRecalcVisibleRows({ resetHistory: true })
 }
 
 function handleToggleCatalog() {
@@ -774,8 +790,7 @@ watch(totalPages, (next) => {
   if (currentPage.value > next) currentPage.value = next
 })
 
-watch([currentPage, tableStyleId, rowsPerPage, showStylePanel, readingFontSize], () => scheduleRecalcVisibleRows())
-watch([rows, effectiveRowsPerPage], () => scheduleRecalcVisibleRows())
+watch([currentPage, tableStyleId, rowsPerPage, showStylePanel, readingFontSize, rows], () => scheduleRecalcVisibleRows({ resetHistory: true }))
 watch(effectiveRowsPerPage, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
@@ -1764,5 +1779,6 @@ function handleKeydown(e: KeyboardEvent) {
   .reader-top-overlay, .reader-bottom-overlay, .reader-drawer { transition: none; }
 }
 </style>
+
 
 

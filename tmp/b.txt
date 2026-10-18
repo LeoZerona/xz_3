@@ -1,0 +1,64 @@
+diff --git a/src/pages/levels/index.vue b/src/pages/levels/index.vue
+index 750972d..f341752 100644
+--- a/src/pages/levels/index.vue
++++ b/src/pages/levels/index.vue
+@@ -120,7 +120,6 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+     <view class="levels-header">
+       <view class="header-top">
+         <text class="header-title">关卡学习</text>
+-        <text class="header-subtitle">固定 10 字一关 · 循序渐进</text>
+       </view>
+       <view class="category-tabs" role="tablist" aria-label="关卡分类">
+         <view
+@@ -150,7 +149,7 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+         </view>
+         <view class="summary-copy">
+           <text class="summary-title">{{ currentMeta.label }} · {{ totalCount }} 关</text>
+-          <text class="summary-desc">{{ currentMeta.description }} · 已完成 {{ completedCount }}/{{ totalCount }}</text>
++          <text class="summary-desc">已完成 {{ completedCount }}/{{ totalCount }}</text>
+           <view class="summary-progress-track" aria-hidden="true">
+             <view class="summary-progress-fill" :style="{ width: progressPercent + '%' }" />
+           </view>
+@@ -158,7 +157,6 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+         <text class="summary-percent">{{ progressPercent }}%</text>
+       </view>
+       <text v-if="activeCategory === 'level2' || activeCategory === 'level3'" class="summary-tip">二三级字表接入中，当前为占位演示，可先体验一级关卡</text>
+-      <text v-else-if="activeCategory === 'radical'" class="summary-tip">以高频部首为线索，每关 10 个部首代表字，识部首更快记字形</text>
+     </view>
+ 
+     <scroll-view
+@@ -236,9 +234,6 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+       >
+         <text>{{ isLoadingStages ? "正在加载…" : "继续加载关卡" }}（已显示 {{ visibleStages.length }}/{{ totalCount }}）</text>
+       </view>
+-      <view class="levels-foot-hint">
+-        <text>左右滑动可切换底部导航 · 点击关卡进入固定 10 字学习</text>
+-      </view>
+     </scroll-view>
+ 
+     <AppBottomNavigation active-tab="character" @unavailable="showPlaceholder" />
+@@ -275,10 +270,6 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+   font-weight: 800;
+   letter-spacing: -0.03em;
+ }
+-.header-subtitle {
+-  color: var(--color-text-muted);
+-  font-size: 9px;
+-}
+ .category-tabs {
+   margin-top: 12px;
+   display: grid;
+@@ -610,13 +601,6 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
+   color: var(--color-text-muted);
+   border: 1px solid var(--color-border);
+ }
+-.levels-foot-hint {
+-  margin-top: 10px;
+-  color: var(--color-text-muted);
+-  font-size: 7px;
+-  text-align: center;
+-}
+-
+ @media (max-width: 360px) {
+   .levels-header {
+     padding-right: 12px;

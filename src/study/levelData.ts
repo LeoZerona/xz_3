@@ -15,10 +15,10 @@ export interface LevelCategoryMeta {
 }
 
 export const LEVEL_CATEGORIES: LevelCategoryMeta[] = [
-  { key: 'radical', label: '偏旁部首', shortLabel: '部首', description: '识部首 · 明结构', icon: 'apps-o', stageSize: 10 },
-  { key: 'level1', label: '一级汉字', shortLabel: '一级', description: '常用字 · 打基础', icon: 'records', stageSize: 10 },
-  { key: 'level2', label: '二级汉字', shortLabel: '二级', description: '进阶字 · 扩词汇', icon: 'column', stageSize: 10 },
-  { key: 'level3', label: '三级汉字', shortLabel: '三级', description: '高阶字 · 拓视野', icon: 'diamond', stageSize: 10 },
+  { key: 'radical', label: '偏旁部首', shortLabel: '部首', description: '', icon: 'apps-o', stageSize: 10 },
+  { key: 'level1', label: '一级汉字', shortLabel: '一级', description: '', icon: 'records', stageSize: 10 },
+  { key: 'level2', label: '二级汉字', shortLabel: '二级', description: '', icon: 'column', stageSize: 10 },
+  { key: 'level3', label: '三级汉字', shortLabel: '三级', description: '', icon: 'diamond', stageSize: 10 },
 ]
 
 export interface LevelStage {

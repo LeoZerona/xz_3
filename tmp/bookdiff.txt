@@ -1,0 +1,49 @@
+diff --git a/src/reading/bookLoader.ts b/src/reading/bookLoader.ts
+index 9c6b820..f515438 100644
+--- a/src/reading/bookLoader.ts
++++ b/src/reading/bookLoader.ts
+@@ -88,11 +88,14 @@ async function getPdfModule(): Promise<typeof import('./pdfjsAdapter')> {
+ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promise<LoadResult> {
+   const pdfjs = await getPdfModule()
+   const { getDocument } = pdfjs
++  try {
++    pdfjs.ensurePdfGlobalPolyfill()
++  } catch {}
+   try {
+     pdfjs.configurePdfWorker()
+   } catch {}
+   try {
+-    pdfjs.ensurePdfGlobalPolyfill()
++    await pdfjs.ensureFakeWorkerReady()
+   } catch {}
+ 
+   const data = new Uint8Array(buffer)
+@@ -106,6 +109,8 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
+ 
+   async function loadWithFakeWorker(): Promise<Awaited<ReturnType<typeof getDocument>> extends { promise: Promise<infer T> } ? T : never> {
+     // \u5F3A\u5236\u8D70 fake worker\uFF1A\u6682\u65F6\u5C4F\u853D\u5168\u5C40 Worker\uFF0C\u8BA9 PDFWorker \u81EA\u52A8\u9009\u62E9 LoopbackPort
++    try { await pdfjs.ensureFakeWorkerReady() } catch {}
++    try { pdfjs.configurePdfWorker() } catch {}
+     const g = globalThis as unknown as { Worker?: unknown }
+     const originalWorker = g.Worker
+     const hadWorker = typeof g.Worker !== 'undefined'
+@@ -162,7 +167,18 @@ export async function parsePdfBuffer(buffer: ArrayBuffer, bookId: string): Promi
+       doc = (await loadWithFakeWorker()) as never
+     } catch (e) {
+       const msg = e instanceof Error ? e.message : String(e)
+-      throw new Error('PDF \u89E3\u6790\u5931\u8D25\uFF1A' + msg)
++      if (msg.includes("GlobalWorkerOptions") || msg.includes("workerSrc")) {
++        try { pdfjs.configurePdfWorker() } catch {}
++        try { await pdfjs.ensureFakeWorkerReady() } catch {}
++        try {
++          doc = (await loadWithFakeWorker()) as never
++        } catch (e2) {
++          const msg2 = e2 instanceof Error ? e2.message : String(e2)
++          throw new Error('PDF 解析失败：' + msg2)
++        }
++      } else {
++        throw new Error('PDF 解析失败：' + msg)
++      }
+     }
+   }
+ 
