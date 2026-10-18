@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onBackPress } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterLearningStore } from '../../stores/characterLearning'

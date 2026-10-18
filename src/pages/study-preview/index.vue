@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBackPress } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import characterTable from '../../static/character_table/first-level.json'
@@ -48,8 +49,17 @@ const coverToggleLabel = computed(() => (
 ))
 
 function goBack() {
-  uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+    return
+  }
+  uni.reLaunch({ url: '/pages/index/index' })
 }
+
+onBackPress(() => {
+  goBack()
+  return true
+})
 
 function swapCoveredFont() {
   coveredFont.value = coveredFont.value === 'learning' ? 'reference' : 'learning'

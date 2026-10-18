@@ -195,6 +195,19 @@ function savePlan() {
 onMounted(() => {
   initialiseWheel()
 })
+
+onBackPress(() => {
+  if (activeSection.value === 'catalog') {
+    activeSection.value = 'fonts'
+    return true
+  }
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+    return true
+  }
+  uni.reLaunch({ url: '/pages/index/index' })
+  return true
+})
 </script>
 
 <style scoped>
