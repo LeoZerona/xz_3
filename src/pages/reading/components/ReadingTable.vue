@@ -111,10 +111,6 @@ function splitChars(text: string): string[] {
         </view>
       </view>
     </view>
-
-    <view class="table-caption" aria-hidden="true">
-      <text class="caption-text">第 {{ page }} / {{ totalPages }} 页 · 长按可选取文字 · 上下为学习/对照字体</text>
-    </view>
   </view>
 </template>
 <style scoped lang="scss">

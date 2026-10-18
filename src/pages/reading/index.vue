@@ -1014,9 +1014,6 @@ function handleKeydown(e: KeyboardEvent) {
             <text class="bottom-action-label">设置</text>
           </view>
         </view>
-        <view class="bottom-progress-hint" aria-hidden="true">
-          <text class="hint-text">{{ currentPage }} / {{ totalPages }} · {{ rangeLabel }}</text>
-        </view>
       </view>
 
       <view v-if="showReaderCatalog" class="reader-drawer-mask" @click="showReaderCatalog = false">
