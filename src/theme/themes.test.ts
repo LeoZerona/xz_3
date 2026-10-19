@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyTheme } from './applyTheme'
+import { applyTheme, getThemeStyle } from './applyTheme'
 import { DEFAULT_THEME_ID, getTheme, themes } from './themes'
 
 describe('主题系统', () => {
@@ -24,5 +24,13 @@ describe('主题系统', () => {
     expect(setAttribute).toHaveBeenCalledWith('data-theme-mode', 'light')
     expect(setProperty).toHaveBeenCalledWith('--color-primary', theme.tokens.primary)
     expect(setProperty).toHaveBeenCalledWith('--color-page', theme.tokens.page)
+  })
+
+  it('App 无 DOM 时仍能通过页面 style 绑定完整的夜间主题', () => {
+    const style = getThemeStyle(getTheme('ink-night'))
+    expect(style['--color-page']).toBe('#151922')
+    expect(style['--color-text']).toBe('#f1f4fa')
+    expect(style.colorScheme).toBe('dark')
+    expect(Object.keys(style)).toHaveLength(Object.keys(getTheme('ink-night').tokens).length + 1)
   })
 })

@@ -1,5 +1,5 @@
 <template>
-  <view class="app-shell" :data-theme="currentThemeId">
+  <view class="app-shell" :data-theme="currentThemeId" :style="themeStyle">
     <view class="app-safe-mask" aria-hidden="true" />
     <slot />
   </view>
@@ -11,7 +11,7 @@ import { storeToRefs } from 'pinia'
 import { useThemeStore } from './stores/theme'
 
 const themeStore = useThemeStore()
-const { currentThemeId } = storeToRefs(themeStore)
+const { currentThemeId, themeStyle } = storeToRefs(themeStore)
 
 onMounted(themeStore.initialize)
 </script>

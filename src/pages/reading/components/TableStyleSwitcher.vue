@@ -1,27 +1,22 @@
 ﻿<script setup lang="ts">
 import { TABLE_STYLES } from '../../../reading/tableStyles'
-import type { RowsPerPage, TableStyleId } from '../../../reading/types'
-import { ROWS_PER_PAGE_OPTIONS } from '../../../reading/pagination'
+import type { TableStyleId } from '../../../reading/types'
 
 interface Props {
   modelValue: TableStyleId
-  rowsPerPage: RowsPerPage
+  effectiveRowsPerPage: number
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: TableStyleId): void
-  (event: 'update:rowsPerPage', value: RowsPerPage): void
 }>()
 
 function selectStyle(id: TableStyleId) {
   emit('update:modelValue', id)
 }
 
-function selectRowsPerPage(value: RowsPerPage) {
-  emit('update:rowsPerPage', value)
-}
 </script>
 
 <template>
@@ -53,24 +48,12 @@ function selectRowsPerPage(value: RowsPerPage) {
       </view>
     </view>
 
-    <view class="rows-per-page">
-      <text class="rpp-label">每页行数</text>
-      <view class="rpp-options" role="radiogroup" aria-label="每页行数">
-        <view
-          v-for="opt in ROWS_PER_PAGE_OPTIONS"
-          :key="opt"
-          class="rpp-btn"
-          :class="{ 'is-active': opt === rowsPerPage }"
-          role="radio"
-          :aria-checked="opt === rowsPerPage"
-          tabindex="0"
-          @click="selectRowsPerPage(opt)"
-          @keydown.enter="selectRowsPerPage(opt)"
-          @keydown.space.prevent="selectRowsPerPage(opt)"
-        >
-          <text class="rpp-text">{{ opt }}</text>
-        </view>
+    <view class="auto-pagination-note">
+      <view class="auto-pagination-copy">
+        <text class="auto-pagination-title">自动适配整页</text>
+        <text class="auto-pagination-desc">根据屏幕、表格样式和每行字数重新分页</text>
       </view>
+      <text class="auto-pagination-value">{{ effectiveRowsPerPage }} 行/页</text>
     </view>
   </view>
 </template>
@@ -172,26 +155,18 @@ function selectRowsPerPage(value: RowsPerPage) {
 .style-badge { position: absolute; top: 6px; right: 6px; font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 999px; background: var(--color-text); color: #fff; }
 .style-card.is-active .style-badge { background: var(--color-primary); }
 
-.rows-per-page {
+.auto-pagination-note {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 10px 14px;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface-muted);
 }
 
-.rpp-label { font-size: 11px; font-weight: 600; color: var(--color-text-muted); }
-.rpp-options { display: flex; gap: 6px; }
-.rpp-btn {
-  min-width: 32px;
-  height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  cursor: pointer;
-}
-.rpp-btn.is-active { background: var(--color-primary); border-color: var(--color-primary); .rpp-text { color: #fff; } }
-.rpp-text { font-size: 11px; font-weight: 700; color: var(--color-text); }
+.auto-pagination-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.auto-pagination-title { font-size: 11px; font-weight: 700; color: var(--color-text); }
+.auto-pagination-desc { font-size: 9px; line-height: 1.35; color: var(--color-text-muted); }
+.auto-pagination-value { flex: none; font-size: 11px; font-weight: 700; color: var(--color-primary); }
 </style>

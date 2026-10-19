@@ -10,6 +10,7 @@ export interface ReadingPreferences {
   autoPageSeconds: number
   readingFontSize: number
   charsPerLine: number
+  hideReferenceText: boolean
 }
 
 const DEFAULT_PREFS: ReadingPreferences = {
@@ -18,6 +19,7 @@ const DEFAULT_PREFS: ReadingPreferences = {
   autoPageSeconds: 30,
   readingFontSize: 18,
   charsPerLine: 14,
+  hideReferenceText: false,
 }
 
 export const MIN_AUTO_PAGE_SECONDS = 1
@@ -89,6 +91,7 @@ export function readPreferences(): ReadingPreferences {
         autoPageSeconds: normalizeAutoPageSeconds(data.autoPageSeconds),
         readingFontSize: normalizeReadingFontSize((data as Record<string, unknown>).readingFontSize),
         charsPerLine,
+        hideReferenceText: data.hideReferenceText === true,
       }
     }
   } catch {}

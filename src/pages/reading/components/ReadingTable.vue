@@ -12,20 +12,15 @@ interface Props {
   totalPages: number
   fontSize?: number
   charsPerLine?: number
-  autoProgress?: number
-  isAutoReading?: boolean
+  hideReferenceText?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   rows: () => [],
   fontSize: 18,
   charsPerLine: undefined,
-  autoProgress: 0,
-  isAutoReading: false,
+  hideReferenceText: false,
 })
-
-const safeAutoProgress = computed(() => Math.min(1, Math.max(0, props.autoProgress)))
-const progressStyle = computed(() => ({ transform: `scaleY(${safeAutoProgress.value})` }))
 
 function migrateFontSizeToChars(v: number): number {
   if (!Number.isFinite(v)) return 14
@@ -72,7 +67,7 @@ function splitChars(text: string): string[] {
 </script>
 <template>
   <view class="reading-table-wrap"
-    :class="{ 'is-auto-reading': isAutoReading }"
+    :class="{ 'is-reference-hidden': hideReferenceText }"
     :data-table-style="tableStyleId"
     :style="{ '--reading-font-size': gridFontSize + 'px', '--chars-per-line': String(normalizedCharsPerLine) }"
     role="table"
@@ -85,8 +80,6 @@ function splitChars(text: string): string[] {
     </view>
 
     <view v-else class="reading-table" role="rowgroup">
-      <view v-if="isAutoReading" class="reading-progress" :style="progressStyle" aria-hidden="true" />
-
       <view class="table-header" role="row" aria-hidden="true">
         <text class="header-text">学习字体 / 对照字体</text>
       </view>
@@ -112,7 +105,7 @@ function splitChars(text: string): string[] {
               </view>
             </view>
             <view class="cell-divider manuscript-divider" aria-hidden="true" />
-            <view class="manuscript-line manuscript-line--ref">
+            <view class="manuscript-line manuscript-line--ref" :aria-hidden="hideReferenceText">
               <view
                 v-for="(character, characterIndex) in splitChars(row.text)"
                 :key="characterIndex"
@@ -127,13 +120,13 @@ function splitChars(text: string): string[] {
           <template v-else-if="tableStyleId === 'manuscript-line'">
             <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px', lineHeight: manuscriptLineHeight, minHeight: manuscriptLineHeight }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px', lineHeight: manuscriptRefLineHeight, minHeight: manuscriptRefLineHeight }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :aria-hidden="hideReferenceText" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px', lineHeight: manuscriptRefLineHeight, minHeight: manuscriptRefLineHeight }">{{ row.text }}</view>
           </template>
 
           <template v-else>
             <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px' }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference selectable-view" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px' }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :aria-hidden="hideReferenceText" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px' }">{{ row.text }}</view>
           </template>
         </view>
       </view>
@@ -152,18 +145,9 @@ function splitChars(text: string): string[] {
 .reading-table { position: relative; width: 100%; }
 .table-header { display: none; }
 
-.reading-progress {
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--color-progress) 20%, transparent);
-  border-bottom: 2px solid var(--color-progress);
-  transform-origin: top;
-  will-change: transform;
+.is-reference-hidden {
+  // 隐藏字形而不移除行或格子，稿纸与分页尺寸保持不变。
+  .ref-char, .cell-reference { visibility: hidden; }
 }
 
 .reading-row {
@@ -270,6 +254,6 @@ function splitChars(text: string): string[] {
   .reading-table-wrap[data-table-style='manuscript-line'] .cell-content { background: repeating-linear-gradient(to bottom, transparent 0, transparent 23px, var(--color-border) 23px, var(--color-border) 24px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .reading-progress, .reading-row { transition: none; }
+  .reading-row { transition: none; }
 }
 </style>

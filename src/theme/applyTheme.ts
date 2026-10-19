@@ -25,6 +25,15 @@ export type ThemeTarget = {
   style: { setProperty(name: string, value: string): void }
 }
 
+// uni-app 的 App 逻辑层没有 document，页面通过 style 绑定同一组主题变量。
+export function getThemeStyle(theme: ThemeDefinition): Record<string, string> {
+  const style: Record<string, string> = { colorScheme: theme.mode }
+  for (const token of Object.keys(tokenProperties) as (keyof ThemeDefinition['tokens'])[]) {
+    style[tokenProperties[token]] = theme.tokens[token]
+  }
+  return style
+}
+
 export function applyTheme(theme: ThemeDefinition, target?: ThemeTarget | null) {
   const root = target ?? (typeof document === 'undefined' ? null : document.documentElement)
   if (!root) return

@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { applyTheme } from '../theme/applyTheme'
+import { applyTheme, getThemeStyle } from '../theme/applyTheme'
 import { DEFAULT_THEME_ID, getTheme, THEME_STORAGE_KEY, themes } from '../theme/themes'
 
 function readStoredThemeId() {
@@ -15,6 +15,7 @@ function readStoredThemeId() {
 export const useThemeStore = defineStore('theme', () => {
   const currentThemeId = ref(DEFAULT_THEME_ID)
   const currentTheme = computed(() => getTheme(currentThemeId.value))
+  const themeStyle = computed(() => getThemeStyle(currentTheme.value))
 
   function initialize() {
     currentThemeId.value = readStoredThemeId()
@@ -28,5 +29,5 @@ export const useThemeStore = defineStore('theme', () => {
     try { uni.setStorageSync(THEME_STORAGE_KEY, selected.id) } catch { /* 浏览器隐私模式下仍保持当前会话主题 */ }
   }
 
-  return { themes, currentThemeId, currentTheme, initialize, selectTheme }
+  return { themes, currentThemeId, currentTheme, themeStyle, initialize, selectTheme }
 })

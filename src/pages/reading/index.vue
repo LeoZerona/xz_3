@@ -7,12 +7,13 @@ import { getBooksCatalog } from '../../reading/booksCatalog'
 import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } from '../../reading/customBooks'
 import type { CustomBookRecord } from '../../reading/customBooks'
 import { decodeTextBuffer, extractPdfRawText, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
-import { clampPage, computeTotalPages, getPageSlice } from '../../reading/pagination'
+import { calculateFittingRows, clampPage } from '../../reading/pagination'
 import { normalizeAutoPageSeconds, normalizeCharsPerLine, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
-import type { BookMeta, ReadingRow, RowsPerPage, TableStyleId } from '../../reading/types'
+import type { BookMeta, ReadingRow, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import AutoPageControl from './components/AutoPageControl.vue'
+import AutoReadingProgress from './components/AutoReadingProgress.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
@@ -97,7 +98,6 @@ let lastPdfBufferRef: ArrayBuffer | null = null
 
 const prefs = ref(readPreferences())
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
-const rowsPerPage = computed<RowsPerPage>(() => prefs.value.rowsPerPage)
 const charsPerLine = computed(() => prefs.value.charsPerLine)
 const readingFontSize = computed(() => prefs.value.readingFontSize)
 
@@ -107,6 +107,7 @@ const viewMode = ref<ViewMode>('library')
 const showReaderChrome = ref(false)
 const showReaderCatalog = ref(false)
 const showReaderSettings = ref(false)
+const showAutoPagePanel = ref(false)
 const showCatalog = ref(true)
 const showStylePanel = ref(false)
 const isMobileViewport = ref(false)
@@ -116,22 +117,39 @@ const isAutoReading = computed(() => autoReadingState.value === 'running')
 const isAutoReadingPaused = computed(() => autoReadingState.value === 'paused')
 const isAutoReadingActive = computed(() => autoReadingState.value !== 'idle')
 const autoProgress = ref(0)
+const autoAnimationProgress = ref(0)
+const autoAnimationSequence = ref(0)
 const effectiveRowsPerPage = ref<number>(prefs.value.rowsPerPage)
-let autoPageFrame: number | null = null
-let autoPageFrameUsesTimeout = false
+const isPaginationReady = ref(false)
+type PageTurnDirection = 'next' | 'previous' | 'none'
+const pageTurnDirection = ref<PageTurnDirection>('none')
+const pageTurnSequence = ref(0)
+let autoPageTimer: ReturnType<typeof setTimeout> | null = null
 let paginationRemeasureTimer: ReturnType<typeof setTimeout> | null = null
 let isRecalculating = false
 let pendingRecalc = false
 let autoPageStartedAt = 0
 let currentAutoProgress = 0
-let lastAutoUiUpdateAt = 0
 const AUTO_UI_UPDATE_INTERVAL = 200
+
+interface LayoutRect {
+  top: number
+  bottom: number
+  height: number
+}
 
 // 字体
 const fontStore = useFontStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
 const themeStore = useThemeStore()
-const { currentThemeId } = storeToRefs(themeStore)
+const { currentThemeId, themeStyle } = storeToRefs(themeStore)
+const daytimeThemeId = ref(currentThemeId.value === 'ink-night' ? 'ocean-blue' : currentThemeId.value)
+const referenceToggleLabel = computed(() => prefs.value.hideReferenceText ? '显示对照文字' : '隐藏对照文字')
+const autoMenuLabel = computed(() => {
+  if (isAutoReading.value) return '翻页中'
+  if (isAutoReadingPaused.value) return '已暂停'
+  return '自动翻页'
+})
 
 const activeBook = computed<BookMeta | undefined>(() => books.value.find((b) => b.id === activeBookId.value))
 
@@ -158,6 +176,10 @@ const autoPageSeconds = computed(() => prefs.value.autoPageSeconds)
 const canPrevPage = computed(() => currentPage.value > 1)
 const canNextPage = computed(() => currentPage.value < totalPages.value)
 const progressPercent = computed(() => totalPages.value <= 1 ? 100 : Math.round((currentPage.value / totalPages.value) * 100))
+const pageTurnClass = computed(() => ({
+  'is-turning-next': pageTurnDirection.value === 'next',
+  'is-turning-previous': pageTurnDirection.value === 'previous',
+}))
 
 // 触摸翻页
 const touchStartX = ref(0)
@@ -184,7 +206,7 @@ function persistProgress() {
   writeProgress({
     bookId: activeBookId.value,
     page: currentPage.value,
-    rowsPerPage: rowsPerPage.value,
+    rowsPerPage: prefs.value.rowsPerPage,
     tableStyleId: tableStyleId.value,
     updatedAt: new Date().toISOString(),
   })
@@ -196,51 +218,135 @@ function resetAutoCountdown() {
   autoPageStartedAt = getAnimationTime()
   currentAutoProgress = 0
   autoProgress.value = 0
-  renderAutoProgress(0)
+  syncAutoAnimation()
+}
+
+function syncAutoAnimation() {
+  autoAnimationProgress.value = currentAutoProgress
+  autoAnimationSequence.value += 1
 }
 
 function getAnimationTime() {
   return typeof performance !== "undefined" ? performance.now() : Date.now()
 }
 
-function scheduleAutoPageFrame() {
-  if (!isAutoReading.value || autoPageFrame !== null) return
-  if (typeof requestAnimationFrame === "function") {
-    autoPageFrameUsesTimeout = false
-    autoPageFrame = requestAnimationFrame(tickAutoPage)
-    return
-  }
-  autoPageFrameUsesTimeout = true
-  autoPageFrame = setTimeout(tickAutoPage, 16) as unknown as number
+function scheduleAutoPageTick() {
+  if (!isAutoReading.value || autoPageTimer !== null) return
+  const remaining = autoPageSeconds.value * 1000 - (getAnimationTime() - autoPageStartedAt)
+  autoPageTimer = setTimeout(tickAutoPage, Math.max(0, Math.min(AUTO_UI_UPDATE_INTERVAL, remaining)))
 }
 
-function cancelAutoPageFrame() {
-  if (autoPageFrame === null) return
-  if (autoPageFrameUsesTimeout) clearTimeout(autoPageFrame)
-  else if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(autoPageFrame)
-  autoPageFrame = null
-}
-
-function renderAutoProgress(progress: number) {
-  if (typeof document === "undefined") return
-  const progressElement = document.querySelector<HTMLElement>("#reading-scroll .reading-progress")
-  if (progressElement) progressElement.style.transform = `scaleY(${progress})`
-}
-
-function resetReadingScroll() {
-  // 无滚动分页：仅触发重算，不操作 scrollTop
-  scheduleRecalcVisibleRows()
+function cancelAutoPageTick() {
+  if (autoPageTimer === null) return
+  clearTimeout(autoPageTimer)
+  autoPageTimer = null
 }
 
 function scheduleRecalcVisibleRows() {
-  // 已移除视口自适应分页以消除闪烁：分页完全由每行字数 N 与用户 rowsPerPage 决定
-  // 保持 effectiveRowsPerPage 与用户设置一致，避免异步测量导致的少行/闪烁
-  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
+  if (viewMode.value !== 'reader' || loading.value || loadError.value || rows.value.length === 0) return
+  isPaginationReady.value = false
+  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
+  paginationRemeasureTimer = setTimeout(() => {
+    paginationRemeasureTimer = null
+    void recalcVisibleRows()
+  }, 32)
 }
 
-async function recalcVisibleRows() {
-  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
-  return
+function toLayoutRect(value: unknown): LayoutRect | null {
+  if (!value || typeof value !== 'object') return null
+  const rect = value as Record<string, unknown>
+  const top = Number(rect.top)
+  const height = Number(rect.height)
+  const bottomValue = Number(rect.bottom)
+  if (!Number.isFinite(top) || !Number.isFinite(height) || height <= 0) return null
+  return {
+    top,
+    height,
+    bottom: Number.isFinite(bottomValue) ? bottomValue : top + height,
+  }
+}
+
+function measureReadingPage(): Promise<{ stage: LayoutRect | null; table: LayoutRect | null; rowRects: LayoutRect[] }> {
+  if (typeof document !== 'undefined') {
+    const stageElement = document.querySelector<HTMLElement>('#reading-page-stage')
+    const tableElement = document.querySelector<HTMLElement>('#reading-page-stage .reading-table-wrap')
+    const rowElements = Array.from(document.querySelectorAll<HTMLElement>('#reading-page-stage .reading-row'))
+    return Promise.resolve({
+      stage: toLayoutRect(stageElement?.getBoundingClientRect()),
+      table: toLayoutRect(tableElement?.getBoundingClientRect()),
+      rowRects: rowElements.map((element) => toLayoutRect(element.getBoundingClientRect())).filter((rect): rect is LayoutRect => rect !== null),
+    })
+  }
+
+  return new Promise((resolve) => {
+    let isSettled = false
+    const finish = (value: { stage: LayoutRect | null; table: LayoutRect | null; rowRects: LayoutRect[] }) => {
+      if (isSettled) return
+      isSettled = true
+      clearTimeout(fallbackTimer)
+      resolve(value)
+    }
+    const fallbackTimer = setTimeout(() => finish({ stage: null, table: null, rowRects: [] }), 300)
+    const query = uni.createSelectorQuery()
+    query.select('#reading-page-stage').boundingClientRect()
+    query.select('#reading-page-stage .reading-table-wrap').boundingClientRect()
+    query.selectAll('#reading-page-stage .reading-row').boundingClientRect()
+    query.exec((result) => {
+      const values = Array.isArray(result) ? result as unknown[] : []
+      const rowsResult = Array.isArray(values[2]) ? values[2] : []
+      finish({
+        stage: toLayoutRect(values[0]),
+        table: toLayoutRect(values[1]),
+        rowRects: rowsResult.map(toLayoutRect).filter((rect): rect is LayoutRect => rect !== null),
+      })
+    })
+  })
+}
+
+function getFallbackRowGap(): number {
+  return tableStyleId.value === 'manuscript-grid' || tableStyleId.value === 'borderless' ? 10 : 0
+}
+
+async function recalcVisibleRows(): Promise<void> {
+  if (isRecalculating) {
+    pendingRecalc = true
+    return
+  }
+  if (viewMode.value !== 'reader' || loading.value || loadError.value || rows.value.length === 0) return
+
+  isRecalculating = true
+  try {
+    await nextTick()
+    const { stage, table, rowRects } = await measureReadingPage()
+    if (!stage || !table || rowRects.length === 0) return
+
+    const rowHeight = Math.max(...rowRects.map((rect) => rect.height))
+    const measuredGaps = rowRects.slice(1).map((rect, index) => Math.max(0, rect.top - rowRects[index]!.bottom))
+    const rowGap = measuredGaps.length > 0 ? Math.max(...measuredGaps) : getFallbackRowGap()
+    const renderedRowsHeight = rowRects.reduce((total, rect) => total + rect.height, 0)
+    const renderedGapsHeight = measuredGaps.reduce((total, gap) => total + gap, 0)
+    const tableOverhead = Math.max(0, table.height - renderedRowsHeight - renderedGapsHeight)
+    const nextRowsPerPage = calculateFittingRows({
+      availableHeight: stage.height,
+      rowHeight,
+      rowGap,
+      tableOverhead,
+    }, rows.value.length)
+
+    if (nextRowsPerPage !== effectiveRowsPerPage.value) {
+      const firstVisibleRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
+      effectiveRowsPerPage.value = nextRowsPerPage
+      currentPage.value = clampPage(Math.floor(firstVisibleRowIndex / nextRowsPerPage) + 1, totalPages.value)
+      await nextTick()
+    }
+  } finally {
+    isRecalculating = false
+    isPaginationReady.value = true
+    if (pendingRecalc) {
+      pendingRecalc = false
+      scheduleRecalcVisibleRows()
+    }
+  }
 }
 
 function handleReadingScrollIntent() {
@@ -249,39 +355,47 @@ function handleReadingScrollIntent() {
 
 function pauseAutoReading() {
   if (!isAutoReading.value) return
-  cancelAutoPageFrame()
+  cancelAutoPageTick()
+  currentAutoProgress = Math.min(1, (getAnimationTime() - autoPageStartedAt) / (autoPageSeconds.value * 1000))
   autoProgress.value = currentAutoProgress
   autoReadingState.value = 'paused'
+  syncAutoAnimation()
 }
 
 function resumeAutoReading() {
   if (!isAutoReadingPaused.value) return
   autoPageStartedAt = getAnimationTime() - currentAutoProgress * autoPageSeconds.value * 1000
   autoReadingState.value = 'running'
-  lastAutoUiUpdateAt = 0
-  scheduleAutoPageFrame()
+  syncAutoAnimation()
+  scheduleAutoPageTick()
 }
 
 function stopAutoReading() {
-  cancelAutoPageFrame()
+  cancelAutoPageTick()
   autoReadingState.value = 'idle'
   currentAutoProgress = 0
   autoProgress.value = 0
-  renderAutoProgress(0)
+  syncAutoAnimation()
+}
+
+function setPageWithAnimation(page: number, direction: PageTurnDirection): boolean {
+  const nextPage = clampPage(page, totalPages.value)
+  if (nextPage === currentPage.value) return false
+  pageTurnDirection.value = direction
+  pageTurnSequence.value += 1
+  currentPage.value = nextPage
+  return true
 }
 
 function tickAutoPage() {
-  autoPageFrame = null
+  autoPageTimer = null
+  if (!isAutoReading.value) return
   const now = getAnimationTime()
   const durationMs = autoPageSeconds.value * 1000
   currentAutoProgress = Math.min(1, (now - autoPageStartedAt) / durationMs)
-  renderAutoProgress(currentAutoProgress)
-  if (now - lastAutoUiUpdateAt >= AUTO_UI_UPDATE_INTERVAL || currentAutoProgress >= 1) {
-    autoProgress.value = currentAutoProgress
-    lastAutoUiUpdateAt = now
-  }
+  autoProgress.value = currentAutoProgress
   if (currentAutoProgress < 1) {
-    scheduleAutoPageFrame()
+    scheduleAutoPageTick()
     return
   }
   if (currentPage.value >= totalPages.value) {
@@ -289,22 +403,18 @@ function tickAutoPage() {
     uni.showToast({ title: '已读到最后一页', icon: 'none' })
     return
   }
-  currentPage.value += 1
-  resetReadingScroll()
+  setPageWithAnimation(currentPage.value + 1, 'next')
   persistProgress()
   resetAutoCountdown()
-  lastAutoUiUpdateAt = 0
-  scheduleAutoPageFrame()
+  scheduleAutoPageTick()
 }
 
 function startAutoReading() {
   if (loading.value || loadError.value || rows.value.length === 0) return
-  if (currentPage.value >= totalPages.value && totalPages.value > 1) currentPage.value = 1
-  resetReadingScroll()
+  if (currentPage.value >= totalPages.value && totalPages.value > 1) setPageWithAnimation(1, 'none')
   autoReadingState.value = 'running'
   resetAutoCountdown()
-  lastAutoUiUpdateAt = 0
-  scheduleAutoPageFrame()
+  scheduleAutoPageTick()
 }
 
 function handleToggleAutoReading() {
@@ -314,10 +424,19 @@ function handleToggleAutoReading() {
 }
 
 function handleAutoPageSecondsChange(value: number) {
-  prefs.value = { ...prefs.value, autoPageSeconds: normalizeAutoPageSeconds(value) }
+  const seconds = normalizeAutoPageSeconds(value)
+  if (seconds === autoPageSeconds.value) return
+  if (isAutoReading.value) {
+    currentAutoProgress = Math.min(1, (getAnimationTime() - autoPageStartedAt) / (autoPageSeconds.value * 1000))
+  }
+  prefs.value = { ...prefs.value, autoPageSeconds: seconds }
   writePreferences(prefs.value)
   if (isAutoReadingActive.value) {
     autoPageStartedAt = getAnimationTime() - currentAutoProgress * autoPageSeconds.value * 1000
+    autoProgress.value = currentAutoProgress
+    syncAutoAnimation()
+    cancelAutoPageTick()
+    scheduleAutoPageTick()
   }
 }
 
@@ -338,15 +457,35 @@ function handleCloseCatalog() {
 }
 
 function handleCatalogToggle() {
+  showReaderSettings.value = false
+  showAutoPagePanel.value = false
   showReaderCatalog.value = !showReaderCatalog.value
 }
 
 function handleOpenSettings() {
+  showReaderCatalog.value = false
+  showAutoPagePanel.value = false
   showReaderSettings.value = true
 }
 
 function handleNightToggle() {
-  themeStore.selectTheme(currentThemeId.value === 'ink-night' ? 'ocean-blue' : 'ink-night')
+  if (currentThemeId.value === 'ink-night') {
+    themeStore.selectTheme(daytimeThemeId.value)
+  } else {
+    daytimeThemeId.value = currentThemeId.value
+    themeStore.selectTheme('ink-night')
+  }
+}
+
+function handleAutoPagePanelToggle() {
+  showReaderSettings.value = false
+  showReaderCatalog.value = false
+  showAutoPagePanel.value = !showAutoPagePanel.value
+}
+
+function handleReferenceToggle() {
+  prefs.value = { ...prefs.value, hideReferenceText: !prefs.value.hideReferenceText }
+  writePreferences(prefs.value)
 }
 
 function handleReaderTap() {
@@ -354,15 +493,19 @@ function handleReaderTap() {
   if (!showReaderChrome.value) {
     showReaderCatalog.value = false
     showReaderSettings.value = false
+    showAutoPagePanel.value = false
   }
 }
 
 function handleSelectBook(bookId: string) {
   showReaderChrome.value = false
+  showReaderCatalog.value = false
+  showAutoPagePanel.value = false
   if (bookId === activeBookId.value) {
     showCatalog.value = false
     return
   }
+  pageTurnDirection.value = 'none'
   activeBookId.value = bookId
   currentPage.value = 1
   showCatalog.value = false
@@ -386,32 +529,54 @@ function charsToFontSize(chars: number): number {
   return 28
 }
 
-async function reparseWithCharsPerLine(chars: number): Promise<void> {
+function getCurrentCharacterOffset(): number {
+  const firstVisibleRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
+  return rows.value.slice(0, firstVisibleRowIndex).reduce((total, row) => total + row.text.length, 0)
+}
+
+function getRowIndexAtCharacterOffset(nextRows: ReadingRow[], characterOffset: number): number {
+  let traversedCharacters = 0
+  for (let index = 0; index < nextRows.length; index += 1) {
+    traversedCharacters += nextRows[index]!.text.length
+    if (traversedCharacters > characterOffset) return index
+  }
+  return Math.max(0, nextRows.length - 1)
+}
+
+async function applyReparsedRows(nextRows: ReadingRow[], characterOffset: number): Promise<void> {
+  rows.value = nextRows
+  const targetRowIndex = getRowIndexAtCharacterOffset(nextRows, characterOffset)
+  currentPage.value = clampPage(Math.floor(targetRowIndex / Math.max(1, effectiveRowsPerPage.value)) + 1, totalPages.value)
+  if (nextRows.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
+  else loadError.value = ''
+  persistProgress()
+  await nextTick()
+  scheduleRecalcVisibleRows()
+}
+
+async function reparseWithCharsPerLine(chars: number, characterOffset: number): Promise<void> {
   const book = activeBook.value
   if (!book) return
   if (rawTextRef.value) {
     try {
       const reparsed = parseTextToRows(rawTextRef.value, book.id, chars)
-      rows.value = reparsed
       totalChars.value = rawTextRef.value.length
-      const per = Math.max(1, effectiveRowsPerPage.value)
-      const firstIdx = (currentPage.value - 1) * per
-      currentPage.value = Math.floor(firstIdx / per) + 1
-      if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
-      else loadError.value = ''
-      persistProgress()
+      await applyReparsedRows(reparsed, characterOffset)
       return
-    } catch {}
+    } catch {
+      // 缓存文本失效时继续尝试从原文件重新加载。
+    }
   }
   if (lastPdfBufferRef) {
     try {
       const result = await loadPdfFromBuffer(lastPdfBufferRef.slice(0), book.id, chars, extractPdfText)
-      rows.value = result.rows
-    rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
+      rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
       totalChars.value = result.totalChars
-      persistProgress()
+      await applyReparsedRows(result.rows, characterOffset)
       return
-    } catch {}
+    } catch {
+      // 二进制缓存不可用时交给完整加载流程处理并展示错误。
+    }
   }
   await fetchBook()
 }
@@ -419,12 +584,12 @@ async function reparseWithCharsPerLine(chars: number): Promise<void> {
 function handleCharsPerLineChange(value: number): void {
   const normalized = normalizeCharsPerLine(value)
   if (normalized === prefs.value.charsPerLine) return
+  const characterOffset = getCurrentCharacterOffset()
   const nextFont = charsToFontSize(normalized)
   prefs.value = { ...prefs.value, charsPerLine: normalized, readingFontSize: nextFont }
   writePreferences(prefs.value)
   persistProgress()
-  void reparseWithCharsPerLine(normalized)
-  nextTick(() => scheduleRecalcVisibleRows())
+  void reparseWithCharsPerLine(normalized, characterOffset)
 }
 
 function handleReadingFontSizeChange(value: number): void {
@@ -434,36 +599,23 @@ function handleReadingFontSizeChange(value: number): void {
   handleCharsPerLineChange(mapped)
 }
 
-function handleRowsPerPageChange(value: RowsPerPage) {
-  const firstRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
-  prefs.value = { ...prefs.value, rowsPerPage: value }
-  effectiveRowsPerPage.value = value
-  currentPage.value = Math.floor(firstRowIndex / value) + 1
-  persistProgress()
-  if (isAutoReadingActive.value) resetAutoCountdown()
-  scheduleRecalcVisibleRows()
-}
-
 function handlePageChange(page: number) {
-  currentPage.value = clampPage(page, totalPages.value)
-  resetReadingScroll()
+  const nextPage = clampPage(page, totalPages.value)
+  const direction: PageTurnDirection = nextPage > currentPage.value ? 'next' : 'previous'
+  if (!setPageWithAnimation(nextPage, direction)) return
   persistProgress()
   if (isAutoReadingActive.value) resetAutoCountdown()
 }
 
 function handlePrevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value -= 1
-    resetReadingScroll()
+  if (setPageWithAnimation(currentPage.value - 1, 'previous')) {
     persistProgress()
     if (isAutoReadingActive.value) resetAutoCountdown()
   }
 }
 
 function handleNextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value += 1
-    resetReadingScroll()
+  if (setPageWithAnimation(currentPage.value + 1, 'next')) {
     persistProgress()
     if (isAutoReadingActive.value) resetAutoCountdown()
   }
@@ -471,12 +623,14 @@ function handleNextPage() {
 
 function handleSwapFonts() {
   fontStore.swapFonts()
+  void nextTick(() => scheduleRecalcVisibleRows())
   uni.showToast({ title: '已交换学习/对照字体', icon: 'none' })
 }
 
 async function fetchBook() {
   const book = activeBook.value
   if (!book) return
+  isPaginationReady.value = false
   // 自定义文件优先从本地存储读取文本
   const custom = customBooks.value.find((b) => b.id === book.id) as CustomBookRecord | undefined
   if (custom && custom.text) {
@@ -492,7 +646,6 @@ async function fetchBook() {
       if (saved && saved.bookId === book.id) currentPage.value = Math.min(saved.page, totalPages.value || 1)
       else currentPage.value = 1
       if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
-      resetReadingScroll()
     } catch (err) {
       rows.value = []
       totalChars.value = 0
@@ -500,6 +653,8 @@ async function fetchBook() {
     } finally {
       loading.value = false
       persistProgress()
+      await nextTick()
+      scheduleRecalcVisibleRows()
     }
     return
   }
@@ -520,7 +675,6 @@ async function fetchBook() {
       currentPage.value = 1
     }
     if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
-    resetReadingScroll()
   } catch (err) {
     rows.value = []
     totalChars.value = 0
@@ -528,6 +682,8 @@ async function fetchBook() {
   } finally {
     loading.value = false
     persistProgress()
+    await nextTick()
+    scheduleRecalcVisibleRows()
   }
 }
 
@@ -736,6 +892,7 @@ async function handleFileInputChange(event: Event): Promise<void> {
 function handleEnterReader(bookId: string): void {
   if (!bookId) return
   const isSame = bookId === activeBookId.value && rows.value.length > 0
+  pageTurnDirection.value = 'none'
   activeBookId.value = bookId
   if (!isSame) {
     currentPage.value = 1
@@ -743,14 +900,23 @@ function handleEnterReader(bookId: string): void {
   }
   viewMode.value = 'reader'
   showReaderChrome.value = false
+  isPaginationReady.value = false
+  void nextTick(() => scheduleRecalcVisibleRows())
 }
 function handleExitReader(): void {
   viewMode.value = 'library'
   showReaderChrome.value = false
+  showReaderSettings.value = false
+  showReaderCatalog.value = false
+  showAutoPagePanel.value = false
   stopAutoReading()
 }
 
 onBackPress(() => {
+  if (showAutoPagePanel.value) {
+    showAutoPagePanel.value = false
+    return true
+  }
   if (showReaderSettings.value) {
     showReaderSettings.value = false
     return true
@@ -830,9 +996,6 @@ watch(totalPages, (next) => {
   if (currentPage.value > next) currentPage.value = next
 })
 
-watch([tableStyleId, rowsPerPage], () => {
-  if (effectiveRowsPerPage.value !== prefs.value.rowsPerPage) effectiveRowsPerPage.value = prefs.value.rowsPerPage
-})
 watch(effectiveRowsPerPage, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
@@ -850,7 +1013,7 @@ function handleKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <view class="reading-page" @keydown="handleKeydown" tabindex="0">
+  <view class="reading-page" :style="themeStyle" @keydown="handleKeydown" tabindex="0">
     <PdfTextBridge ref="pdfTextBridgeRef" />
     <view v-if="viewMode === 'library'" class="library-view">
       <view class="library-header">
@@ -1035,41 +1198,63 @@ function handleKeydown(e: KeyboardEvent) {
         @wheel.passive="handleReadingScrollIntent"
         @click="handleReaderTap"
       >
-        <view class="reader-content-inner" :class="{ 'has-reader-chrome': showReaderChrome }">
+        <view class="reader-content-inner">
           <text v-if="activeBook?.fileName" class="reader-file-name">{{ activeBook.fileName }}</text>
 
-          <view v-if="loading" class="state-card">
-            <text class="state-title">正在加载书籍…</text>
-            <text class="state-desc">正在解析文本，请稍候</text>
-          </view>
+          <view id="reading-page-stage" class="reading-page-stage" :class="{ 'is-ready': isPaginationReady }">
+            <view :key="activeBookId + '-' + String(pageTurnSequence)" class="reading-page-surface" :class="pageTurnClass">
+              <view v-if="loading" class="state-card">
+                <text class="state-title">正在加载书籍…</text>
+                <text class="state-desc">正在解析文本，请稍候</text>
+              </view>
 
-          <view v-else-if="loadError" class="state-card state-card--error">
-            <text class="state-title">加载失败</text>
-            <text class="state-desc">{{ loadError }}</text>
-            <view class="retry-btn" role="button" tabindex="0" @click="fetchBook" @keydown.enter="fetchBook" @keydown.space.prevent="fetchBook"><text class="retry-text">重试</text></view>
-            <text v-if="activeBook?.ext === 'pdf'" class="state-hint">支持提取文字版 PDF；扫描版文件需先进行文字识别（OCR）</text>
-          </view>
+              <view v-else-if="loadError" class="state-card state-card--error">
+                <text class="state-title">加载失败</text>
+                <text class="state-desc">{{ loadError }}</text>
+                <view class="retry-btn" role="button" tabindex="0" @click="fetchBook" @keydown.enter="fetchBook" @keydown.space.prevent="fetchBook"><text class="retry-text">重试</text></view>
+                <text v-if="activeBook?.ext === 'pdf'" class="state-hint">支持提取文字版 PDF；扫描版文件需先进行文字识别（OCR）</text>
+              </view>
 
-          <ReadingTable
-            v-else
-            :rows="pageRows"
-            :table-style-id="tableStyleId"
-            :learning-font-family="currentFont.fontFamily"
-            :reference-font-family="referenceFont.fontFamily"
-            :page="currentPage"
-            :total-pages="totalPages"
-            :chars-per-line="charsPerLine" :font-size="readingFontSize"
-            :auto-progress="autoProgress"
-            :is-auto-reading="isAutoReadingActive"
-          />
+              <ReadingTable
+                v-else
+                :rows="pageRows"
+                :table-style-id="tableStyleId"
+                :learning-font-family="currentFont.fontFamily"
+                :reference-font-family="referenceFont.fontFamily"
+                :page="currentPage"
+                :total-pages="totalPages"
+                :chars-per-line="charsPerLine" :font-size="readingFontSize"
+                :hide-reference-text="prefs.hideReferenceText"
+              />
+              <AutoReadingProgress
+                v-if="isAutoReadingActive && !loading && !loadError"
+                :key="autoAnimationSequence"
+                :seconds="autoPageSeconds"
+                :progress="autoAnimationProgress"
+                :is-running="isAutoReading"
+              />
+            </view>
+          </view>
         </view>
       </view>
 
       <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
+        <AutoPageControl
+          v-if="showAutoPagePanel"
+          :seconds="autoPageSeconds"
+          :progress="autoProgress"
+          :is-running="isAutoReading"
+          :is-paused="isAutoReadingPaused"
+          :disabled="loading || Boolean(loadError) || rows.length === 0"
+          @update:seconds="handleAutoPageSecondsChange"
+          @toggle="handleToggleAutoReading"
+          @stop="stopAutoReading"
+          @close="showAutoPagePanel = false"
+        />
         <view class="bottom-slider-row">
-          <view class="slider-label" :class="{ 'is-disabled': !canPrevPage }" role="button" tabindex="0" aria-label="上一章" @click="handlePrevPage" @keydown.enter="handlePrevPage" @keydown.space.prevent="handlePrevPage"><text class="slider-label-text">上一章</text></view>
+          <view class="slider-label" :class="{ 'is-disabled': !canPrevPage }" role="button" tabindex="0" aria-label="上一页" @click="handlePrevPage" @keydown.enter="handlePrevPage" @keydown.space.prevent="handlePrevPage"><text class="slider-label-text">上一页</text></view>
           <slider class="page-slider" :value="currentPage" :min="1" :max="totalPages" :activeColor="currentThemeId === 'ink-night' ? '#7da2ff' : 'var(--color-primary)'" backgroundColor="var(--color-border)" block-size="18" @change="handleSliderChange" />
-          <view class="slider-label" :class="{ 'is-disabled': !canNextPage }" role="button" tabindex="0" aria-label="下一章" @click="handleNextPage" @keydown.enter="handleNextPage" @keydown.space.prevent="handleNextPage"><text class="slider-label-text">下一章</text></view>
+          <view class="slider-label" :class="{ 'is-disabled': !canNextPage }" role="button" tabindex="0" aria-label="下一页" @click="handleNextPage" @keydown.enter="handleNextPage" @keydown.space.prevent="handleNextPage"><text class="slider-label-text">下一页</text></view>
         </view>
         <view class="bottom-actions-row">
           <view class="bottom-action" role="button" tabindex="0" aria-label="目录" @click="handleCatalogToggle" @keydown.enter="handleCatalogToggle" @keydown.space.prevent="handleCatalogToggle">
@@ -1080,8 +1265,16 @@ function handleKeydown(e: KeyboardEvent) {
             <text class="bottom-action-icon">{{ currentThemeId === "ink-night" ? "☀" : "☾" }}</text>
             <text class="bottom-action-label">{{ currentThemeId === 'ink-night' ? '日间' : '夜间' }}</text>
           </view>
+          <button class="bottom-action" role="button" tabindex="0" :class="{ 'is-active': isAutoReadingActive || showAutoPagePanel }" aria-label="自动翻页" :aria-expanded="showAutoPagePanel" @click="handleAutoPagePanelToggle" @keydown.enter="handleAutoPagePanelToggle" @keydown.space.prevent="handleAutoPagePanelToggle">
+            <text class="bottom-action-icon" aria-hidden="true">◷</text>
+            <text class="bottom-action-label">{{ autoMenuLabel }}</text>
+          </button>
+          <button class="bottom-action" role="button" tabindex="0" :class="{ 'is-active': prefs.hideReferenceText }" :aria-label="referenceToggleLabel" :aria-pressed="prefs.hideReferenceText" @click="handleReferenceToggle" @keydown.enter="handleReferenceToggle" @keydown.space.prevent="handleReferenceToggle">
+            <text class="bottom-action-icon" aria-hidden="true">Aa</text>
+            <text class="bottom-action-label">{{ prefs.hideReferenceText ? '显示对照' : '隐藏对照' }}</text>
+          </button>
           <view class="bottom-action" role="button" tabindex="0" aria-label="设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings">
-            <text class="bottom-action-icon">⚙</text>
+            <text class="bottom-action-icon" aria-hidden="true">⚙</text>
             <text class="bottom-action-label">设置</text>
           </view>
         </view>
@@ -1112,25 +1305,12 @@ function handleKeydown(e: KeyboardEvent) {
               <view class="settings-section">
                 <TableStyleSwitcher
                   :model-value="tableStyleId"
-                  :rows-per-page="rowsPerPage"
+                  :effective-rows-per-page="effectiveRowsPerPage"
                   @update:modelValue="handleStyleChange"
-                  @update:rowsPerPage="handleRowsPerPageChange"
                 />
               </view>
               <view class="settings-section">
                 <FontSizeControl :model-value="charsPerLine" @update:modelValue="handleCharsPerLineChange" />
-              </view>
-              <view class="settings-section">
-                <AutoPageControl
-                  :seconds="autoPageSeconds"
-                  :progress="autoProgress"
-                  :is-running="isAutoReading"
-                  :is-paused="isAutoReadingPaused"
-                  :disabled="loading || Boolean(loadError) || rows.length === 0"
-                  @update:seconds="handleAutoPageSecondsChange"
-                  @toggle="handleToggleAutoReading"
-                  @stop="stopAutoReading"
-                />
               </view>
               <view class="settings-section">
                 <view class="swap-row">
@@ -1143,7 +1323,7 @@ function handleKeydown(e: KeyboardEvent) {
         </view>
       </view>
 
-      <view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
+      <view v-if="isAutoReadingActive && !showReaderChrome && !showReaderSettings && !showReaderCatalog" class="auto-reading-actions" aria-label="自动阅读操作">
         <view
           class="auto-reading-action auto-reading-action--primary"
           role="button"
@@ -1821,8 +2001,7 @@ function handleKeydown(e: KeyboardEvent) {
   touch-action: pan-y;
 }
 .reader-body--paged {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1840,6 +2019,7 @@ function handleKeydown(e: KeyboardEvent) {
   -ms-overflow-style: none;
 }
 .reader-content-inner {
+  height: 100%;
   padding: calc(var(--app-top-safe-area) + 4px) 14px calc(20px + env(safe-area-inset-bottom));
   max-width: 760px;
   width: 100%;
@@ -1848,9 +2028,7 @@ function handleKeydown(e: KeyboardEvent) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.reader-content-inner.has-reader-chrome {
-  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 .reader-file-name {
   min-width: 0;
@@ -1863,11 +2041,36 @@ function handleKeydown(e: KeyboardEvent) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.reading-page-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  perspective: 900px;
+}
+.reading-page-stage:not(.is-ready) :deep(.reading-table-wrap) { visibility: hidden; }
+.reading-page-surface { position: relative; width: 100%; transform-origin: center center; }
+.reading-page-surface.is-turning-next { animation: readerPageTurnNext 260ms cubic-bezier(0.22, 0.72, 0.24, 1) both; }
+.reading-page-surface.is-turning-previous { animation: readerPageTurnPrevious 260ms cubic-bezier(0.22, 0.72, 0.24, 1) both; }
+
+@keyframes readerPageTurnNext {
+  from { opacity: 0.35; transform: translate3d(8%, 0, 0) rotateY(-3deg); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotateY(0); }
+}
+
+@keyframes readerPageTurnPrevious {
+  from { opacity: 0.35; transform: translate3d(-8%, 0, 0) rotateY(3deg); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotateY(0); }
+}
 .reader-bottom-overlay {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  max-width: 760px;
+  max-height: calc(100% - var(--app-top-safe-area));
+  margin: 0 auto;
+  overflow-y: auto;
   z-index: 22;
   display: flex;
   flex-direction: column;
@@ -1875,6 +2078,7 @@ function handleKeydown(e: KeyboardEvent) {
   padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
+  border-radius: 16px 16px 0 0;
   box-sizing: border-box;
 }
 .bottom-slider-row {
@@ -1903,6 +2107,10 @@ function handleKeydown(e: KeyboardEvent) {
 }
 .bottom-action {
   flex: 1;
+  min-width: 0;
+  margin: 0;
+  background: transparent;
+  line-height: 1.5;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1911,6 +2119,10 @@ function handleKeydown(e: KeyboardEvent) {
   padding: 4px 0;
   border-radius: 8px;
 }
+.bottom-action.is-active { background: var(--color-primary-soft); }
+.bottom-action.is-active .bottom-action-icon,
+.bottom-action.is-active .bottom-action-label { color: var(--color-primary); }
+.bottom-action:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .bottom-action:active { background: var(--color-surface-muted); transform: scale(0.98); }
 .bottom-action-icon { font-size: 16px; color: var(--color-text); line-height: 1; }
 .bottom-action-label { font-size: 10px; color: var(--color-text-muted); font-weight: 600; }
@@ -1926,6 +2138,9 @@ function handleKeydown(e: KeyboardEvent) {
 .reader-drawer {
   width: min(88%, 360px);
   height: 100%;
+  padding-top: var(--app-top-safe-area);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
   background: var(--color-surface);
   overflow: hidden;
   display: flex;
@@ -1949,7 +2164,8 @@ function handleKeydown(e: KeyboardEvent) {
 }
 .drawer-title { font-size: 15px; font-weight: 800; color: var(--color-text); }
 .drawer-close {
-  width: 28px; height: 28px;
+  flex: none;
+  width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 999px;
   background: var(--color-surface-muted);
@@ -1976,6 +2192,8 @@ function handleKeydown(e: KeyboardEvent) {
 
 @media (prefers-reduced-motion: reduce) {
   .reader-top-overlay, .reader-bottom-overlay, .reader-drawer { transition: none; }
+  .reading-page-surface.is-turning-next,
+  .reading-page-surface.is-turning-previous { animation: none; }
 }
 </style>
 
