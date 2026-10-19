@@ -1035,7 +1035,9 @@ function handleKeydown(e: KeyboardEvent) {
         @wheel.passive="handleReadingScrollIntent"
         @click="handleReaderTap"
       >
-        <view class="reader-content-inner">
+        <view class="reader-content-inner" :class="{ 'has-reader-chrome': showReaderChrome }">
+          <text v-if="activeBook?.fileName" class="reader-file-name">{{ activeBook.fileName }}</text>
+
           <view v-if="loading" class="state-card">
             <text class="state-title">正在加载书籍…</text>
             <text class="state-desc">正在解析文本，请稍候</text>
@@ -1819,7 +1821,8 @@ function handleKeydown(e: KeyboardEvent) {
   touch-action: pan-y;
 }
 .reader-body--paged {
-  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1837,14 +1840,28 @@ function handleKeydown(e: KeyboardEvent) {
   -ms-overflow-style: none;
 }
 .reader-content-inner {
-  padding: calc(var(--app-top-safe-area) + 56px) 14px calc(140px + env(safe-area-inset-bottom));
+  padding: calc(var(--app-top-safe-area) + 4px) 14px calc(20px + env(safe-area-inset-bottom));
   max-width: 760px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+}
+.reader-content-inner.has-reader-chrome {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom));
+}
+.reader-file-name {
+  min-width: 0;
+  margin: 0 2px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .reader-bottom-overlay {
   position: fixed;
