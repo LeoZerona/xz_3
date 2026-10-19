@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <base href="../../dist/build/app/" />
+    <script>
+      if (new URLSearchParams(location.search).get('output') === 'dev') {
+        document.querySelector('base').href = new URL('../../dist/dev/app-plus/', location.href).href
+      }
+    </script>
+    <title>PDF WebView extraction test</title>
+    <script src="./app-renderjs.js"></script>
+  </head>
+  <body></body>
+</html>

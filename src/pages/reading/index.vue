@@ -17,6 +17,14 @@ import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
+import PdfTextBridge from './components/PdfTextBridge.vue'
+import type { PdfTextBridgeApi } from '../../reading/pdfTextBridge'
+
+const pdfTextBridgeRef = ref<PdfTextBridgeApi | null>(null)
+function extractPdfText(buffer: ArrayBuffer): Promise<string> {
+  if (!pdfTextBridgeRef.value) return Promise.reject(new Error('PDF 文字提取器尚未就绪，请重试'))
+  return pdfTextBridgeRef.value.extract(buffer)
+}
 
 // 状态
 const builtinBooks = ref<BookMeta[]>([])
@@ -397,7 +405,7 @@ async function reparseWithCharsPerLine(chars: number): Promise<void> {
   }
   if (lastPdfBufferRef) {
     try {
-      const result = await loadPdfFromBuffer(lastPdfBufferRef.slice(0), book.id, chars)
+      const result = await loadPdfFromBuffer(lastPdfBufferRef.slice(0), book.id, chars, extractPdfText)
       rows.value = result.rows
     rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
       totalChars.value = result.totalChars
@@ -498,7 +506,7 @@ async function fetchBook() {
   loading.value = true
   loadError.value = ''
   try {
-    const result = await loadBook(book, prefs.value.charsPerLine)
+    const result = await loadBook(book, prefs.value.charsPerLine, extractPdfText)
     rows.value = result.rows
     totalChars.value = result.totalChars
     rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
@@ -541,6 +549,22 @@ function refreshBuiltinBooks(): void {
 }
 function handlePickFile(): void {
   if (isUploading.value) return
+  // #ifdef H5
+  // uni-app 的 input 会编译成文本控件，文件选择需要浏览器原生 input。
+  if (typeof document !== 'undefined') {
+    if (!fileInputRef.value) {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.txt,.pdf'
+      input.style.display = 'none'
+      input.addEventListener('change', handleFileInputChange)
+      document.body.appendChild(input)
+      fileInputRef.value = input
+    }
+    fileInputRef.value.click()
+    return
+  }
+  // #endif
   const uniAny = uni as unknown as Record<string, unknown>
   const chooseFile = uniAny.chooseFile as ((opts: unknown) => void) | undefined
   const chooseMessageFile = uniAny.chooseMessageFile as ((opts: unknown) => void) | undefined
@@ -622,10 +646,7 @@ function readPlusArrayBuffer(path: string): Promise<ArrayBuffer> {
                     const target = e as { target: { result: string } }
                     const dataUrl: string = target.target.result as string
                     const base64 = dataUrl.split(',')[1] || ''
-                    const binary = atob(base64)
-                    const bytes = new Uint8Array(binary.length)
-                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-                    resolve(bytes.buffer)
+                    resolve(uni.base64ToArrayBuffer(base64))
                   } catch (err) {
                     reject(err as Error)
                   }
@@ -657,7 +678,7 @@ async function readPlusFileAsText(path: string, ext: 'txt' | 'pdf'): Promise<str
     return text
   }
   const tmpId = 'plus-pdf-' + String(Date.now())
-    const text = await extractPdfRawText(buffer, tmpId)
+  const text = await extractPdfRawText(buffer, tmpId, extractPdfText)
   if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
   return text
 }
@@ -697,7 +718,7 @@ async function handleFileInputChange(event: Event): Promise<void> {
       if (!text.trim()) throw new Error('文件内容为空')
     } else {
       const tmpId = 'h5-pdf-' + String(Date.now())
-      text = await extractPdfRawText(buffer, tmpId)
+      text = await extractPdfRawText(buffer, tmpId, extractPdfText)
       if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
     }
     const record = createCustomRecord(file.name, text, ext)
@@ -794,6 +815,10 @@ onHide(pauseAutoReading)
 
 onBeforeUnmount(() => {
   stopAutoReading()
+  // #ifdef H5
+  fileInputRef.value?.removeEventListener('change', handleFileInputChange)
+  fileInputRef.value?.remove()
+  // #endif
   if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleViewportChange)
@@ -826,6 +851,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 <template>
   <view class="reading-page" @keydown="handleKeydown" tabindex="0">
+    <PdfTextBridge ref="pdfTextBridgeRef" />
     <view v-if="viewMode === 'library'" class="library-view">
       <view class="library-header">
         <view class="library-header-top">
@@ -976,7 +1002,6 @@ function handleKeydown(e: KeyboardEvent) {
           <text class="upload-text">{{ isUploading ? '上传中...' : '上传本地文件 .txt / .pdf' }}</text>
         </view>
         <text class="upload-hint">支持 .txt / .pdf，已上传文件仅保存在本地</text>
-        <input ref="fileInputRef" class="upload-input" type="file" accept=".txt,.pdf" aria-hidden="true" tabindex="-1" @change="handleFileInputChange" />
       </view>
     </view>
 
@@ -1020,7 +1045,7 @@ function handleKeydown(e: KeyboardEvent) {
             <text class="state-title">加载失败</text>
             <text class="state-desc">{{ loadError }}</text>
             <view class="retry-btn" role="button" tabindex="0" @click="fetchBook" @keydown.enter="fetchBook" @keydown.space.prevent="fetchBook"><text class="retry-text">重试</text></view>
-            <text v-if="activeBook?.ext === 'pdf'" class="state-hint">PDF 需要 pdfjs-dist 支持，或转为 TXT 后放入 books 目录</text>
+            <text v-if="activeBook?.ext === 'pdf'" class="state-hint">支持提取文字版 PDF；扫描版文件需先进行文字识别（OCR）</text>
           </view>
 
           <ReadingTable
@@ -1462,7 +1487,6 @@ function handleKeydown(e: KeyboardEvent) {
 .upload-icon { font-size: 16px; font-weight: 800; color: #fff; line-height: 1; }
 .upload-text { font-size: 13px; font-weight: 800; color: #fff; }
 .upload-hint { font-size: 10px; color: var(--color-text-muted); text-align: center; }
-.upload-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; clip: rect(0, 0, 0, 0); }
 .reader-view-wrap {
   flex: 1;
   min-height: 0;

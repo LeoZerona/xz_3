@@ -55,4 +55,8 @@ pnpm build:h5     # 生成 dist/build/h5
 
 ## 平台范围
 
+阅读器通过 `PdfTextBridge.vue` 的 renderjs 在 WebView 视图层提取 PDF 文字，逻辑层仅负责二进制读取、文本分页和渲染。`build/pdfTextPlugin.ts` 会在开发与生产构建中自动生成离线解析脚本及 CMap/字体资源，资源位于 `static/pdf/`，无需 CDN 或后端接口。App service 不应导入 PDF.js。扫描版 PDF 需先进行 OCR，加密 PDF 需先解除密码。
+
+PDF 专项验证：先执行 `pnpm build:app`，并通过 HBuilderX 运行一次项目生成 `dist/dev/app-plus`，再执行 `pnpm test:e2e -- e2e/pdf-reading.spec.ts --workers=1`。用例会在本地文件、断网、禁用 Worker 和 `structuredClone` 的条件下验证 App 生产/调试脚本，并验证手机视口中的内置 PDF 与上传阅读流程。
+
 项目已配置 **uni-app H5** 与 **App（Android App-vue）** 编译。Vant 4 和当前页面中的部分 DOM 交互依赖 App-vue 的 WebView 渲染，不支持切换为 nvue/uvue 页面，也不能据此宣称兼容小程序；新增平台仍需分别安装对应编译包并验证。
