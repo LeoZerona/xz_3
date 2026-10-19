@@ -6,6 +6,7 @@ import { storeToRefs } from "pinia";
 import type { LearningFont } from "../../fonts/types";
 import { useCharacterLearningStore } from "../../stores/characterLearning";
 import { useFontStore } from "../../stores/fonts";
+import { useThemeStore } from "../../stores/theme";
 import { useLevelProgressStore } from "../../stores/levelProgress";
 import { getStage, loadStage, STAGES_BY_CATEGORY, type LevelCategory, type LevelStage } from "../../study/levelData";
 import { getEffectiveStudyModes, STUDY_MODES } from "../../study/modes";
@@ -28,6 +29,7 @@ const fontStore = useFontStore();
 const learningStore = useCharacterLearningStore();
 const levelProgressStore = useLevelProgressStore();
 const { currentFont, referenceFont } = storeToRefs(fontStore);
+const { themeStyle } = storeToRefs(useThemeStore());
 
 const queryCategory = ref<LevelCategory>("level1");
 const queryStageId = ref("");
@@ -487,7 +489,7 @@ onBeforeUnmount(()=>{
 </script>
 
 <template>
-  <view class="study-page">
+  <view class="study-page" :style="themeStyle">
     <view v-if="isStageLoading" class="top-progress-bar" aria-hidden="true" />
     <view class="study-topbar">
       <button class="topbar-button" aria-label="返回" @click="handleBack">

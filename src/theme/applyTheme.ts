@@ -27,7 +27,17 @@ export type ThemeTarget = {
 
 // uni-app 的 App 逻辑层没有 document，页面通过 style 绑定同一组主题变量。
 export function getThemeStyle(theme: ThemeDefinition): Record<string, string> {
-  const style: Record<string, string> = { colorScheme: theme.mode }
+  // :root 上的 var() 别名会在根节点求值；页面覆盖基础色时也必须覆盖这些别名。
+  const style: Record<string, string> = {
+    colorScheme: theme.mode,
+    '--brand': theme.tokens.primary,
+    '--brand-dark': theme.tokens.primaryStrong,
+    '--muted': theme.tokens.textMuted,
+    '--surface': theme.tokens.surface,
+    '--van-primary-color': theme.tokens.primary,
+    '--van-button-primary-background': theme.tokens.primary,
+    '--van-button-primary-border-color': theme.tokens.primary,
+  }
   for (const token of Object.keys(tokenProperties) as (keyof ThemeDefinition['tokens'])[]) {
     style[tokenProperties[token]] = theme.tokens[token]
   }

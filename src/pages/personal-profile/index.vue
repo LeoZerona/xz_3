@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { formatProfileLocation } from '../../profile/profileModel'
 import { useProfileStore } from '../../stores/profile'
+import { useThemeStore } from '../../stores/theme'
 import ProfileEditSheets from './components/ProfileEditSheets.vue'
 
 type EditableField = 'nickname' | 'gender' | 'birth'
@@ -22,6 +23,7 @@ interface ProfileEditSheetsExpose {
 
 const profileStore = useProfileStore()
 const { profile } = storeToRefs(profileStore)
+const { themeStyle } = storeToRefs(useThemeStore())
 const editSheets = ref<ProfileEditSheetsExpose | null>(null)
 
 const identityItems = computed<ProfileItem[]>(() => [
@@ -72,7 +74,7 @@ onBackPress(() => {
 </script>
 
 <template>
-  <div class="personal-profile-page">
+  <div class="personal-profile-page" :style="themeStyle">
     <header class="profile-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">
         <span class="back-glyph" aria-hidden="true">‹</span>

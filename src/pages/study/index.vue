@@ -7,6 +7,7 @@ import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import { IDLE_TIMEOUT_MS, readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
 import { getEffectiveStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
@@ -28,6 +29,7 @@ const fontStore = useFontStore()
 const learningStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
+const { themeStyle } = storeToRefs(useThemeStore())
 const { reviewedCount: storedReviewedCount } = storeToRefs(dailyProgressStore)
 dailyProgressStore.hydrate()
 dailyProgressStore.reconcileLearned(learningStore.completedIds)
@@ -362,7 +364,7 @@ onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTime
 </script>
 
 <template>
-  <view class="study-page">
+  <view class="study-page" :style="themeStyle">
     <view class="study-topbar">
       <button class="topbar-button" role="button" aria-label="返回" @click="handleBack">
         <svg class="back-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>

@@ -8,9 +8,11 @@ import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
 
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
+const { themeStyle } = storeToRefs(useThemeStore())
 const preferencesStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
 const planDailyCount = ref(readPlanDailyCount())
@@ -53,7 +55,7 @@ function openSearch() {
 </script>
 
 <template>
-  <view class="home">
+  <view class="home" :style="themeStyle">
     <view class="topbar">
       <view class="topbar-spacer" aria-hidden="true"></view>
       <view class="topbar-actions">

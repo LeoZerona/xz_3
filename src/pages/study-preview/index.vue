@@ -6,6 +6,7 @@ import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import { readPlanDailyCount } from '../../study/dailyProgress'
 
 type CoveredFont = 'learning' | 'reference'
@@ -14,6 +15,7 @@ const fontStore = useFontStore()
 const learningStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
+const { themeStyle } = storeToRefs(useThemeStore())
 const { assignedIds, learnedIds } = storeToRefs(dailyProgressStore)
 const dailyCount = Math.min(characterTable.chars.length, readPlanDailyCount())
 
@@ -100,7 +102,7 @@ function startLearning() {
 </script>
 
 <template>
-  <view class="preview-page">
+  <view class="preview-page" :style="themeStyle">
     <view class="preview-header">
       <button class="header-button" role="button" aria-label="返回" @click="goBack">
         <text class="back-icon" aria-hidden="true">‹</text>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onBackPress } from '@dcloudio/uni-app'
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '../../stores/theme'
 
 interface SettingItem {
   label: string
@@ -24,6 +26,7 @@ const informationItems: SettingItem[] = [
 ]
 
 const isSeniorMode = ref(readSeniorMode())
+const { themeStyle } = storeToRefs(useThemeStore())
 
 function readSeniorMode() {
   try {
@@ -71,14 +74,16 @@ function saveSeniorMode(nextValue: boolean) {
 
   uni.showToast({ title: nextValue ? '已开启长辈版' : '已关闭长辈版', icon: 'none' })
 }
-onBackPress(() => {
+onBackPress((event) => {
+  // 放行程序化返回；系统返回键仍复用本页的导航与兜底行为。
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })
 </script>
 
 <template>
-  <view class="settings-page" :class="{ 'is-senior-mode': isSeniorMode }">
+  <view class="settings-page" :style="themeStyle" :class="{ 'is-senior-mode': isSeniorMode }">
     <view class="settings-nav">
       <button class="back-button" role="button" aria-label="返回" @click="goBack">
         <van-icon name="arrow-left" size="24" aria-hidden="true" />

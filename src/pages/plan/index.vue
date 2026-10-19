@@ -1,5 +1,5 @@
 <template>
-  <div class="plan-page">
+  <div class="plan-page" :style="themeStyle">
     <div class="nav-bar">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="handleBack" @keydown.enter="handleBack" @keydown.space.prevent="handleBack">‹</div>
       <div v-if="activeSection !== 'catalog'" class="nav-tabs" role="tablist" aria-label="计划设置">
@@ -91,12 +91,14 @@ import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
 import characterTable from '../../static/character_table/first-level.json'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import { getStudyModeLabel, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
 import { REVIEW_TARGET } from '../../study/dailyProgress'
 import FontCatalog from './components/FontCatalog.vue'
 import FontManager from './components/FontManager.vue'
 
 const { currentFont } = storeToRefs(useFontStore())
+const { themeStyle } = storeToRefs(useThemeStore())
 
 const STORAGE_KEY = 'font-learning-plan'
 const ROW_HEIGHT = 42

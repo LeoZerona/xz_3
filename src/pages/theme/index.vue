@@ -1,5 +1,5 @@
 <template>
-  <div class="theme-page">
+  <div class="theme-page" :style="themeStyle">
     <div class="theme-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">‹</div>
       <span aria-hidden="true" />
@@ -55,7 +55,7 @@ import { themes } from '../../theme/themes'
 import type { ThemeDefinition } from '../../theme/types'
 
 const themeStore = useThemeStore()
-const { currentThemeId: selectedThemeId } = storeToRefs(themeStore)
+const { currentThemeId: selectedThemeId, themeStyle } = storeToRefs(themeStore)
 
 function chooseTheme(themeId: string) {
   themeStore.selectTheme(themeId)
@@ -79,7 +79,9 @@ function goBack() {
   }
   uni.reLaunch({ url: '/pages/index/index' })
 }
-onBackPress(() => {
+onBackPress((event) => {
+  // 放行按钮触发的返回，避免再次调用 navigateBack 导致递归并落入首页兜底。
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })

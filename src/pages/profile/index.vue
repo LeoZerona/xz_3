@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { useProfileStore } from '../../stores/profile'
+import { useThemeStore } from '../../stores/theme'
 
 type MenuItem = {
   label: string
@@ -13,6 +14,7 @@ type MenuItem = {
 
 const profileStore = useProfileStore()
 const { profile } = storeToRefs(profileStore)
+const { themeStyle } = storeToRefs(useThemeStore())
 
 onMounted(() => { void profileStore.initialize() })
 
@@ -74,7 +76,7 @@ function openPersonalProfile() {
 </script>
 
 <template>
-  <view class="profile-page">
+  <view class="profile-page" :style="themeStyle">
     <scroll-view class="profile-scroll" scroll-y :show-scrollbar="false" :bounces="false">
       <view class="profile-header">
         <view class="header-actions">

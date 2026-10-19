@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { chinaRegions, type RegionNode } from '../../regions/chinaRegions'
 import type { ProfileLocation, RegionReference } from '../../profile/types'
 import { useProfileStore } from '../../stores/profile'
+import { useThemeStore } from '../../stores/theme'
 
 type SelectionStep = 'province' | 'city' | 'district'
 
 const profileStore = useProfileStore()
+const { themeStyle } = storeToRefs(useThemeStore())
 const currentStep = ref<SelectionStep>('province')
 const selectedProvince = ref<RegionNode | null>(null)
 const selectedCity = ref<RegionNode | null>(null)
@@ -104,7 +107,7 @@ onBackPress(() => {
 </script>
 
 <template>
-  <div class="region-page">
+  <div class="region-page" :style="themeStyle">
     <header class="region-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack"><span class="back-glyph" aria-hidden="true">‹</span></div>
       <span aria-hidden="true" /><span aria-hidden="true" />

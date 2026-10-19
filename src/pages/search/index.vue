@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, nextTick, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useThemeStore } from '../../stores/theme'
 import characterTable from '../../static/character_table/first-level.json'
 import { searchCharacters } from '../../search/characterSearch'
 import type { CharacterEntry } from '../../search/characterSearch'
@@ -23,6 +25,7 @@ const modes: SearchModeOption[] = [
 ]
 
 const query = ref('')
+const { themeStyle } = storeToRefs(useThemeStore())
 const activeMode = ref<SearchMode>('character')
 const searchHistory = ref<string[]>([])
 
@@ -101,7 +104,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <view class="search-page">
+  <view class="search-page" :style="themeStyle">
     <view class="search-header">
       <view class="search-field">
         <van-icon name="search" size="18" aria-hidden="true" />

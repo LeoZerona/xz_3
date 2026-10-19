@@ -7,7 +7,6 @@ import './styles/fonts.css'
 import './styles/reset.css'
 import './styles/theme.css'
 import App from './App.vue'
-import { useThemeStore } from './stores/theme'
 
 export function createApp() {
   const app = createSSRApp(App)
@@ -17,6 +16,5 @@ export function createApp() {
   app.use(Icon)
   app.use(Progress)
   app.use(Switch)
-  useThemeStore(pinia).initialize()
   return { app }
 }

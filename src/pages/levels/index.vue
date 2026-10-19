@@ -1,6 +1,8 @@
 ﻿<script setup lang="ts">
 import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
+import { storeToRefs } from "pinia";
+import { useThemeStore } from "../../stores/theme";
 
 import AppBottomNavigation from "../../components/AppBottomNavigation.vue";
 import { getCategoryStageCount, LEVEL_CATEGORIES, loadLevelStages, type LevelCategory, type LevelStage } from "../../study/levelData";
@@ -8,6 +10,7 @@ import { useLevelProgressStore } from "../../stores/levelProgress";
 import { useCharacterLearningStore } from "../../stores/characterLearning";
 
 const levelProgressStore = useLevelProgressStore();
+const { themeStyle } = storeToRefs(useThemeStore());
 const characterStore = useCharacterLearningStore();
 
 const activeCategory = ref<LevelCategory>("level1");
@@ -116,7 +119,7 @@ function previewChars(chars: { script_forms: { simplified: string } }[]): string
 </script>
 
 <template>
-  <view class="levels-page">
+  <view class="levels-page" :style="themeStyle">
     <view class="levels-header">
       <view class="header-top">
         <text class="header-title">关卡学习</text>

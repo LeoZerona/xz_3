@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import characterTable from '../../static/character_table/first-level.json'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useFontStore } from '../../stores/fonts'
+import { useThemeStore } from '../../stores/theme'
 import type { StudyCharacterEntry } from '../../study/types'
 import CharacterDetailContent from './components/CharacterDetailContent.vue'
 
@@ -12,6 +13,7 @@ const characterId = ref('')
 const preferencesStore = useCharacterLearningStore()
 const { favoriteIds, excludedIds } = storeToRefs(preferencesStore)
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
+const { themeStyle } = storeToRefs(useThemeStore())
 const characters: StudyCharacterEntry[] = characterTable.chars
 
 const character = computed(() => characters.find((entry) => entry.id === characterId.value))
@@ -58,7 +60,7 @@ onLoad((options) => {
 </script>
 
 <template>
-  <view class="detail-page">
+  <view class="detail-page" :style="themeStyle">
     <view class="detail-header">
       <button class="header-button back-button" role="button" aria-label="返回" @click="goBack">
         <text aria-hidden="true">‹</text>

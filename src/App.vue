@@ -1,19 +1,11 @@
-<template>
-  <view class="app-shell" :data-theme="currentThemeId" :style="themeStyle">
-    <view class="app-safe-mask" aria-hidden="true" />
-    <slot />
-  </view>
-</template>
-
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
+import { onLaunch } from '@dcloudio/uni-app'
 import { useThemeStore } from './stores/theme'
 
 const themeStore = useThemeStore()
-const { currentThemeId, themeStyle } = storeToRefs(themeStore)
 
-onMounted(themeStore.initialize)
+// App.vue 不承载页面模板，主题样式由各页面根节点绑定。
+onLaunch(themeStore.initialize)
 </script>
 
 <style>
