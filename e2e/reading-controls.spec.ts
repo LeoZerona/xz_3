@@ -8,9 +8,45 @@ async function openReader(page: Page) {
   await page.locator('.reader-file-name').click()
 }
 
+async function openSettings(page: Page) {
+  await page.getByRole('button', { name: '设置', exact: true }).click()
+  const settings = page.getByRole('dialog', { name: '阅读设置', exact: true })
+  await expect(settings).toBeVisible()
+  await expect(settings).toHaveCSS('transform', 'none')
+  return settings
+}
+
+test('settings opens from the bottom with names only and expands one section at a time', async ({ page }) => {
+  await openReader(page)
+  await expect(page.locator('.bottom-actions-row').getByRole('button', { name: '自动翻页', exact: true })).toHaveCount(0)
+  await openSettings(page)
+  const settings = page.getByRole('dialog', { name: '阅读设置', exact: true })
+  await expect(settings).toBeVisible()
+  await expect.poll(async () => {
+    const box = await settings.boundingBox()
+    return Math.round(box!.y + box!.height)
+  }).toBe(page.viewportSize()!.height)
+  for (const name of ['表格样式', '每行字数', '字体设置', '自动翻页']) {
+    await expect(settings.getByRole('button', { name, exact: true })).toHaveAttribute('aria-expanded', 'false')
+  }
+  await expect(settings.locator('.style-switcher, .font-size-control, .swap-row, .auto-page-control')).toHaveCount(0)
+  await settings.getByRole('button', { name: '表格样式', exact: true }).click()
+  await expect(settings.locator('.style-switcher')).toBeVisible()
+  await settings.getByRole('button', { name: '每行字数', exact: true }).click()
+  await expect(settings.locator('.style-switcher')).toHaveCount(0)
+  await expect(settings.locator('.font-size-control')).toBeVisible()
+  await settings.getByRole('button', { name: '每行字数', exact: true }).click()
+  await expect(settings.locator('.font-size-control')).toHaveCount(0)
+  await page.getByRole('button', { name: '关闭设置', exact: true }).click()
+  await openSettings(page)
+  await expect(settings.locator('.settings-section-content')).toHaveCount(0)
+  await page.locator('.reader-settings-mask').click({ position: { x: 10, y: 50 } })
+  await expect(settings).toBeHidden()
+})
+
 test('settings close button clears the status area and night colors reach the reader', async ({ page }) => {
   await openReader(page)
-  await page.getByRole('button', { name: '设置', exact: true }).click()
+  await openSettings(page)
   const close = page.getByRole('button', { name: '关闭设置', exact: true })
   const box = await close.boundingBox()
   expect(box!.y).toBeGreaterThanOrEqual(40)
@@ -27,9 +63,55 @@ test('settings close button clears the status area and night colors reach the re
   await expect(page.locator('.reader-immersive')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
 })
 
+test('settings supports keyboard expansion, focus and closing without turning a page', async ({ page }) => {
+  await openReader(page)
+  const settings = await openSettings(page)
+  const close = settings.getByRole('button', { name: '关闭设置', exact: true })
+  await expect(close).toBeFocused()
+  const section = settings.getByRole('button', { name: '每行字数', exact: true })
+  await section.focus()
+  await section.press('Enter')
+  await expect(section).toHaveAttribute('aria-expanded', 'true')
+  const firstRow = await page.locator('.reading-row').first().getAttribute('aria-rowindex')
+  await section.press('ArrowRight')
+  await expect(page.locator('.reading-row').first()).toHaveAttribute('aria-rowindex', firstRow!)
+  await section.press('Escape')
+  await expect(section).toHaveAttribute('aria-expanded', 'false')
+  await expect(section).toBeFocused()
+  await section.press('Space')
+  await expect(section).toHaveAttribute('aria-expanded', 'true')
+  await section.press('Escape')
+  await section.press('Escape')
+  await expect(settings).toBeHidden()
+  await expect(page.getByRole('button', { name: '设置', exact: true })).toBeFocused()
+})
+
+test('collapsed settings keep changes to line length and fonts', async ({ page }) => {
+  await openReader(page)
+  const settings = await openSettings(page)
+  await settings.getByRole('button', { name: '每行字数', exact: true }).click()
+  await settings.getByRole('radio', { name: '18字', exact: true }).click()
+  await expect(settings.locator('.badge-text')).toHaveText('18字/行')
+  await settings.getByRole('button', { name: '字体设置', exact: true }).click()
+  await expect(settings.locator('.font-size-control')).toHaveCount(0)
+  const fontLabel = await settings.locator('.swap-label').innerText()
+  const [learning, reference] = fontLabel.replace('学习：', '').split(' / 对照：')
+  await settings.getByRole('button', { name: '交换字体', exact: true }).click()
+  await expect(settings.locator('.swap-label')).toHaveText(`学习：${reference} / 对照：${learning}`)
+  await settings.getByRole('button', { name: '关闭设置', exact: true }).click()
+  await page.reload()
+  await page.getByRole('button', { name: '最近阅读入口，点击继续阅读' }).click()
+  await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+  await page.locator('.reader-file-name').click()
+  await openSettings(page)
+  await settings.getByRole('button', { name: '每行字数', exact: true }).click()
+  await expect(settings.getByRole('radio', { name: '18字', exact: true })).toHaveAttribute('aria-checked', 'true')
+})
+
 test('reference text hides without moving manuscript cells, rows or pagination', async ({ page }) => {
   await openReader(page)
-  await page.getByRole('button', { name: '设置', exact: true }).click()
+  await openSettings(page)
+  await page.getByRole('button', { name: '表格样式', exact: true }).click()
   await page.locator('.style-card').filter({ hasText: '方格稿纸' }).click()
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   await page.getByRole('button', { name: '关闭设置', exact: true }).click()
@@ -54,8 +136,9 @@ test('reference text hides without moving manuscript cells, rows or pagination',
   await expect(page.locator('.ref-char').first()).toBeVisible()
 })
 
-test('bottom menu opens smooth automatic paging with pause, resume and stop', async ({ page }) => {
+test('settings contains automatic paging with pause, resume and stop', async ({ page }) => {
   await openReader(page)
+  await openSettings(page)
   await page.getByRole('button', { name: '自动翻页', exact: true }).click()
   const panel = page.locator('.auto-page-control')
   await expect(panel).toBeVisible()
@@ -79,25 +162,38 @@ test('bottom menu opens smooth automatic paging with pause, resume and stop', as
   const paused = await progress.evaluate((element) => getComputedStyle(element).transform)
   await page.waitForTimeout(300)
   expect(await progress.evaluate((element) => getComputedStyle(element).transform)).toBe(paused)
+  await page.getByRole('button', { name: '每行字数', exact: true }).click()
+  await expect(panel).toHaveCount(0)
+  await page.getByRole('button', { name: '自动翻页', exact: true }).click()
+  await expect(panel.getByRole('button', { name: '继续', exact: true })).toBeVisible()
+  await expect(duration).toHaveValue('3')
   await panel.getByRole('button', { name: '继续', exact: true }).click()
   await expect.poll(() => page.locator('.reading-row').first().getAttribute('aria-rowindex'), { timeout: 5_000 }).not.toBe('1')
   await panel.getByRole('button', { name: '停止自动阅读', exact: true }).click()
   await expect(progress).toBeHidden()
-  await page.getByRole('button', { name: '设置', exact: true }).click()
-  await expect(page.locator('.settings-drawer .auto-page-control')).toHaveCount(0)
+  await page.getByRole('button', { name: '收起自动翻页', exact: true }).click()
+  await expect(panel).toBeHidden()
+  await expect(page.getByRole('dialog', { name: '阅读设置', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '自动翻页', exact: true })).toHaveAttribute('aria-expanded', 'false')
 })
 
-for (const viewport of [{ width: 320, height: 690 }, { width: 1280, height: 800 }]) {
-  test(`reading panels fit ${viewport.width}px viewport`, async ({ page }, testInfo) => {
-    await page.setViewportSize(viewport)
+for (const viewport of [{ width: 320, height: 568 }, { width: 320, height: 690 }, { width: 740, height: 360 }, { width: 1280, height: 800 }]) {
+  test(`reading panels fit ${viewport.width}x${viewport.height} viewport`, async ({ page }, testInfo) => {
     await openReader(page)
-    await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.setViewportSize(viewport)
+    await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+    await openSettings(page)
     await page.screenshot({ path: testInfo.outputPath('settings.png') })
+    await page.getByRole('button', { name: '表格样式', exact: true }).click()
+    await page.locator('.style-card').filter({ hasText: '深色表头' }).click()
+    await expect(page.locator('.reading-table-wrap')).toHaveAttribute('data-table-style', 'dark-header')
     await page.getByRole('button', { name: '关闭设置', exact: true }).click()
     await page.getByRole('button', { name: '夜间模式', exact: true }).click()
+    await openSettings(page)
     await page.getByRole('button', { name: '自动翻页', exact: true }).click()
     await expect(page.locator('.auto-page-control')).toBeVisible()
-    for (const selector of ['.auto-page-control', '.bottom-actions-row', '.duration-field']) {
+    await page.locator('.auto-page-control').getByRole('button', { name: '开始', exact: true }).scrollIntoViewIfNeeded()
+    for (const selector of ['.reader-settings-panel', '.duration-field', '.toggle-button']) {
       const box = await page.locator(selector).boundingBox()
       expect(box!.x).toBeGreaterThanOrEqual(0)
       expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width)

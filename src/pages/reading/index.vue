@@ -16,6 +16,7 @@ import AutoPageControl from './components/AutoPageControl.vue'
 import AutoReadingProgress from './components/AutoReadingProgress.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
+import ReadingSettingsPanel from './components/ReadingSettingsPanel.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
 import PdfTextBridge from './components/PdfTextBridge.vue'
@@ -107,7 +108,6 @@ const viewMode = ref<ViewMode>('library')
 const showReaderChrome = ref(false)
 const showReaderCatalog = ref(false)
 const showReaderSettings = ref(false)
-const showAutoPagePanel = ref(false)
 const showCatalog = ref(true)
 const showStylePanel = ref(false)
 const isMobileViewport = ref(false)
@@ -145,11 +145,6 @@ const themeStore = useThemeStore()
 const { currentThemeId, themeStyle } = storeToRefs(themeStore)
 const daytimeThemeId = ref(currentThemeId.value === 'ink-night' ? 'ocean-blue' : currentThemeId.value)
 const referenceToggleLabel = computed(() => prefs.value.hideReferenceText ? '显示对照文字' : '隐藏对照文字')
-const autoMenuLabel = computed(() => {
-  if (isAutoReading.value) return '翻页中'
-  if (isAutoReadingPaused.value) return '已暂停'
-  return '自动翻页'
-})
 
 const activeBook = computed<BookMeta | undefined>(() => books.value.find((b) => b.id === activeBookId.value))
 
@@ -458,13 +453,11 @@ function handleCloseCatalog() {
 
 function handleCatalogToggle() {
   showReaderSettings.value = false
-  showAutoPagePanel.value = false
   showReaderCatalog.value = !showReaderCatalog.value
 }
 
 function handleOpenSettings() {
   showReaderCatalog.value = false
-  showAutoPagePanel.value = false
   showReaderSettings.value = true
 }
 
@@ -477,12 +470,6 @@ function handleNightToggle() {
   }
 }
 
-function handleAutoPagePanelToggle() {
-  showReaderSettings.value = false
-  showReaderCatalog.value = false
-  showAutoPagePanel.value = !showAutoPagePanel.value
-}
-
 function handleReferenceToggle() {
   prefs.value = { ...prefs.value, hideReferenceText: !prefs.value.hideReferenceText }
   writePreferences(prefs.value)
@@ -493,14 +480,13 @@ function handleReaderTap() {
   if (!showReaderChrome.value) {
     showReaderCatalog.value = false
     showReaderSettings.value = false
-    showAutoPagePanel.value = false
   }
 }
 
 function handleSelectBook(bookId: string) {
   showReaderChrome.value = false
   showReaderCatalog.value = false
-  showAutoPagePanel.value = false
+  showReaderSettings.value = false
   if (bookId === activeBookId.value) {
     showCatalog.value = false
     return
@@ -908,15 +894,10 @@ function handleExitReader(): void {
   showReaderChrome.value = false
   showReaderSettings.value = false
   showReaderCatalog.value = false
-  showAutoPagePanel.value = false
   stopAutoReading()
 }
 
 onBackPress(() => {
-  if (showAutoPagePanel.value) {
-    showAutoPagePanel.value = false
-    return true
-  }
   if (showReaderSettings.value) {
     showReaderSettings.value = false
     return true
@@ -1239,18 +1220,6 @@ function handleKeydown(e: KeyboardEvent) {
       </view>
 
       <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
-        <AutoPageControl
-          v-if="showAutoPagePanel"
-          :seconds="autoPageSeconds"
-          :progress="autoProgress"
-          :is-running="isAutoReading"
-          :is-paused="isAutoReadingPaused"
-          :disabled="loading || Boolean(loadError) || rows.length === 0"
-          @update:seconds="handleAutoPageSecondsChange"
-          @toggle="handleToggleAutoReading"
-          @stop="stopAutoReading"
-          @close="showAutoPagePanel = false"
-        />
         <view class="bottom-slider-row">
           <view class="slider-label" :class="{ 'is-disabled': !canPrevPage }" role="button" tabindex="0" aria-label="上一页" @click="handlePrevPage" @keydown.enter="handlePrevPage" @keydown.space.prevent="handlePrevPage"><text class="slider-label-text">上一页</text></view>
           <slider class="page-slider" :value="currentPage" :min="1" :max="totalPages" :activeColor="currentThemeId === 'ink-night' ? '#7da2ff' : 'var(--color-primary)'" backgroundColor="var(--color-border)" block-size="18" @change="handleSliderChange" />
@@ -1265,10 +1234,6 @@ function handleKeydown(e: KeyboardEvent) {
             <text class="bottom-action-icon">{{ currentThemeId === "ink-night" ? "☀" : "☾" }}</text>
             <text class="bottom-action-label">{{ currentThemeId === 'ink-night' ? '日间' : '夜间' }}</text>
           </view>
-          <button class="bottom-action" role="button" tabindex="0" :class="{ 'is-active': isAutoReadingActive || showAutoPagePanel }" aria-label="自动翻页" :aria-expanded="showAutoPagePanel" @click="handleAutoPagePanelToggle" @keydown.enter="handleAutoPagePanelToggle" @keydown.space.prevent="handleAutoPagePanelToggle">
-            <text class="bottom-action-icon" aria-hidden="true">◷</text>
-            <text class="bottom-action-label">{{ autoMenuLabel }}</text>
-          </button>
           <button class="bottom-action" role="button" tabindex="0" :class="{ 'is-active': prefs.hideReferenceText }" :aria-label="referenceToggleLabel" :aria-pressed="prefs.hideReferenceText" @click="handleReferenceToggle" @keydown.enter="handleReferenceToggle" @keydown.space.prevent="handleReferenceToggle">
             <text class="bottom-action-icon" aria-hidden="true">Aa</text>
             <text class="bottom-action-label">{{ prefs.hideReferenceText ? '显示对照' : '隐藏对照' }}</text>
@@ -1294,34 +1259,37 @@ function handleKeydown(e: KeyboardEvent) {
         </view>
       </view>
 
-      <view v-if="showReaderSettings" class="reader-drawer-mask reader-drawer-mask--settings" @click="showReaderSettings = false">
-        <view class="reader-drawer reader-drawer--settings" @click.stop>
-          <view class="settings-drawer">
-            <view class="drawer-head">
-              <text class="drawer-title">阅读设置</text>
-              <view class="drawer-close" role="button" tabindex="0" aria-label="关闭设置" @click="showReaderSettings = false" @keydown.enter="showReaderSettings = false" @keydown.space.prevent="showReaderSettings = false"><text class="close-text">×</text></view>
-            </view>
-            <scroll-view class="settings-scroll" scroll-y :show-scrollbar="false" :bounces="false">
-              <view class="settings-section">
-                <TableStyleSwitcher
-                  :model-value="tableStyleId"
-                  :effective-rows-per-page="effectiveRowsPerPage"
-                  @update:modelValue="handleStyleChange"
-                />
-              </view>
-              <view class="settings-section">
-                <FontSizeControl :model-value="charsPerLine" @update:modelValue="handleCharsPerLineChange" />
-              </view>
-              <view class="settings-section">
-                <view class="swap-row">
-                  <text class="swap-label">学习：{{ currentFont.name }} / 对照：{{ referenceFont.name }}</text>
-                  <view class="swap-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="swap-btn-text">交换字体</text></view>
-                </view>
-              </view>
-            </scroll-view>
+      <ReadingSettingsPanel v-if="showReaderSettings" @close="showReaderSettings = false">
+        <template #table-style>
+          <TableStyleSwitcher
+            :model-value="tableStyleId"
+            :effective-rows-per-page="effectiveRowsPerPage"
+            @update:modelValue="handleStyleChange"
+          />
+        </template>
+        <template #chars-per-line>
+          <FontSizeControl :model-value="charsPerLine" @update:modelValue="handleCharsPerLineChange" />
+        </template>
+        <template #fonts>
+          <view class="swap-row">
+            <text class="swap-label">学习：{{ currentFont.name }} / 对照：{{ referenceFont.name }}</text>
+            <view class="swap-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="swap-btn-text">交换字体</text></view>
           </view>
-        </view>
-      </view>
+        </template>
+        <template #auto-page="{ collapse }">
+          <AutoPageControl
+            :seconds="autoPageSeconds"
+            :progress="autoProgress"
+            :is-running="isAutoReading"
+            :is-paused="isAutoReadingPaused"
+            :disabled="loading || Boolean(loadError) || rows.length === 0"
+            @update:seconds="handleAutoPageSecondsChange"
+            @toggle="handleToggleAutoReading"
+            @stop="stopAutoReading"
+            @close="collapse"
+          />
+        </template>
+      </ReadingSettingsPanel>
 
       <view v-if="isAutoReadingActive && !showReaderChrome && !showReaderSettings && !showReaderCatalog" class="auto-reading-actions" aria-label="自动阅读操作">
         <view
@@ -2147,35 +2115,6 @@ function handleKeydown(e: KeyboardEvent) {
   flex-direction: column;
   box-shadow: 4px 0 24px rgb(32 36 45 / 18%);
 }
-.reader-drawer--settings {
-  margin-left: auto;
-  width: min(92%, 380px);
-}
-.settings-drawer { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-.drawer-head {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-.drawer-title { font-size: 15px; font-weight: 800; color: var(--color-text); }
-.drawer-close {
-  flex: none;
-  width: 44px; height: 44px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  cursor: pointer;
-}
-.close-text { font-size: 16px; color: var(--color-text-muted); line-height: 1; }
-.settings-scroll { flex: 1; min-height: 0; overflow: hidden; }
-.settings-section { padding: 14px 12px; border-bottom: 1px solid var(--color-border); }
-.settings-section:last-child { border-bottom: 0; }
 .swap-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .swap-label { font-size: 11px; color: var(--color-text-muted); flex: 1; min-width: 0; line-height: 1.4; }
 .swap-btn {
