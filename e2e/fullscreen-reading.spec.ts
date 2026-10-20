@@ -1,0 +1,184 @@
+import { expect, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
+
+async function openFullscreenReader(page: Page, styleId = 'light-grid') {
+  await page.goto('/#/pages/reading/index')
+  await page.locator('.book-card').filter({ has: page.locator('[data-ext="txt"]') }).first().click()
+  await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+  if (styleId !== 'light-grid') {
+    await page.getByRole('button', { name: '打开阅读菜单', exact: true }).click()
+    await page.getByRole('button', { name: '设置', exact: true }).click()
+    await page.getByRole('button', { name: '表格样式', exact: true }).click()
+    await page.locator('.style-card').filter({ has: page.locator(`[data-mini-style="${styleId}"]`) }).click()
+    await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+    await page.getByRole('button', { name: '关闭设置', exact: true }).click()
+    await page.locator('.reading-page').press('Escape')
+  }
+  await page.getByRole('button', { name: '全屏隐藏对照文字', exact: true }).click()
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  await expect(page.locator('.fullscreen-reading-control')).toBeVisible()
+}
+
+async function visibleReferenceCount(page: Page): Promise<number> {
+  return page.locator('.reference-char').evaluateAll((elements) => elements.filter((element) =>
+    element.textContent?.trim() && getComputedStyle(element).visibility === 'visible').length)
+}
+
+async function firstRowCharacterCount(page: Page): Promise<number> {
+  return page.locator('.reading-row').first().locator('.reference-char').evaluateAll((elements) =>
+    elements.filter((element) => element.textContent?.trim()).length)
+}
+
+async function tapReadingArea(page: Page): Promise<void> {
+  const stage = await page.locator('.reading-page-stage').boundingBox()
+  await page.touchscreen.tap(stage!.x + stage!.width / 2, stage!.y + Math.min(stage!.height / 2, 80))
+}
+
+test('fullscreen taps reveal answers, switch modes and reset without opening a menu', async ({ page }) => {
+  await openFullscreenReader(page)
+  const before = await page.locator('.reading-table-wrap').boundingBox()
+  await tapReadingArea(page)
+  const firstRowCount = await firstRowCharacterCount(page)
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  await page.getByRole('button', { name: '切换为逐字展示', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount)
+  await tapReadingArea(page)
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount + 1)
+  await page.getByRole('button', { name: '全屏显示下一个字', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount + 2)
+  expect(await page.locator('.reading-table-wrap').boundingBox()).toEqual(before)
+  await page.getByRole('button', { name: '全屏重新隐藏', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(0)
+  await expect(page.locator('.reader-top-overlay, .reader-bottom-overlay')).toHaveCount(0)
+})
+
+test('fullscreen and existing bottom controls share mode and progress', async ({ page }) => {
+  await openFullscreenReader(page)
+  await tapReadingArea(page)
+  const firstRowCount = await firstRowCharacterCount(page)
+  await page.getByRole('button', { name: '打开阅读菜单', exact: true }).click()
+  await expect(page.locator('.reference-reveal-control')).toBeVisible()
+  await expect(page.locator('.reveal-progress')).toContainText(`已显示 ${firstRowCount} /`)
+  await page.getByRole('button', { name: '逐字', exact: true }).click()
+  await page.getByRole('button', { name: '显示下一个字', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount + 1)
+  await tapReadingArea(page)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount + 1)
+  await page.getByRole('button', { name: '全屏显示下一个字', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(firstRowCount + 2)
+  await page.locator('.reader-file-name').click()
+  await expect(page.locator('.reference-reveal-control')).toBeVisible()
+  await page.getByRole('button', { name: '显示对照文字', exact: true }).click()
+  await tapReadingArea(page)
+  await expect(page.getByRole('button', { name: '全屏隐藏对照文字', exact: true })).toBeVisible()
+  await expect(page.locator('.reference-char.is-reference-char-hidden')).toHaveCount(0)
+})
+
+test('swiping changes pages without revealing an answer or opening menus', async ({ page }) => {
+  await openFullscreenReader(page)
+  await tapReadingArea(page)
+  const firstRowIndex = await page.locator('.reading-row').first().getAttribute('aria-rowindex')
+  const stage = await page.locator('.reading-page-stage').boundingBox()
+  const client = await page.context().newCDPSession(page)
+  const y = stage!.y + 80
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 300, y }] })
+  await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 220, y }] })
+  await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 100, y }] })
+  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  await page.locator('#reading-scroll').dispatchEvent('click')
+  await expect(page.locator('.reading-row').first()).not.toHaveAttribute('aria-rowindex', firstRowIndex!)
+  expect(await visibleReferenceCount(page)).toBe(0)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  await tapReadingArea(page)
+  expect(await visibleReferenceCount(page)).toBe(await firstRowCharacterCount(page))
+  await client.detach()
+})
+
+test('long presses and cancelled touches do not reveal answers', async ({ page }) => {
+  await openFullscreenReader(page)
+  const stage = await page.locator('.reading-page-stage').boundingBox()
+  const client = await page.context().newCDPSession(page)
+  const point = { x: 5, y: stage!.y + 80 }
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+  await page.waitForTimeout(550)
+  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  await page.locator('#reading-scroll').dispatchEvent('click')
+  expect(await visibleReferenceCount(page)).toBe(0)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+  await client.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] })
+  await page.locator('#reading-scroll').dispatchEvent('click')
+  expect(await visibleReferenceCount(page)).toBe(0)
+  await client.detach()
+})
+
+test('space reveals once, Escape toggles menus and arrow keys still turn pages', async ({ page }) => {
+  await openFullscreenReader(page)
+  await page.getByRole('button', { name: '切换为逐字展示', exact: true }).click()
+  const reader = page.locator('.reading-page')
+  await reader.focus()
+  await page.keyboard.down('Space')
+  expect(await visibleReferenceCount(page)).toBe(1)
+  await page.keyboard.down('Space')
+  expect(await visibleReferenceCount(page)).toBe(1)
+  await page.keyboard.up('Space')
+  await reader.press('Escape')
+  await expect(page.locator('.reader-bottom-overlay')).toBeVisible()
+  await reader.press('Escape')
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  expect(await visibleReferenceCount(page)).toBe(1)
+  await page.getByRole('button', { name: '全屏显示下一个字', exact: true }).press('Enter')
+  expect(await visibleReferenceCount(page)).toBe(2)
+  await page.keyboard.down('Space')
+  await page.keyboard.down('Space')
+  expect(await visibleReferenceCount(page)).toBe(2)
+  await page.keyboard.up('Space')
+  expect(await visibleReferenceCount(page)).toBe(3)
+  await reader.press('ArrowRight')
+  expect(await visibleReferenceCount(page)).toBe(0)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+})
+
+test('finishing a page keeps fullscreen reading and allows a new round', async ({ page }) => {
+  await openFullscreenReader(page)
+  const rowCount = await page.locator('.reading-row').count()
+  for (let index = 0; index < rowCount; index += 1) await tapReadingArea(page)
+  await expect(page.getByRole('button', { name: '全屏显示下一行', exact: true })).toBeDisabled()
+  await expect(page.locator('.reference-char.is-reference-char-hidden')).toHaveCount(0)
+  await tapReadingArea(page)
+  await expect(page.locator('.reader-bottom-overlay')).toHaveCount(0)
+  await page.getByRole('button', { name: '全屏重新隐藏', exact: true }).click()
+  expect(await visibleReferenceCount(page)).toBe(0)
+})
+
+for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 740, height: 360 }, { width: 1280, height: 800 }]) {
+  test(`fullscreen footer leaves every row unobstructed at ${viewport.width}x${viewport.height}`, async ({ page }, testInfo) => {
+    await openFullscreenReader(page, 'manuscript-grid')
+    await page.getByRole('button', { name: '打开阅读菜单', exact: true }).click()
+    await page.getByRole('button', { name: '夜间模式', exact: true }).click()
+    await page.locator('.reading-page').press('Escape')
+    await page.setViewportSize(viewport)
+    await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+    await tapReadingArea(page)
+    const footer = await page.locator('.fullscreen-reading-control').boundingBox()
+    const stage = await page.locator('.reading-page-stage').boundingBox()
+    const table = await page.locator('.reading-table-wrap').boundingBox()
+    const lastRow = await page.locator('.reading-row').last().boundingBox()
+    expect(footer!.height).toBe(44)
+    expect(table!.y + table!.height).toBeLessThanOrEqual(stage!.y + stage!.height + 1)
+    expect(lastRow!.y + lastRow!.height).toBeLessThanOrEqual(footer!.y)
+    expect(stage!.y + stage!.height).toBeLessThanOrEqual(footer!.y)
+    expect(footer!.y + footer!.height).toBeLessThanOrEqual(viewport.height)
+    for (const button of await page.locator('.fullscreen-reading-control [role="button"]').all()) {
+      const box = await button.boundingBox()
+      expect(box!.width).toBeGreaterThanOrEqual(44)
+      expect(box!.height).toBe(44)
+      expect(box!.x).toBeGreaterThanOrEqual(0)
+      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width)
+    }
+    await expect(page.locator('.reader-top-overlay, .reader-bottom-overlay')).toHaveCount(0)
+    await page.screenshot({ path: testInfo.outputPath('fullscreen-reading-night.png') })
+  })
+}

@@ -8,6 +8,7 @@ import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } 
 import type { CustomBookRecord } from '../../reading/customBooks'
 import { decodeTextBuffer, extractPdfRawText, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
 import { calculateFittingRows, clampPage } from '../../reading/pagination'
+import { getReadingGestureAction } from '../../reading/readingGestures'
 import { getNextReferenceRevealCount, getReferenceCharacterCount } from '../../reading/referenceReveal'
 import { normalizeAutoPageSeconds, normalizeCharsPerLine, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, ReferenceRevealMode, TableStyleId } from '../../reading/types'
@@ -18,6 +19,7 @@ import AutoReadingProgress from './components/AutoReadingProgress.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import ReferenceRevealControl from './components/ReferenceRevealControl.vue'
+import FullscreenReadingControl from './components/FullscreenReadingControl.vue'
 import ReadingSettingsPanel from './components/ReadingSettingsPanel.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
@@ -163,6 +165,10 @@ const pageRows = computed(() => {
   return rows.value.slice(start, start + per)
 })
 const referenceCharacterCount = computed(() => getReferenceCharacterCount(pageRows.value))
+const areFullscreenControlsConcealed = computed(() => showReaderChrome.value || showReaderSettings.value || showReaderCatalog.value)
+const isReferenceRevealDisabled = computed(() => loading.value || Boolean(loadError.value) || !isPaginationReady.value || referenceCharacterCount.value === 0)
+const canRevealInFullscreen = computed(() => viewMode.value === 'reader' && prefs.value.hideReferenceText && !areFullscreenControlsConcealed.value && !isReferenceRevealDisabled.value)
+const fullscreenPageLabel = computed(() => `第 ${currentPage.value} / ${totalPages.value} 页`)
 const rangeLabel = computed(() => {
   if (rows.value.length === 0) return '0 行'
   const per = Math.max(1, effectiveRowsPerPage.value)
@@ -183,21 +189,45 @@ const pageTurnClass = computed(() => ({
 // 触摸翻页
 const touchStartX = ref(0)
 const touchStartY = ref(0)
+let touchStartedAt = 0
+let touchMaxDistance = 0
+let isMultiTouch = false
+let suppressReaderTapUntil = 0
+let isSpaceKeyPressed = false
 function handleTouchStart(e: TouchEvent) {
   const t = e.touches[0]
   if (!t) return
   touchStartX.value = t.clientX
   touchStartY.value = t.clientY
+  touchStartedAt = Date.now()
+  touchMaxDistance = 0
+  isMultiTouch = e.touches.length > 1
+  suppressReaderTapUntil = 0
+}
+function handleTouchMove(e: TouchEvent): void {
+  const touch = e.touches[0]
+  if (touch) touchMaxDistance = Math.max(touchMaxDistance, Math.abs(touch.clientX - touchStartX.value), Math.abs(touch.clientY - touchStartY.value))
+  if (e.touches.length > 1) isMultiTouch = true
+  handleReadingScrollIntent()
 }
 function handleTouchEnd(e: TouchEvent) {
   const t = e.changedTouches[0]
   if (!t) return
-  const dx = t.clientX - touchStartX.value
-  const dy = Math.abs(t.clientY - touchStartY.value)
-  if (dy > 60) return
-  if (Math.abs(dx) < 50) return
-  if (dx < 0) handleNextPage()
-  else handlePrevPage()
+  const action = getReadingGestureAction({
+    deltaX: t.clientX - touchStartX.value,
+    deltaY: t.clientY - touchStartY.value,
+    durationMs: Date.now() - touchStartedAt,
+    maxDistance: touchMaxDistance,
+    isMultiTouch,
+  })
+  // 直接处理触摸点按，避免连续点按时浏览器延迟或省略 click；屏蔽随后合成的 click。
+  if (action === 'tap') handleReaderTap()
+  suppressReaderTapUntil = Date.now() + 500
+  if (action === 'next-page') handleNextPage()
+  else if (action === 'previous-page') handlePrevPage()
+}
+function handleTouchCancel(): void {
+  suppressReaderTapUntil = Date.now() + 500
 }
 
 function persistProgress() {
@@ -497,12 +527,18 @@ function handleRevealNextReference(): void {
   )
 }
 
-function handleReaderTap() {
+function handleReaderMenuToggle(): void {
   showReaderChrome.value = !showReaderChrome.value
   if (!showReaderChrome.value) {
     showReaderCatalog.value = false
     showReaderSettings.value = false
   }
+}
+
+function handleReaderTap(): void {
+  if (Date.now() < suppressReaderTapUntil) return
+  if (canRevealInFullscreen.value) handleRevealNextReference()
+  else handleReaderMenuToggle()
 }
 
 function handleSelectBook(bookId: string) {
@@ -970,6 +1006,7 @@ onMounted(() => {
   handleViewportChange()
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', handleViewportChange)
+    window.addEventListener('blur', resetReadingKeyboard)
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
   refreshRecentProgress() // init
@@ -977,10 +1014,16 @@ onMounted(() => {
 })
 
 function handleVisibilityChange() {
-  if (document.visibilityState !== 'visible') pauseAutoReading()
+  if (document.visibilityState !== 'visible') {
+    resetReadingKeyboard()
+    pauseAutoReading()
+  }
 }
 
-onHide(pauseAutoReading)
+onHide(() => {
+  resetReadingKeyboard()
+  pauseAutoReading()
+})
 
 onBeforeUnmount(() => {
   stopAutoReading()
@@ -991,6 +1034,7 @@ onBeforeUnmount(() => {
   if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleViewportChange)
+    window.removeEventListener('blur', resetReadingKeyboard)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
   }
 })
@@ -1006,8 +1050,27 @@ watch(effectiveRowsPerPage, () => {
 // 展示进度仅属于当前页；重新排版或进入阅读器时避免露出上一轮的答案。
 watch([pageRows, activeBookId, tableStyleId, charsPerLine, currentFont, referenceFont, viewMode], resetReferenceReveal, { flush: 'sync' })
 
-// 键盘翻页
+function resetReadingKeyboard(): void {
+  isSpaceKeyPressed = false
+}
+
+function handleKeyup(e: KeyboardEvent): void {
+  if (e.key === ' ') resetReadingKeyboard()
+}
+
+// uni-app 的键盘事件不保留 repeat，按下/松开状态用于防止长按连续揭示。
 function handleKeydown(e: KeyboardEvent) {
+  if (viewMode.value === 'reader' && e.key === 'Escape') {
+    e.preventDefault()
+    handleReaderMenuToggle()
+    return
+  }
+  if (e.key === ' ' && canRevealInFullscreen.value) {
+    e.preventDefault()
+    if (!isSpaceKeyPressed) handleRevealNextReference()
+    isSpaceKeyPressed = true
+    return
+  }
   if (e.key === 'ArrowLeft') {
     e.preventDefault()
     handlePrevPage()
@@ -1019,7 +1082,7 @@ function handleKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <view class="reading-page" :style="themeStyle" @keydown="handleKeydown" tabindex="0">
+  <view class="reading-page" :style="themeStyle" @keydown="handleKeydown" @keyup="handleKeyup" tabindex="0">
     <PdfTextBridge ref="pdfTextBridgeRef" />
     <view v-if="viewMode === 'library'" class="library-view">
       <view class="library-header">
@@ -1200,12 +1263,30 @@ function handleKeydown(e: KeyboardEvent) {
         class="reader-body immersive-reader-body reader-body--paged"
         @touchstart="handleTouchStart"
         @touchend="handleTouchEnd"
-        @touchmove.passive="handleReadingScrollIntent"
+        @touchmove.passive="handleTouchMove"
+        @touchcancel="handleTouchCancel"
         @wheel.passive="handleReadingScrollIntent"
         @click="handleReaderTap"
       >
         <view class="reader-content-inner">
-          <text v-if="activeBook?.fileName" class="reader-file-name">{{ activeBook.fileName }}</text>
+          <view
+            v-if="activeBook?.fileName"
+            class="reader-file-heading"
+            role="button"
+            tabindex="0"
+            aria-label="文件名，点击打开阅读菜单"
+            @touchstart.stop
+            @touchmove.stop
+            @touchend.stop
+            @touchcancel.stop
+            @click.stop="handleReaderMenuToggle"
+            @keydown.enter.stop.prevent="handleReaderMenuToggle"
+            @keydown.space.stop.prevent
+            @keyup.space.stop.prevent="handleReaderMenuToggle"
+          >
+            <text class="reader-file-name">{{ activeBook.fileName }}</text>
+            <text v-if="prefs.hideReferenceText && !areFullscreenControlsConcealed" class="reader-tap-hint">点正文展示</text>
+          </view>
 
           <view id="reading-page-stage" class="reading-page-stage" :class="{ 'is-ready': isPaginationReady }">
             <view :key="activeBookId + '-' + String(pageTurnSequence)" class="reading-page-surface" :class="pageTurnClass">
@@ -1242,6 +1323,21 @@ function handleKeydown(e: KeyboardEvent) {
               />
             </view>
           </view>
+          <FullscreenReadingControl
+            :class="{ 'is-concealed': areFullscreenControlsConcealed }"
+            :aria-hidden="areFullscreenControlsConcealed"
+            :hide-reference-text="prefs.hideReferenceText"
+            :mode="prefs.referenceRevealMode"
+            :revealed-count="revealedReferenceCount"
+            :total-count="referenceCharacterCount"
+            :disabled="isReferenceRevealDisabled"
+            :page-label="fullscreenPageLabel"
+            @mode-change="handleReferenceRevealModeChange"
+            @reveal-next="handleRevealNextReference"
+            @reset="resetReferenceReveal"
+            @toggle-reference="handleReferenceToggle"
+            @open-menu="handleReaderMenuToggle"
+          />
         </view>
       </view>
 
@@ -1251,7 +1347,7 @@ function handleKeydown(e: KeyboardEvent) {
           :mode="prefs.referenceRevealMode"
           :revealed-count="revealedReferenceCount"
           :total-count="referenceCharacterCount"
-          :disabled="loading || Boolean(loadError) || !isPaginationReady || referenceCharacterCount === 0"
+          :disabled="isReferenceRevealDisabled"
           @mode-change="handleReferenceRevealModeChange"
           @reveal-next="handleRevealNextReference"
           @reset="resetReferenceReveal"
@@ -2035,6 +2131,7 @@ function handleKeydown(e: KeyboardEvent) {
   overflow: hidden;
 }
 .reader-file-name {
+  flex: 1;
   min-width: 0;
   margin: 0 2px;
   color: var(--color-text);
@@ -2045,6 +2142,10 @@ function handleKeydown(e: KeyboardEvent) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.reader-file-heading { flex: none; display: flex; align-items: center; gap: 8px; height: 20px; }
+.reader-file-heading:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.reader-tap-hint { flex: none; color: var(--color-text-muted); font-size: 10px; }
+.fullscreen-reading-control.is-concealed { visibility: hidden; }
 .reading-page-stage {
   flex: 1;
   min-height: 0;
