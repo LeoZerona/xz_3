@@ -1,4 +1,4 @@
-import type { ReadingProgress, RowsPerPage, TableStyleId } from './types'
+import type { ReadingProgress, ReferenceRevealMode, RowsPerPage, TableStyleId } from './types'
 import { isTableStyleId } from './tableStyles'
 
 export const READING_PROGRESS_KEY = 'reading:progress'
@@ -11,6 +11,7 @@ export interface ReadingPreferences {
   readingFontSize: number
   charsPerLine: number
   hideReferenceText: boolean
+  referenceRevealMode: ReferenceRevealMode
 }
 
 const DEFAULT_PREFS: ReadingPreferences = {
@@ -20,6 +21,7 @@ const DEFAULT_PREFS: ReadingPreferences = {
   readingFontSize: 18,
   charsPerLine: 14,
   hideReferenceText: false,
+  referenceRevealMode: 'row',
 }
 
 export const MIN_AUTO_PAGE_SECONDS = 1
@@ -92,6 +94,7 @@ export function readPreferences(): ReadingPreferences {
         readingFontSize: normalizeReadingFontSize((data as Record<string, unknown>).readingFontSize),
         charsPerLine,
         hideReferenceText: data.hideReferenceText === true,
+        referenceRevealMode: data.referenceRevealMode === 'character' ? 'character' : 'row',
       }
     }
   } catch {}

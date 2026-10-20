@@ -53,6 +53,12 @@ pnpm build:h5     # 生成 dist/build/h5
 5. 用 `src/data/tasks.json` 提供首页任务；`src/stores/day.ts` 管理完成状态；`src/utils/storage.ts` 在 H5 优先使用 IndexedDB，失败或不可用时回退到 uni Storage。首页的日出图案使用 SVG，装饰圆弧由 Canvas 绘制。
 6. 运行类型检查、Vitest、H5 构建以及 Playwright 的手机视口测试，验证页面显示、任务交互和刷新后的状态保留。
 
+## 对照文字逐步展示
+
+阅读时点击正文打开底部菜单，选择“隐藏对照”，即可使用“逐行 / 逐字”和“显示下一行 / 显示下一个字”按阅读顺序累积展示对照文字。“重新隐藏”可重练当前页，“全部显示”可恢复整页对照。操作条显示当前页已展示的字数，展示完成后停止继续揭示。
+
+切换展示方式会保留当前进度；翻页、换书、重新进入阅读器或调整排版后，对照文字重新隐藏。隐藏状态和展示方式会保存在本机，当前页已揭示的文字不会保存。逐步展示时会暂停自动翻页，避免倒计时打断练习。
+
 ## 平台范围
 
 阅读器通过 `PdfTextBridge.vue` 的 renderjs 在 WebView 视图层提取 PDF 文字，逻辑层仅负责二进制读取、文本分页和渲染。`build/pdfTextPlugin.ts` 会在开发与生产构建中自动生成离线解析脚本及 CMap/字体资源，资源位于 `static/pdf/`，无需 CDN 或后端接口。App service 不应导入 PDF.js。扫描版 PDF 需先进行 OCR，加密 PDF 需先解除密码。

@@ -27,4 +27,22 @@ describe('reading preferences', () => {
     writePreferences({ ...readPreferences(), hideReferenceText: true })
     expect(readPreferences().hideReferenceText).toBe(true)
   })
+
+  it('uses row steps for older preferences and rejects invalid reveal modes', () => {
+    for (const referenceRevealMode of [undefined, 'invalid', true, 1, null]) {
+      vi.stubGlobal('uni', { getStorageSync: () => ({ referenceRevealMode }) })
+      expect(readPreferences().referenceRevealMode).toBe('row')
+    }
+  })
+
+  it('remembers the reveal mode without persisting the current page reveal count', () => {
+    let stored: unknown
+    vi.stubGlobal('uni', {
+      getStorageSync: () => stored,
+      setStorageSync: (_key: string, value: unknown) => { stored = value },
+    })
+    writePreferences({ ...readPreferences(), referenceRevealMode: 'character' })
+    expect(readPreferences().referenceRevealMode).toBe('character')
+    expect(stored).not.toHaveProperty('revealedReferenceCount')
+  })
 })

@@ -8,14 +8,16 @@ import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } 
 import type { CustomBookRecord } from '../../reading/customBooks'
 import { decodeTextBuffer, extractPdfRawText, loadBook, loadPdfFromBuffer, parseTextToRows } from '../../reading/bookLoader'
 import { calculateFittingRows, clampPage } from '../../reading/pagination'
+import { getNextReferenceRevealCount, getReferenceCharacterCount } from '../../reading/referenceReveal'
 import { normalizeAutoPageSeconds, normalizeCharsPerLine, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
-import type { BookMeta, ReadingRow, TableStyleId } from '../../reading/types'
+import type { BookMeta, ReadingRow, ReferenceRevealMode, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import AutoPageControl from './components/AutoPageControl.vue'
 import AutoReadingProgress from './components/AutoReadingProgress.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
+import ReferenceRevealControl from './components/ReferenceRevealControl.vue'
 import ReadingSettingsPanel from './components/ReadingSettingsPanel.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
@@ -98,6 +100,7 @@ const rawTextRef = ref('')
 let lastPdfBufferRef: ArrayBuffer | null = null
 
 const prefs = ref(readPreferences())
+const revealedReferenceCount = ref(0)
 const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
 const charsPerLine = computed(() => prefs.value.charsPerLine)
 const readingFontSize = computed(() => prefs.value.readingFontSize)
@@ -159,6 +162,7 @@ const pageRows = computed(() => {
   const start = (safePage - 1) * per
   return rows.value.slice(start, start + per)
 })
+const referenceCharacterCount = computed(() => getReferenceCharacterCount(pageRows.value))
 const rangeLabel = computed(() => {
   if (rows.value.length === 0) return '0 行'
   const per = Math.max(1, effectiveRowsPerPage.value)
@@ -471,8 +475,26 @@ function handleNightToggle() {
 }
 
 function handleReferenceToggle() {
+  resetReferenceReveal()
   prefs.value = { ...prefs.value, hideReferenceText: !prefs.value.hideReferenceText }
   writePreferences(prefs.value)
+}
+
+function resetReferenceReveal(): void {
+  revealedReferenceCount.value = 0
+}
+
+function handleReferenceRevealModeChange(mode: ReferenceRevealMode): void {
+  prefs.value = { ...prefs.value, referenceRevealMode: mode }
+  writePreferences(prefs.value)
+}
+
+function handleRevealNextReference(): void {
+  if (!prefs.value.hideReferenceText || loading.value || loadError.value || !isPaginationReady.value) return
+  pauseAutoReading()
+  revealedReferenceCount.value = getNextReferenceRevealCount(
+    pageRows.value, revealedReferenceCount.value, prefs.value.referenceRevealMode,
+  )
 }
 
 function handleReaderTap() {
@@ -981,6 +1003,9 @@ watch(effectiveRowsPerPage, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
 
+// 展示进度仅属于当前页；重新排版或进入阅读器时避免露出上一轮的答案。
+watch([pageRows, activeBookId, tableStyleId, charsPerLine, currentFont, referenceFont, viewMode], resetReferenceReveal, { flush: 'sync' })
+
 // 键盘翻页
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft') {
@@ -1206,6 +1231,7 @@ function handleKeydown(e: KeyboardEvent) {
                 :total-pages="totalPages"
                 :chars-per-line="charsPerLine" :font-size="readingFontSize"
                 :hide-reference-text="prefs.hideReferenceText"
+                :revealed-reference-count="revealedReferenceCount"
               />
               <AutoReadingProgress
                 v-if="isAutoReadingActive && !loading && !loadError"
@@ -1220,6 +1246,16 @@ function handleKeydown(e: KeyboardEvent) {
       </view>
 
       <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
+        <ReferenceRevealControl
+          v-if="prefs.hideReferenceText"
+          :mode="prefs.referenceRevealMode"
+          :revealed-count="revealedReferenceCount"
+          :total-count="referenceCharacterCount"
+          :disabled="loading || Boolean(loadError) || !isPaginationReady || referenceCharacterCount === 0"
+          @mode-change="handleReferenceRevealModeChange"
+          @reveal-next="handleRevealNextReference"
+          @reset="resetReferenceReveal"
+        />
         <view class="bottom-slider-row">
           <view class="slider-label" :class="{ 'is-disabled': !canPrevPage }" role="button" tabindex="0" aria-label="上一页" @click="handlePrevPage" @keydown.enter="handlePrevPage" @keydown.space.prevent="handlePrevPage"><text class="slider-label-text">上一页</text></view>
           <slider class="page-slider" :value="currentPage" :min="1" :max="totalPages" :activeColor="currentThemeId === 'ink-night' ? '#7da2ff' : 'var(--color-primary)'" backgroundColor="var(--color-border)" block-size="18" @change="handleSliderChange" />
@@ -1236,7 +1272,7 @@ function handleKeydown(e: KeyboardEvent) {
           </view>
           <button class="bottom-action" role="button" tabindex="0" :class="{ 'is-active': prefs.hideReferenceText }" :aria-label="referenceToggleLabel" :aria-pressed="prefs.hideReferenceText" @click="handleReferenceToggle" @keydown.enter="handleReferenceToggle" @keydown.space.prevent="handleReferenceToggle">
             <text class="bottom-action-icon" aria-hidden="true">Aa</text>
-            <text class="bottom-action-label">{{ prefs.hideReferenceText ? '显示对照' : '隐藏对照' }}</text>
+            <text class="bottom-action-label">{{ prefs.hideReferenceText ? '全部显示' : '隐藏对照' }}</text>
           </button>
           <view class="bottom-action" role="button" tabindex="0" aria-label="设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings">
             <text class="bottom-action-icon" aria-hidden="true">⚙</text>

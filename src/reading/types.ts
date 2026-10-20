@@ -18,6 +18,8 @@ export interface ReadingRow {
   text: string
 }
 
+export type ReferenceRevealMode = 'row' | 'character'
+
 export type TableStyleId =
   | "light-grid"
   | "light-shading"

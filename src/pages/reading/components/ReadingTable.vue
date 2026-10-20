@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { ReadingRow, TableStyleId } from '../../../reading/types'
 import { normalizeCharsPerLine } from '../../../reading/readingStorage'
+import { getReferenceRevealRows } from '../../../reading/referenceReveal'
 
 interface Props {
   rows: ReadingRow[]
@@ -13,14 +14,20 @@ interface Props {
   fontSize?: number
   charsPerLine?: number
   hideReferenceText?: boolean
+  revealedReferenceCount?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  rows: () => [],
   fontSize: 18,
   charsPerLine: undefined,
   hideReferenceText: false,
+  revealedReferenceCount: 0,
 })
+
+const displayRows = computed(() => getReferenceRevealRows(
+  props.rows,
+  props.hideReferenceText ? props.revealedReferenceCount : Number.POSITIVE_INFINITY,
+))
 
 function migrateFontSizeToChars(v: number): number {
   if (!Number.isFinite(v)) return 14
@@ -85,7 +92,7 @@ function splitChars(text: string): string[] {
       </view>
 
       <view
-        v-for="row in rows"
+        v-for="row in displayRows"
         :key="row.id"
         class="reading-row"
         role="row"
@@ -105,14 +112,14 @@ function splitChars(text: string): string[] {
               </view>
             </view>
             <view class="cell-divider manuscript-divider" aria-hidden="true" />
-            <view class="manuscript-line manuscript-line--ref" :aria-hidden="hideReferenceText">
+            <view class="manuscript-line manuscript-line--ref" :aria-hidden="row.isReferenceHidden">
               <view
-                v-for="(character, characterIndex) in splitChars(row.text)"
+                v-for="(character, characterIndex) in row.characters"
                 :key="characterIndex"
                 class="grid-cell ref-cell"
                 
               >
-                <text selectable class="grid-char ref-char" :style="{ fontFamily: referenceFontFamily, fontSize: gridRefFontSize + 'px' }">{{ character }}</text>
+                <text selectable class="grid-char ref-char reference-char" :class="{ 'is-reference-char-hidden': !character.isVisible }" :aria-hidden="!character.isVisible" :style="{ fontFamily: referenceFontFamily, fontSize: gridRefFontSize + 'px' }">{{ character.text }}</text>
               </view>
             </view>
           </template>
@@ -120,13 +127,17 @@ function splitChars(text: string): string[] {
           <template v-else-if="tableStyleId === 'manuscript-line'">
             <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px', lineHeight: manuscriptLineHeight, minHeight: manuscriptLineHeight }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference selectable-view" :aria-hidden="hideReferenceText" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px', lineHeight: manuscriptRefLineHeight, minHeight: manuscriptRefLineHeight }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :aria-hidden="row.isReferenceHidden" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px', lineHeight: manuscriptRefLineHeight, minHeight: manuscriptRefLineHeight }">
+              <text v-for="(character, characterIndex) in row.characters" :key="characterIndex" class="reference-char" :class="{ 'is-reference-char-hidden': !character.isVisible }" :aria-hidden="!character.isVisible">{{ character.text }}</text>
+            </view>
           </template>
 
           <template v-else>
             <view class="cell-line cell-learning selectable-view" :style="{ fontFamily: learningFontFamily, fontSize: learningFontSize + 'px' }">{{ row.text }}</view>
             <view class="cell-divider" aria-hidden="true" />
-            <view class="cell-line cell-reference selectable-view" :aria-hidden="hideReferenceText" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px' }">{{ row.text }}</view>
+            <view class="cell-line cell-reference selectable-view" :aria-hidden="row.isReferenceHidden" :style="{ fontFamily: referenceFontFamily, fontSize: referenceFontSize + 'px' }">
+              <text v-for="(character, characterIndex) in row.characters" :key="characterIndex" class="reference-char" :class="{ 'is-reference-char-hidden': !character.isVisible }" :aria-hidden="!character.isVisible">{{ character.text }}</text>
+            </view>
           </template>
         </view>
       </view>
@@ -145,10 +156,8 @@ function splitChars(text: string): string[] {
 .reading-table { position: relative; width: 100%; }
 .table-header { display: none; }
 
-.is-reference-hidden {
-  // 隐藏字形而不移除行或格子，稿纸与分页尺寸保持不变。
-  .ref-char, .cell-reference { visibility: hidden; }
-}
+// 仅隐藏尚未揭示的字形，保持行、格子和分页尺寸不变。
+.is-reference-char-hidden { visibility: hidden; }
 
 .reading-row {
   position: relative;
