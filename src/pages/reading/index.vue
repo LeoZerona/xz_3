@@ -19,7 +19,8 @@ import AutoReadingProgress from './components/AutoReadingProgress.vue'
 import BookCatalogPanel from './components/BookCatalogPanel.vue'
 import ReadingTable from './components/ReadingTable.vue'
 import ReferenceRevealControl from './components/ReferenceRevealControl.vue'
-import FullscreenReadingControl from './components/FullscreenReadingControl.vue'
+import ReadingStatusBar from './components/ReadingStatusBar.vue'
+import { useDeviceBattery } from '../../reading/useDeviceBattery'
 import ReadingSettingsPanel from './components/ReadingSettingsPanel.vue'
 import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
@@ -110,6 +111,7 @@ const readingFontSize = computed(() => prefs.value.readingFontSize)
 const currentPage = ref(1)
 type ViewMode = 'library' | 'reader'
 const viewMode = ref<ViewMode>('library')
+const deviceBattery = useDeviceBattery(computed(() => viewMode.value === 'reader'))
 const showReaderChrome = ref(false)
 const showReaderCatalog = ref(false)
 const showReaderSettings = ref(false)
@@ -1274,7 +1276,9 @@ function handleKeydown(e: KeyboardEvent) {
             class="reader-file-heading"
             role="button"
             tabindex="0"
-            aria-label="文件名，点击打开阅读菜单"
+            aria-label="打开阅读菜单"
+            :aria-expanded="showReaderChrome"
+            title="阅读菜单"
             @touchstart.stop
             @touchmove.stop
             @touchend.stop
@@ -1285,7 +1289,7 @@ function handleKeydown(e: KeyboardEvent) {
             @keyup.space.stop.prevent="handleReaderMenuToggle"
           >
             <text class="reader-file-name">{{ activeBook.fileName }}</text>
-            <text v-if="prefs.hideReferenceText && !areFullscreenControlsConcealed" class="reader-tap-hint">点正文展示</text>
+            <text class="reader-menu-indicator" aria-hidden="true">☰</text>
           </view>
 
           <view id="reading-page-stage" class="reading-page-stage" :class="{ 'is-ready': isPaginationReady }">
@@ -1323,25 +1327,45 @@ function handleKeydown(e: KeyboardEvent) {
               />
             </view>
           </view>
-          <FullscreenReadingControl
+          <ReadingStatusBar
             :class="{ 'is-concealed': areFullscreenControlsConcealed }"
             :aria-hidden="areFullscreenControlsConcealed"
-            :hide-reference-text="prefs.hideReferenceText"
-            :mode="prefs.referenceRevealMode"
-            :revealed-count="revealedReferenceCount"
-            :total-count="referenceCharacterCount"
-            :disabled="isReferenceRevealDisabled"
             :page-label="fullscreenPageLabel"
-            @mode-change="handleReferenceRevealModeChange"
-            @reveal-next="handleRevealNextReference"
-            @reset="resetReferenceReveal"
-            @toggle-reference="handleReferenceToggle"
-            @open-menu="handleReaderMenuToggle"
+            :battery="deviceBattery"
           />
         </view>
       </view>
 
       <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
+        <view class="reader-menu-head">
+          <text class="reader-menu-title">阅读菜单</text>
+          <button class="reader-menu-close" role="button" tabindex="0" aria-label="收起阅读菜单" @click="handleReaderMenuToggle" @keydown.enter.prevent="handleReaderMenuToggle" @keydown.space.prevent @keyup.space.prevent="handleReaderMenuToggle">×</button>
+        </view>
+        <text class="reader-menu-hint">左右滑动翻页 · 隐藏对照后轻点正文展示</text>
+        <view v-if="isAutoReadingActive" class="auto-reading-actions" aria-label="自动阅读操作">
+          <view
+            class="auto-reading-action auto-reading-action--primary"
+            role="button"
+            tabindex="0"
+            :aria-label="isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读'"
+            @click="handleToggleAutoReading"
+            @keydown.enter="handleToggleAutoReading"
+            @keydown.space.prevent="handleToggleAutoReading"
+          >
+            <text>{{ isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读' }}</text>
+          </view>
+          <view
+            class="auto-reading-action auto-reading-action--stop"
+            role="button"
+            tabindex="0"
+            aria-label="停止自动阅读"
+            @click="stopAutoReading"
+            @keydown.enter="stopAutoReading"
+            @keydown.space.prevent="stopAutoReading"
+          >
+            <text>停止</text>
+          </view>
+        </view>
         <ReferenceRevealControl
           v-if="prefs.hideReferenceText"
           :mode="prefs.referenceRevealMode"
@@ -1422,31 +1446,6 @@ function handleKeydown(e: KeyboardEvent) {
           />
         </template>
       </ReadingSettingsPanel>
-
-      <view v-if="isAutoReadingActive && !showReaderChrome && !showReaderSettings && !showReaderCatalog" class="auto-reading-actions" aria-label="自动阅读操作">
-        <view
-          class="auto-reading-action auto-reading-action--primary"
-          role="button"
-          tabindex="0"
-          :aria-label="isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读'"
-          @click="handleToggleAutoReading"
-          @keydown.enter="handleToggleAutoReading"
-          @keydown.space.prevent="handleToggleAutoReading"
-        >
-          <text>{{ isAutoReadingPaused ? '继续自动阅读' : '暂停自动阅读' }}</text>
-        </view>
-        <view
-          class="auto-reading-action auto-reading-action--stop"
-          role="button"
-          tabindex="0"
-          aria-label="停止自动阅读"
-          @click="stopAutoReading"
-          @keydown.enter="stopAutoReading"
-          @keydown.space.prevent="stopAutoReading"
-        >
-          <text>停止</text>
-        </view>
-      </view>
     </view>
 
     <!-- 底部导航只在书库视图显示，且只出现一次 -->
@@ -1823,10 +1822,6 @@ function handleKeydown(e: KeyboardEvent) {
 .section-empty-text { font-size: 12px; color: var(--color-text-muted); text-align: center; }
 
 .auto-reading-actions {
-  position: absolute;
-  z-index: 20;
-  right: 16px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2120,14 +2115,14 @@ function handleKeydown(e: KeyboardEvent) {
 }
 .reader-content-inner {
   height: 100%;
-  padding: calc(var(--app-top-safe-area) + 4px) 14px calc(20px + env(safe-area-inset-bottom));
+  padding: calc(var(--app-top-safe-area) + 4px) 14px calc(4px + env(safe-area-inset-bottom));
   max-width: 760px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   overflow: hidden;
 }
 .reader-file-name {
@@ -2144,8 +2139,8 @@ function handleKeydown(e: KeyboardEvent) {
 }
 .reader-file-heading { flex: none; display: flex; align-items: center; gap: 8px; height: 20px; }
 .reader-file-heading:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-.reader-tap-hint { flex: none; color: var(--color-text-muted); font-size: 10px; }
-.fullscreen-reading-control.is-concealed { visibility: hidden; }
+.reader-menu-indicator { flex: none; color: var(--color-text-secondary); font-size: 14px; }
+.reading-status-bar.is-concealed { visibility: hidden; }
 .reading-page-stage {
   flex: 1;
   min-height: 0;
@@ -2185,6 +2180,18 @@ function handleKeydown(e: KeyboardEvent) {
   border-top: 1px solid var(--color-border);
   border-radius: 16px 16px 0 0;
   box-sizing: border-box;
+}
+.reader-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.reader-menu-title { color: var(--color-text); font-size: 15px; font-weight: 700; }
+.reader-menu-close { flex: none; width: 44px; height: 44px; margin: 0; padding: 0; border-radius: 50%; color: var(--color-text-secondary); background: var(--color-surface-muted); font-size: 22px; line-height: 44px; }
+.reader-menu-close::after { border: 0; }
+.reader-menu-close:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+.reader-menu-hint { color: var(--color-text-secondary); font-size: 11px; }
+// 横屏矮视口保留首行答案的预览空间。
+@media (max-height: 480px) and (min-width: 560px) {
+  .reader-menu-head { height: 28px; }
+  .reader-menu-close { width: 32px; height: 28px; line-height: 28px; }
+  .reader-menu-hint { display: none; }
 }
 .bottom-slider-row {
   display: flex;

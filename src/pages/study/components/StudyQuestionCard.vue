@@ -29,6 +29,7 @@ interface Props {
   forceDetail?: boolean
   isCorrectAnimating?: boolean
   detailAnimated?: boolean
+  completionLabel?: string
   modePosition: number
 }
 
@@ -52,17 +53,18 @@ const totalModes = computed(() => {
 })
 const localInputAnswer = ref(props.inputAnswer)
 const showDetail = computed(() => props.isCorrect || Boolean(props.forceDetail))
+const hasWrongAnswer = computed(() => props.hasAttempted && !props.isCorrect && !props.isCorrectAnimating)
 const showClues = computed(() => (props.hintLevel ?? (wrongAttemptCount.value>0 ? 1 : 0)) >= 1)
 const wrongAttemptCount = ref(0)
 const actionLabel = computed(() => {
-  if (!props.isCorrect) return '确认'
+  if (!showDetail.value) return '确认'
   if (!props.isLastMode) return '下一题'
-  return props.isLastCharacter ? '完成今日学习' : '下一题'
+  return props.isLastCharacter ? (props.completionLabel ?? '完成今日学习') : '下一题'
 })
 const actionAriaLabel = computed(() => {
-  if (!props.isCorrect) return '确认输入答案'
+  if (!showDetail.value) return '确认输入答案'
   if (!props.isLastMode) return '进入下一题'
-  return props.isLastCharacter ? '完成今日学习' : '进入下一题'
+  return props.isLastCharacter ? (props.completionLabel ?? '完成今日学习') : '进入下一题'
 })
 
 watch(localInputAnswer, (value) => {
@@ -79,6 +81,7 @@ watch(() => props.inputAnswer, (value) => {
 })
 
 function handlePrimaryAction() {
+  if (props.isCorrectAnimating) return
   if (showDetail.value) {
     emit('next')
     return
@@ -87,6 +90,7 @@ function handlePrimaryAction() {
 }
 
 function handleChoiceAnswer(character: string) {
+  if (showDetail.value || props.isCorrectAnimating) return
   if (character !== props.question.character.script_forms.simplified) {
     wrongAttemptCount.value += 1
   }
@@ -124,25 +128,27 @@ function handleChoiceAnswer(character: string) {
               'is-wrong': selectedAnswer === option.script_forms.simplified && option.id !== question.character.id,
               'is-correct': option.id===question.character.id && (isCorrect || Boolean(isCorrectAnimating)),
             }" :aria-label="`选择文字${option.script_forms.simplified}`"
+            :disabled="Boolean(isCorrectAnimating)"
+            :aria-disabled="Boolean(isCorrectAnimating)"
             :aria-pressed="selectedAnswer === option.script_forms.simplified"
             @click="handleChoiceAnswer(option.script_forms.simplified)">
             <text :style="{ fontFamily: question.answerFont.fontFamily }">{{ option.script_forms.simplified }}</text>
           </button>
         </view>
-        <text v-if="hasAttempted && !isCorrect" class="answer-error" role="status">
+        <text v-if="hasWrongAnswer" class="answer-error" role="status">
           选择错误，请重新选择
         </text>
       </template>
 
       <view v-else class="input-panel">
-        <label class="input-label" :class="{ 'is-error': hasAttempted }">
+        <label class="input-label" :class="{ 'is-error': hasWrongAnswer }">
           <text class="sr-only">输入识别结果</text>
           <input class="answer-input" type="text" v-model="localInputAnswer"
-            style="font-family: inherit;" maxlength="1" confirm-type="done"
+            style="font-family: inherit;" maxlength="1" confirm-type="done" :disabled="Boolean(isCorrectAnimating)"
             placeholder="请输入一个字" placeholder-style="font-size: 13px; color: var(--color-text-muted);"
             @confirm="handlePrimaryAction">
         </label>
-        <text v-if="hasAttempted" class="sr-only" role="status">答案不正确，请重新输入</text>
+        <text v-if="hasWrongAnswer" class="sr-only" role="status">答案不正确，请重新输入</text>
       </view>
     </view>
 
@@ -195,7 +201,8 @@ function handleChoiceAnswer(character: string) {
     </scroll-view>
 
     <button v-if="isInputMode || showDetail" class="primary-action" role="button"
-      :disabled="!isCorrect && !localInputAnswer.trim()" :aria-label="actionAriaLabel" @click="handlePrimaryAction">
+      :aria-disabled="Boolean(isCorrectAnimating) || (!showDetail && !localInputAnswer.trim())"
+      :disabled="Boolean(isCorrectAnimating) || (!showDetail && !localInputAnswer.trim())" :aria-label="actionAriaLabel" @click="handlePrimaryAction">
       <text>{{ actionLabel }}</text>
       <van-icon v-if="isCorrect && !(isLastMode && isLastCharacter)" name="arrow" size="16" aria-hidden="true" />
     </button>
