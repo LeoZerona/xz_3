@@ -35,7 +35,9 @@ export type RowsPerPage = 8 | 10 | 12 | 16
 export interface ReadingProgress {
   bookId: string
   page: number
-  rowsPerPage: RowsPerPage
+  rowsPerPage: number
+  characterOffset?: number
+  charsPerLine?: number
   tableStyleId: TableStyleId
   updatedAt: string
 }

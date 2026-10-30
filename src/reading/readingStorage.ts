@@ -107,27 +107,54 @@ export function writePreferences(prefs: ReadingPreferences): void {
   } catch {}
 }
 
-export function readProgress(): ReadingProgress | null {
+function progressKey(bookId: string): string {
+  return `${READING_PROGRESS_KEY}:${encodeURIComponent(bookId)}`
+}
+
+function normalizeProgress(raw: unknown): ReadingProgress | null {
+  if (!raw || typeof raw !== 'object') return null
+  const data = raw as Partial<ReadingProgress>
+  if (typeof data.bookId !== 'string' || !data.bookId || typeof data.page !== 'number' || !Number.isFinite(data.page)) return null
+  return {
+    bookId: data.bookId,
+    page: Math.max(1, Math.trunc(data.page)),
+    rowsPerPage: typeof data.rowsPerPage === 'number' && Number.isFinite(data.rowsPerPage) && data.rowsPerPage >= 1
+      ? Math.trunc(data.rowsPerPage) : DEFAULT_PREFS.rowsPerPage,
+    ...(typeof data.characterOffset === 'number' && Number.isFinite(data.characterOffset) && data.characterOffset >= 0
+      ? { characterOffset: Math.trunc(data.characterOffset) } : {}),
+    ...(typeof data.charsPerLine === 'number' && Number.isFinite(data.charsPerLine)
+      ? { charsPerLine: normalizeCharsPerLine(data.charsPerLine) } : {}),
+    tableStyleId: isTableStyleId(data.tableStyleId) ? data.tableStyleId : DEFAULT_PREFS.tableStyleId,
+    updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString(),
+  }
+}
+
+export function readProgress(bookId?: string): ReadingProgress | null {
   try {
-    const raw = uni.getStorageSync(READING_PROGRESS_KEY) as unknown
-    if (raw && typeof raw === 'object') {
-      const data = raw as Partial<ReadingProgress>
-      if (typeof data.bookId === 'string' && typeof data.page === 'number') {
-        return {
-          bookId: data.bookId,
-          page: Math.max(1, Math.trunc(data.page)),
-          rowsPerPage: isRowsPerPage(data.rowsPerPage) ? data.rowsPerPage : DEFAULT_PREFS.rowsPerPage,
-          tableStyleId: isTableStyleId(data.tableStyleId) ? data.tableStyleId : DEFAULT_PREFS.tableStyleId,
-          updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString(),
-        }
-      }
+    if (bookId) {
+      const saved = normalizeProgress(uni.getStorageSync(progressKey(bookId)))
+      if (saved?.bookId === bookId) return saved
     }
-  } catch {}
+    const recent = normalizeProgress(uni.getStorageSync(READING_PROGRESS_KEY))
+    return !bookId || recent?.bookId === bookId ? recent : null
+  } catch (error) {
+    console.warn('读取阅读进度失败', error)
+  }
   return null
 }
 
-export function writeProgress(progress: ReadingProgress): void {
+export function writeProgress(progress: ReadingProgress): boolean {
   try {
+    // 首次换书时保留旧版仅有的最近阅读记录。
+    const recent = readProgress()
+    if (recent && recent.bookId !== progress.bookId && !uni.getStorageSync(progressKey(recent.bookId))) {
+      uni.setStorageSync(progressKey(recent.bookId), recent)
+    }
+    uni.setStorageSync(progressKey(progress.bookId), progress)
     uni.setStorageSync(READING_PROGRESS_KEY, progress)
-  } catch {}
+    return true
+  } catch (error) {
+    console.warn('保存阅读进度失败', error)
+    return false
+  }
 }

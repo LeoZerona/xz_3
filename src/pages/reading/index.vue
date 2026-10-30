@@ -10,6 +10,7 @@ import { decodeTextBuffer, extractPdfRawText, loadBook, loadPdfFromBuffer, parse
 import { calculateFittingRows, clampPage } from '../../reading/pagination'
 import { getReadingGestureAction } from '../../reading/readingGestures'
 import { getNextReferenceRevealCount, getReferenceCharacterCount } from '../../reading/referenceReveal'
+import { useReadingPosition } from '../../reading/useReadingPosition'
 import { normalizeAutoPageSeconds, normalizeCharsPerLine, normalizeReadingFontSize, readPreferences, readProgress, writePreferences, writeProgress } from '../../reading/readingStorage'
 import type { BookMeta, ReadingRow, ReferenceRevealMode, TableStyleId } from '../../reading/types'
 import { useFontStore } from '../../stores/fonts'
@@ -108,7 +109,7 @@ const tableStyleId = computed<TableStyleId>(() => prefs.value.tableStyleId)
 const charsPerLine = computed(() => prefs.value.charsPerLine)
 const readingFontSize = computed(() => prefs.value.readingFontSize)
 
-const currentPage = ref(1)
+const { currentPage, effectiveRowsPerPage, characterOffset, totalPages, pageRows, restoreProgress, restoreCharacterOffset, reflow, setPage } = useReadingPosition(rows, prefs.value.rowsPerPage)
 type ViewMode = 'library' | 'reader'
 const viewMode = ref<ViewMode>('library')
 const deviceBattery = useDeviceBattery(computed(() => viewMode.value === 'reader'))
@@ -126,8 +127,11 @@ const isAutoReadingActive = computed(() => autoReadingState.value !== 'idle')
 const autoProgress = ref(0)
 const autoAnimationProgress = ref(0)
 const autoAnimationSequence = ref(0)
-const effectiveRowsPerPage = ref<number>(prefs.value.rowsPerPage)
 const isPaginationReady = ref(false)
+let loadedBookId = ''
+let bookLoadSequence = 0
+let paginationRevision = 0
+let hasProgressSaveError = false
 type PageTurnDirection = 'next' | 'previous' | 'none'
 const pageTurnDirection = ref<PageTurnDirection>('none')
 const pageTurnSequence = ref(0)
@@ -155,17 +159,6 @@ const referenceToggleLabel = computed(() => prefs.value.hideReferenceText ? '显
 
 const activeBook = computed<BookMeta | undefined>(() => books.value.find((b) => b.id === activeBookId.value))
 
-const totalPages = computed(() => {
-  const per = Math.max(1, effectiveRowsPerPage.value)
-  if (rows.value.length === 0) return 1
-  return Math.max(1, Math.ceil(rows.value.length / per))
-})
-const pageRows = computed(() => {
-  const per = Math.max(1, effectiveRowsPerPage.value)
-  const safePage = clampPage(currentPage.value, totalPages.value)
-  const start = (safePage - 1) * per
-  return rows.value.slice(start, start + per)
-})
 const referenceCharacterCount = computed(() => getReferenceCharacterCount(pageRows.value))
 const areFullscreenControlsConcealed = computed(() => showReaderChrome.value || showReaderSettings.value || showReaderCatalog.value)
 const isReferenceRevealDisabled = computed(() => loading.value || Boolean(loadError.value) || !isPaginationReady.value || referenceCharacterCount.value === 0)
@@ -233,14 +226,18 @@ function handleTouchCancel(): void {
 }
 
 function persistProgress() {
-  if (!activeBookId.value) return
-  writeProgress({
+  if (viewMode.value !== 'reader' || loading.value || loadError.value || !isPaginationReady.value || loadedBookId !== activeBookId.value || rows.value.length === 0) return
+  const saved = writeProgress({
     bookId: activeBookId.value,
     page: currentPage.value,
-    rowsPerPage: prefs.value.rowsPerPage,
+    rowsPerPage: effectiveRowsPerPage.value,
+    characterOffset: characterOffset.value,
+    charsPerLine: charsPerLine.value,
     tableStyleId: tableStyleId.value,
     updatedAt: new Date().toISOString(),
   })
+  if (!saved && !hasProgressSaveError) uni.showToast({ title: '阅读进度保存失败，请检查本地存储', icon: 'none' })
+  hasProgressSaveError = !saved
   writePreferences(prefs.value)
   refreshRecentProgress() // sync recent
 }
@@ -275,6 +272,7 @@ function cancelAutoPageTick() {
 
 function scheduleRecalcVisibleRows() {
   if (viewMode.value !== 'reader' || loading.value || loadError.value || rows.value.length === 0) return
+  paginationRevision += 1
   isPaginationReady.value = false
   if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
   paginationRemeasureTimer = setTimeout(() => {
@@ -346,9 +344,14 @@ async function recalcVisibleRows(): Promise<void> {
   if (viewMode.value !== 'reader' || loading.value || loadError.value || rows.value.length === 0) return
 
   isRecalculating = true
+  const revision = paginationRevision
+  const bookId = activeBookId.value
+  const measuredRows = rows.value
+  const isCurrentLayout = () => revision === paginationRevision && bookId === activeBookId.value && measuredRows === rows.value && viewMode.value === 'reader' && !loading.value
   try {
     await nextTick()
     const { stage, table, rowRects } = await measureReadingPage()
+    if (!isCurrentLayout()) return
     if (!stage || !table || rowRects.length === 0) return
 
     const rowHeight = Math.max(...rowRects.map((rect) => rect.height))
@@ -364,18 +367,17 @@ async function recalcVisibleRows(): Promise<void> {
       tableOverhead,
     }, rows.value.length)
 
-    if (nextRowsPerPage !== effectiveRowsPerPage.value) {
-      const firstVisibleRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
-      effectiveRowsPerPage.value = nextRowsPerPage
-      currentPage.value = clampPage(Math.floor(firstVisibleRowIndex / nextRowsPerPage) + 1, totalPages.value)
-      await nextTick()
-    }
+    const previousRowsPerPage = effectiveRowsPerPage.value
+    reflow(nextRowsPerPage)
+    if (nextRowsPerPage !== previousRowsPerPage) await nextTick()
   } finally {
     isRecalculating = false
-    isPaginationReady.value = true
     if (pendingRecalc) {
       pendingRecalc = false
       scheduleRecalcVisibleRows()
+    } else if (isCurrentLayout()) {
+      isPaginationReady.value = true
+      persistProgress()
     }
   }
 }
@@ -410,17 +412,21 @@ function stopAutoReading() {
 }
 
 function setPageWithAnimation(page: number, direction: PageTurnDirection): boolean {
-  const nextPage = clampPage(page, totalPages.value)
-  if (nextPage === currentPage.value) return false
+  if (viewMode.value !== 'reader' || loading.value || loadError.value || !isPaginationReady.value || loadedBookId !== activeBookId.value) return false
+  if (!setPage(page)) return false
   pageTurnDirection.value = direction
   pageTurnSequence.value += 1
-  currentPage.value = nextPage
   return true
 }
 
 function tickAutoPage() {
   autoPageTimer = null
   if (!isAutoReading.value) return
+  if (!isPaginationReady.value) {
+    resetAutoCountdown()
+    scheduleAutoPageTick()
+    return
+  }
   const now = getAnimationTime()
   const durationMs = autoPageSeconds.value * 1000
   currentAutoProgress = Math.min(1, (now - autoPageStartedAt) / durationMs)
@@ -441,8 +447,9 @@ function tickAutoPage() {
 }
 
 function startAutoReading() {
-  if (loading.value || loadError.value || rows.value.length === 0) return
+  if (loading.value || loadError.value || rows.value.length === 0 || !isPaginationReady.value) return
   if (currentPage.value >= totalPages.value && totalPages.value > 1) setPageWithAnimation(1, 'none')
+  persistProgress()
   autoReadingState.value = 'running'
   resetAutoCountdown()
   scheduleAutoPageTick()
@@ -551,17 +558,13 @@ function handleSelectBook(bookId: string) {
     showCatalog.value = false
     return
   }
-  pageTurnDirection.value = 'none'
-  activeBookId.value = bookId
-  currentPage.value = 1
   showCatalog.value = false
-  stopAutoReading()
-  void fetchBook()
+  handleEnterReader(bookId)
 }
 
 function handleStyleChange(id: TableStyleId) {
   prefs.value = { ...prefs.value, tableStyleId: id }
-  persistProgress()
+  writePreferences(prefs.value)
   scheduleRecalcVisibleRows()
 }
 
@@ -576,26 +579,15 @@ function charsToFontSize(chars: number): number {
 }
 
 function getCurrentCharacterOffset(): number {
-  const firstVisibleRowIndex = (currentPage.value - 1) * effectiveRowsPerPage.value
-  return rows.value.slice(0, firstVisibleRowIndex).reduce((total, row) => total + row.text.length, 0)
-}
-
-function getRowIndexAtCharacterOffset(nextRows: ReadingRow[], characterOffset: number): number {
-  let traversedCharacters = 0
-  for (let index = 0; index < nextRows.length; index += 1) {
-    traversedCharacters += nextRows[index]!.text.length
-    if (traversedCharacters > characterOffset) return index
-  }
-  return Math.max(0, nextRows.length - 1)
+  return characterOffset.value
 }
 
 async function applyReparsedRows(nextRows: ReadingRow[], characterOffset: number): Promise<void> {
+  isPaginationReady.value = false
   rows.value = nextRows
-  const targetRowIndex = getRowIndexAtCharacterOffset(nextRows, characterOffset)
-  currentPage.value = clampPage(Math.floor(targetRowIndex / Math.max(1, effectiveRowsPerPage.value)) + 1, totalPages.value)
+  restoreCharacterOffset(characterOffset)
   if (nextRows.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
   else loadError.value = ''
-  persistProgress()
   await nextTick()
   scheduleRecalcVisibleRows()
 }
@@ -634,7 +626,6 @@ function handleCharsPerLineChange(value: number): void {
   const nextFont = charsToFontSize(normalized)
   prefs.value = { ...prefs.value, charsPerLine: normalized, readingFontSize: nextFont }
   writePreferences(prefs.value)
-  persistProgress()
   void reparseWithCharsPerLine(normalized, characterOffset)
 }
 
@@ -676,60 +667,41 @@ function handleSwapFonts() {
 async function fetchBook() {
   const book = activeBook.value
   if (!book) return
+  const request = ++bookLoadSequence
+  const saved = readProgress(book.id)
+  paginationRevision += 1
+  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
+  paginationRemeasureTimer = null
   isPaginationReady.value = false
-  // 自定义文件优先从本地存储读取文本
-  const custom = customBooks.value.find((b) => b.id === book.id) as CustomBookRecord | undefined
-  if (custom && custom.text) {
-    try {
-      loading.value = true
-      loadError.value = ''
-      const parsed = parseTextToRows(custom.text, book.id, prefs.value.charsPerLine)
-      rawTextRef.value = custom.text
-      lastPdfBufferRef = null
-      rows.value = parsed
-      totalChars.value = custom.text.length
-      const saved = readProgress()
-      if (saved && saved.bookId === book.id) currentPage.value = Math.min(saved.page, totalPages.value || 1)
-      else currentPage.value = 1
-      if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
-    } catch (err) {
-      rows.value = []
-      totalChars.value = 0
-      loadError.value = err instanceof Error ? err.message : '加载失败'
-    } finally {
-      loading.value = false
-      persistProgress()
-      await nextTick()
-      scheduleRecalcVisibleRows()
-    }
-    return
-  }
+  loadedBookId = ''
+  rows.value = []
+  totalChars.value = 0
+  rawTextRef.value = ''
+  lastPdfBufferRef = null
   loading.value = true
   loadError.value = ''
   try {
-    const result = await loadBook(book, prefs.value.charsPerLine, extractPdfText)
-    rows.value = result.rows
+    const requestedCharsPerLine = charsPerLine.value
+    const result = await loadBook(book, requestedCharsPerLine, extractPdfText)
+    if (request !== bookLoadSequence || book.id !== activeBookId.value) return
+    const rawText = result.rawText ?? result.rows.map((r) => r.text).join('\n')
+    rows.value = requestedCharsPerLine === charsPerLine.value ? result.rows : parseTextToRows(rawText, book.id, charsPerLine.value)
     totalChars.value = result.totalChars
-    rawTextRef.value = result.rawText ?? result.rows.map((r) => r.text).join('\n')
-    lastPdfBufferRef = null
-    // 恢复进度或校正页码
-    const saved = readProgress()
-    if (saved && saved.bookId === book.id) {
-      // 若每页行数变化，以保存的为准（已在 prefs 初始化时读取）
-      currentPage.value = Math.min(saved.page, totalPages.value || 1)
-    } else {
-      currentPage.value = 1
-    }
+    rawTextRef.value = rawText
+    loadedBookId = book.id
+    restoreProgress(saved)
     if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
   } catch (err) {
+    if (request !== bookLoadSequence) return
     rows.value = []
     totalChars.value = 0
     loadError.value = err instanceof Error ? err.message : '加载失败'
   } finally {
-    loading.value = false
-    persistProgress()
-    await nextTick()
-    scheduleRecalcVisibleRows()
+    if (request === bookLoadSequence) {
+      loading.value = false
+      await nextTick()
+      scheduleRecalcVisibleRows()
+    }
   }
 }
 
@@ -738,7 +710,7 @@ function handleUnavailable(label: string) {
 }
 
 function getBookProgressLabel(book: BookMeta): string {
-  const saved = readProgress()
+  const saved = readProgress(book.id)
   if (saved && saved.bookId === book.id) return '已读 ' + String(saved.page) + ' 页'
   return book.source === 'custom' ? '本地上传' : '内置书籍'
 }
@@ -936,20 +908,27 @@ async function handleFileInputChange(event: Event): Promise<void> {
   }
 }
 function handleEnterReader(bookId: string): void {
-  if (!bookId) return
-  const isSame = bookId === activeBookId.value && rows.value.length > 0
+  if (!books.value.some((book) => book.id === bookId)) return
+  const isSame = bookId === loadedBookId && rows.value.length > 0 && !loading.value && !loadError.value
+  persistProgress()
+  stopAutoReading()
   pageTurnDirection.value = 'none'
   activeBookId.value = bookId
-  if (!isSame) {
-    currentPage.value = 1
-    void fetchBook()
-  }
   viewMode.value = 'reader'
   showReaderChrome.value = false
+  showReaderCatalog.value = false
+  showReaderSettings.value = false
   isPaginationReady.value = false
+  if (!isSame) void fetchBook()
   void nextTick(() => scheduleRecalcVisibleRows())
 }
 function handleExitReader(): void {
+  persistProgress()
+  bookLoadSequence += 1
+  paginationRevision += 1
+  loading.value = false
+  if (paginationRemeasureTimer) clearTimeout(paginationRemeasureTimer)
+  paginationRemeasureTimer = null
   viewMode.value = 'library'
   showReaderChrome.value = false
   showReaderSettings.value = false
@@ -1000,10 +979,8 @@ onMounted(() => {
   }
   if (saved && books.value.some((b) => b.id === saved.bookId)) {
     activeBookId.value = saved.bookId
-    currentPage.value = saved.page
   } else {
     activeBookId.value = books.value[0]!.id
-    currentPage.value = 1
   }
   handleViewportChange()
   if (typeof window !== 'undefined') {
@@ -1012,22 +989,26 @@ onMounted(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
   refreshRecentProgress() // init
-  void fetchBook()
 })
 
 function handleVisibilityChange() {
   if (document.visibilityState !== 'visible') {
+    persistProgress()
     resetReadingKeyboard()
     pauseAutoReading()
   }
 }
 
 onHide(() => {
+  persistProgress()
   resetReadingKeyboard()
   pauseAutoReading()
 })
 
 onBeforeUnmount(() => {
+  persistProgress()
+  bookLoadSequence += 1
+  paginationRevision += 1
   stopAutoReading()
   // #ifdef H5
   fileInputRef.value?.removeEventListener('change', handleFileInputChange)
@@ -1039,14 +1020,6 @@ onBeforeUnmount(() => {
     window.removeEventListener('blur', resetReadingKeyboard)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
   }
-})
-
-watch(totalPages, (next) => {
-  if (currentPage.value > next) currentPage.value = next
-})
-
-watch(effectiveRowsPerPage, () => {
-  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value
 })
 
 // 展示进度仅属于当前页；重新排版或进入阅读器时避免露出上一轮的答案。

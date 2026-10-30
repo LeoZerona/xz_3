@@ -10,9 +10,10 @@ interface Props {
   title: string
   description: string
   canSlash?: boolean
+  excludedIds?: string[]
 }
 
-const props = withDefaults(defineProps<Props>(), { canSlash: false })
+const props = withDefaults(defineProps<Props>(), { canSlash: false, excludedIds: () => [] })
 const emit = defineEmits<{
   (event: 'open-detail', characterId: string): void
   (event: 'slash-character', characterId: string): void
@@ -31,6 +32,10 @@ function swapCoveredFont() {
 
 function isRevealed(characterId: string): boolean {
   return revealedCharacterIds.value.includes(characterId)
+}
+
+function isExcluded(characterId: string): boolean {
+  return props.excludedIds.includes(characterId)
 }
 
 function toggleCharacterCover(characterId: string) {
@@ -109,10 +114,12 @@ function toggleAllCovers() {
           <button
             v-if="canSlash"
             class="slash-button"
+            :class="{ 'is-active': isExcluded(entry.id) }"
             role="button"
-            :aria-label="`斩掉${entry.script_forms.simplified}，后续关卡学习不再出现`"
+            :aria-label="isExcluded(entry.id) ? `取消斩${entry.script_forms.simplified}，恢复关卡学习` : `斩掉${entry.script_forms.simplified}，后续关卡学习不再出现`"
+            :aria-pressed="isExcluded(entry.id)"
             @click="emit('slash-character', entry.id)"
-          >斩</button>
+          >{{ isExcluded(entry.id) ? '已斩' : '斩' }}</button>
           <button
             class="detail-button"
             role="button"
@@ -173,6 +180,7 @@ function toggleAllCovers() {
 .has-slash .detail-button { width: 36px; }
 .slash-button { width: 36px; min-height: 54px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; border-radius: 7px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 13px; font-weight: 700; line-height: normal; }
 .slash-button::after { border: 0; }
+.slash-button.is-active { background: var(--color-primary); color: var(--color-on-primary); box-shadow: inset 0 0 0 1px var(--color-primary-strong); }
 button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 
 </style>

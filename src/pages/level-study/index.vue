@@ -97,14 +97,18 @@ const categoryLabel = computed(() => {
   return "三级汉字";
 });
 
-const stageCharacters = computed<StudyCharacterEntry[]>(() => (stage.value?.characters ?? [])
+const previewCharacters = computed<StudyCharacterEntry[]>(() => stage.value?.characters ?? []);
+const stageCharacters = computed<StudyCharacterEntry[]>(() => previewCharacters.value
   .filter((character) => !learningStore.isExcluded(character.id)));
-const excludedStageCount = computed(() => (stage.value?.characters.length ?? 0) - stageCharacters.value.length);
-const previewDescription = computed(() => `已斩 ${excludedStageCount.value} 字 · ${totalModeCount.value} 种练习 · 已斩文字不再参与关卡学习`);
+const excludedStageCount = computed(() => previewCharacters.value.length - stageCharacters.value.length);
+const previewDescription = computed(() => `参与学习 ${stageCharacters.value.length} 字 · 已斩 ${excludedStageCount.value} 字 · 再次点击已斩可恢复`);
 
-function slashCharacter(characterId: string) {
-  learningStore.setSlashState(characterId, true);
-  uni.showToast({ title: "已斩，后续关卡学习不再出现", icon: "none" });
+function handleToggleCharacterSlash(characterId: string) {
+  learningStore.toggleExcluded(characterId);
+  uni.showToast({
+    title: learningStore.isExcluded(characterId) ? "已斩，后续关卡学习不再出现" : "已取消斩，恢复关卡学习",
+    icon: "none",
+  });
 }
 
 function openCharacterDetail(characterId: string) {
@@ -451,7 +455,7 @@ onBeforeUnmount(()=>{
       </button>
       <view style="text-align:center;min-width:0">
         <text style="display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ categoryLabel }} · {{ stageTitle }}</text>
-        <text style="display:block;color:var(--color-text-muted);font-size:8px">本关 {{ stageCharacters.length }} 字 · 已斩 {{ excludedStageCount }} 字 · {{ stageProgressText }}</text>
+        <text style="display:block;color:var(--color-text-muted);font-size:8px">本关 {{ previewCharacters.length }} 字 · 已斩 {{ excludedStageCount }} 字 · {{ stageProgressText }}</text>
       </view>
       <view class="topbar-actions">
         <button class="topbar-button" aria-label="收藏" @click="toggleFavorite">
@@ -488,13 +492,14 @@ onBeforeUnmount(()=>{
     <view v-else-if="isPreviewVisible" class="preview-panel" role="region" aria-label="关卡预览">
       <StudyPreviewPanel
         :key="stage?.id"
-        :characters="stageCharacters"
+        :characters="previewCharacters"
         :learning-font="currentFont"
         :reference-font="referenceFont"
-        :title="`本关要学 ${stageCharacters.length} 个文字`"
+        :title="`本关共 ${previewCharacters.length} 个文字`"
         :description="previewDescription"
         can-slash
-        @slash-character="slashCharacter"
+        :excluded-ids="learningStore.excludedIds"
+        @slash-character="handleToggleCharacterSlash"
         @open-detail="openCharacterDetail"
       />
       <view class="preview-start-wrap">
