@@ -52,6 +52,28 @@ describe('browser battery observation', () => {
     stop()
   })
 
+  it.each([
+    { name: 'missing event methods', battery: { level: 0.72, charging: false } },
+    { name: 'missing addEventListener', battery: { level: 0.72, charging: false, removeEventListener: vi.fn() } },
+    { name: 'missing removeEventListener', battery: { level: 0.72, charging: false, addEventListener: vi.fn() } },
+    { name: 'non-callable event methods', battery: { level: 0.72, charging: false, addEventListener: true, removeEventListener: true } },
+    { name: 'null result', battery: null },
+    { name: 'non-object result', battery: 72 },
+  ])('reports unknown and disposes safely for $name', async ({ battery }) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onChange = vi.fn()
+    const stop = observeBrowserBattery({ getBattery: async () => battery }, onChange)
+
+    await vi.waitFor(() => expect(onChange).toHaveBeenCalled())
+    expect(() => stop()).not.toThrow()
+    expect(() => stop()).not.toThrow()
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenLastCalledWith(null)
+    if (battery && typeof battery === 'object' && typeof battery.addEventListener === 'function') {
+      expect(battery.addEventListener).not.toHaveBeenCalled()
+    }
+  })
+
   it('does not turn invalid battery values into fabricated percentages', async () => {
     const manager: BrowserBattery = Object.assign(new EventTarget(), { level: -1, charging: false })
     const onChange = vi.fn()

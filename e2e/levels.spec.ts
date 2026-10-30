@@ -49,17 +49,26 @@ test('关卡预览支持逐字遮盖、交换、全部揭示和斩字，刷新�
   await expect(page.locator('.progress-item').filter({ hasText: '剩余题' })).toContainText('27')
 })
 
-test('首次答对直接进入详情，动画中不提示错误且不重复计数', async ({ page }) => {
+test('首次答对短暂停顿后进入详情，反馈中不提示错误且不重复计数', async ({ page }) => {
   await page.goto(firstStageUrl)
   await page.getByRole('button', { name: '开始学习', exact: true }).click()
   await page.clock.install()
   await page.clock.pauseAt(new Date(Date.now() + 1000))
   const correctOption = page.getByRole('button', { name: '选择文字一', exact: true })
   await correctOption.click()
+  await expect(correctOption).toHaveCSS('animation-name', /correct-answer-pulse/)
+  await expect(correctOption).toHaveCSS('animation-delay', '0s')
+  await expect(correctOption).toHaveCSS('border-top-color', 'rgb(21, 128, 61)')
+  await expect(page.getByText('✓ 回答正确', { exact: true })).toBeVisible()
+  await page.screenshot({ path: test.info().outputPath('correct-feedback.png') })
   await expect(page.getByText('选择错误，请重新选择')).toHaveCount(0)
   await expect(correctOption).toBeDisabled()
-  await page.clock.fastForward(500)
+  await correctOption.dispatchEvent('click')
+  await page.clock.fastForward(100)
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCount(0)
+  await page.clock.fastForward(50)
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCSS('animation-name', 'none')
   await expect(page.getByLabel(/^学习字体.+中的一$/)).toBeVisible()
   const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
   expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 1, mistakes: 0 })
@@ -68,14 +77,157 @@ test('首次答对直接进入详情，动画中不提示错误且不重复计�
   await expect(page.locator('.progress-item').filter({ hasText: '本关进度' })).toContainText('0/10')
 })
 
-test('选错后首次改选正确答案不会再提示错误', async ({ page }) => {
+test('选错立即显示红色动画，改选正确答案立即显示正确动画', async ({ page }) => {
   await page.goto(firstStageUrl)
   await page.getByRole('button', { name: '开始学习', exact: true }).click()
-  await page.locator('.character-option').filter({ hasNotText: '一' }).first().click()
+  await page.clock.install()
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  const wrongOption = page.locator('.character-option').filter({ hasNotText: '一' }).first()
+  await wrongOption.click()
+  await expect(wrongOption).toHaveCSS('border-top-color', 'rgb(220, 38, 38)')
+  await expect(wrongOption).toHaveCSS('animation-name', /wrong-option-shake/)
+  await expect(wrongOption).toHaveCSS('animation-duration', '0.36s')
+  await expect(wrongOption).toHaveCSS('animation-delay', '0s')
   await expect(page.getByText('选择错误，请重新选择')).toBeVisible()
+  await expect(page.getByText('选择错误，请重新选择')).toHaveCSS('color', 'rgb(220, 38, 38)')
+  await expect(page.getByText('选择错误，请重新选择')).toHaveCSS('animation-name', 'none')
+  await page.screenshot({ path: test.info().outputPath('wrong-feedback.png') })
   await page.getByRole('button', { name: '选择文字一', exact: true }).click()
+  await expect(page.getByText('✓ 回答正确', { exact: true })).toBeVisible()
   await expect(page.getByText('选择错误，请重新选择')).toHaveCount(0)
+  await page.clock.fastForward(150)
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
+  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 2, mistakes: 1 })
+})
+
+for (const inputMethod of ['mouse', 'touch'] as const) {
+  test(`${inputMethod} 按压不播放点击效果，松手后立即显示红色错误`, async ({ page }) => {
+    await page.goto(firstStageUrl)
+    await page.getByRole('button', { name: '开始学习', exact: true }).click()
+    await page.clock.install()
+    await page.clock.pauseAt(new Date(Date.now() + 1000))
+    const wrongOption = page.locator('.character-option').filter({ hasNotText: '一' }).first()
+    const bounds = await wrongOption.boundingBox()
+    if (!bounds) throw new Error('错误选项未显示')
+    const point = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }
+    const touchSession = inputMethod === 'touch' ? await page.context().newCDPSession(page) : null
+    if (touchSession) {
+      await touchSession.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+    } else {
+      await page.mouse.move(point.x, point.y)
+      await page.mouse.down()
+    }
+    await page.clock.runFor(100)
+    await expect(wrongOption).not.toHaveClass(/button-hover/)
+    await expect(wrongOption).toHaveCSS('filter', 'none')
+    await expect(wrongOption).toHaveCSS('transform', 'none')
+    await expect(wrongOption).toHaveCSS('transition-duration', '0s')
+    if (touchSession) {
+      await touchSession.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await touchSession.detach()
+    } else {
+      await page.mouse.up()
+    }
+    await expect(wrongOption).toHaveCSS('border-top-color', 'rgb(220, 38, 38)')
+    await expect(wrongOption).toHaveCSS('color', 'rgb(220, 38, 38)')
+    await expect(wrongOption).toHaveCSS('filter', 'none')
+    await expect(wrongOption).not.toHaveClass(/button-hover/)
+    await expect(page.getByText('选择错误，请重新选择')).toBeVisible()
+  })
+}
+
+test('存储耗时不会阻塞首帧红色反馈', async ({ page }) => {
+  await page.goto(firstStageUrl)
+  await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  const feedbackWasPaintedBeforeSave = await page.evaluate(async () => {
+    const wrongOption = Array.from(document.querySelectorAll<HTMLElement>('.character-option'))
+      .find((option) => option.getAttribute('aria-label') !== '选择文字一')
+    if (!wrongOption) throw new Error('错误选项未显示')
+    let feedbackWasPainted = false
+    let paintedAtSave: boolean | undefined
+    const originalSetItem = Storage.prototype.setItem
+    const firstFrame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        feedbackWasPainted = getComputedStyle(wrongOption).borderTopColor === 'rgb(220, 38, 38)'
+      })
+    })
+    try {
+      Storage.prototype.setItem = function (key: string, value: string) {
+        if (key === 'font-learning-character-data') {
+          paintedAtSave = feedbackWasPainted
+          const until = performance.now() + 120
+          while (performance.now() < until) { /* 模拟真机同步存储耗时。 */ }
+        }
+        originalSetItem.call(this, key, value)
+      }
+      wrongOption.click()
+      await new Promise<void>((resolve) => {
+        function checkSaved() {
+          if (paintedAtSave !== undefined) resolve()
+          else requestAnimationFrame(checkSaved)
+        }
+        requestAnimationFrame(checkSaved)
+      })
+      return paintedAtSave
+    } finally {
+      Storage.prototype.setItem = originalSetItem
+      cancelAnimationFrame(firstFrame)
+    }
+  })
+  expect(feedbackWasPaintedBeforeSave).toBe(true)
+})
+
+test('错误反馈尚未结束就离开页面，刷新后仍保留该次错误记录', async ({ page }) => {
+  await page.goto(firstStageUrl)
+  await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  await page.clock.install()
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  await page.locator('.character-option').filter({ hasNotText: '一' }).first().click()
+  await page.getByLabel('返回', { exact: true }).click()
+  await expect(page).toHaveURL(/\/pages\/levels\/index/)
+  await page.reload()
+  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 1, mistakes: 1, completedAt: null })
+})
+
+test('第二次选错先完整显示舒缓的红色反馈，再进入详情且不重复计数', async ({ page }) => {
+  await page.goto(firstStageUrl)
+  await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  await page.clock.install()
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  const wrongOption = page.locator('.character-option').filter({ hasNotText: '一' }).first()
+  await wrongOption.click()
+  await wrongOption.click()
+  await expect(wrongOption).toHaveCSS('border-top-color', 'rgb(220, 38, 38)')
+  await expect(page.getByText('选择错误，请重新选择')).toBeVisible()
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCount(0)
+  await wrongOption.dispatchEvent('click')
+  await page.clock.fastForward(359)
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCount(0)
+  await page.clock.fastForward(1)
+  await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
+  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 2, mistakes: 2, completedAt: null })
+})
+
+test('减少动态效果时仍立即显示红色错误和绿色正确提示', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto(firstStageUrl)
+  await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  await page.clock.install()
+  await page.clock.pauseAt(new Date(Date.now() + 1000))
+  const wrongOption = page.locator('.character-option').filter({ hasNotText: '一' }).first()
+  await wrongOption.click()
+  await expect(wrongOption).toHaveCSS('animation-name', 'none')
+  await expect(wrongOption).toHaveCSS('border-top-color', 'rgb(220, 38, 38)')
+  await expect(page.getByText('选择错误，请重新选择')).toBeVisible()
+  const correctOption = page.getByRole('button', { name: '选择文字一', exact: true })
+  await correctOption.click()
+  await expect(correctOption).toHaveCSS('animation-name', 'none')
+  await expect(page.getByText('✓ 回答正确', { exact: true })).toBeVisible()
+  await page.clock.fastForward(150)
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCSS('animation-name', 'none')
 })
 
 test('已斩按钮再次点击后恢复学习，刷新后状态和题目均恢复', async ({ page }) => {
@@ -123,7 +275,7 @@ test('本关全部斩掉后列表保留，取消一个斩字即可继续学习',
   await expect(page.locator('.prompt-character')).toHaveText('一')
 })
 
-test('斩字后只需完成剩余文字的全部模式，输入首次答对不显示错误', async ({ page }) => {
+test('斩字后完成剩余练习，输入题立即显示红色错误或绿色正确动画', async ({ page }) => {
   await page.goto(firstStageUrl)
   for (let index = 9; index > 0; index -= 1) {
     await page.locator('.slash-button').nth(index).click()
@@ -136,13 +288,27 @@ test('斩字后只需完成剩余文字的全部模式，输入首次答对不�
     await page.getByRole('button', { name: '进入下一题' }).click()
   }
   await expect(page.locator('.progress-item').filter({ hasText: '本关进度' })).toContainText('0/1')
-  await page.locator('.answer-input input').fill('一')
   await page.clock.install()
   await page.clock.pauseAt(new Date(Date.now() + 1000))
+  await page.locator('.answer-input input').fill('乙')
   await page.getByRole('button', { name: '确认输入答案' }).click()
+  await expect(page.locator('.input-label')).toHaveCSS('border-top-color', 'rgb(220, 38, 38)')
+  await expect(page.locator('.input-label')).toHaveCSS('animation-name', /wrong-option-shake/)
+  await expect(page.locator('.input-label')).toHaveCSS('animation-duration', '0.36s')
+  await expect(page.getByText('答案不正确，请重新输入')).toBeVisible()
+  await page.locator('.answer-input input').fill('一')
+  // uni-input 对连续输入节流 100ms，先派发改字事件，再检查提交后的即时反馈。
+  await page.clock.runFor(100)
+  await page.getByRole('button', { name: '确认输入答案' }).click()
+  await expect(page.locator('.input-label')).toHaveCSS('animation-name', /correct-answer-pulse/)
+  await expect(page.locator('.input-label')).toHaveCSS('border-top-color', 'rgb(21, 128, 61)')
+  await expect(page.getByText('✓ 回答正确', { exact: true })).toBeVisible()
   await expect(page.locator('.input-label.is-error')).toHaveCount(0)
   await expect(page.getByText('答案不正确，请重新输入')).toHaveCount(0)
-  await page.clock.fastForward(500)
+  await expect(page.getByRole('button', { name: '确认输入答案' })).toBeDisabled()
+  await page.clock.fastForward(100)
+  await expect(page.getByLabel('文字详情', { exact: true })).toHaveCount(0)
+  await page.clock.fastForward(50)
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '完成本关学习' }).click()
   await expect(page.getByText('关卡完成', { exact: true })).toBeVisible()

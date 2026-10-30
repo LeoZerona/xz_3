@@ -122,7 +122,6 @@ button,
 [role=button],
 .navigation-item,
 .character-option{transition: filter 90ms ease-out, transform 90ms ease-out, background-color 90ms ease-out;-webkit-tap-highlight-color:transparent;}
-.character-option.is-correct{border-color:#18a957 !important;background:color-mix(in srgb,#18a957 14%,var(--color-surface)) !important;color:#0e7a3c !important;}
 .top-progress-bar{position:fixed;top:0;left:0;right:0;z-index:9998;height:2px;background:transparent;overflow:hidden;pointer-events:none;}
 .top-progress-bar::after{content:"";position:absolute;inset:0;width:40%;background:var(--color-primary);animation:top-progress-indeterminate 900ms ease-in-out infinite;}
 @keyframes top-progress-indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}

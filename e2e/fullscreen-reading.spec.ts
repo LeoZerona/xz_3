@@ -186,12 +186,21 @@ test('battery shows real readings and updates both charge and charging state', a
   await expect(battery.locator('.battery-charging')).toBeVisible()
 })
 
-for (const mode of ['unsupported', 'rejected']) {
+for (const mode of ['unsupported', 'rejected', 'missing-add-listener', 'missing-remove-listener']) {
   test(`battery has an honest fallback when ${mode}`, async ({ page }) => {
     await page.addInitScript((state) => {
+      let getBattery: (() => Promise<unknown>) | undefined
+      if (state === 'rejected') {
+        getBattery = () => Promise.reject(new Error('blocked'))
+      } else if (state !== 'unsupported') {
+        const battery = Object.assign(new EventTarget(), { level: 0.72, charging: false })
+        const method = state === 'missing-add-listener' ? 'addEventListener' : 'removeEventListener'
+        Object.defineProperty(battery, method, { value: undefined })
+        getBattery = async () => battery
+      }
       Object.defineProperty(navigator, 'getBattery', {
         configurable: true,
-        value: state === 'unsupported' ? undefined : () => Promise.reject(new Error('blocked')),
+        value: getBattery,
       })
     }, mode)
     const errors: string[] = []
@@ -201,6 +210,12 @@ for (const mode of ['unsupported', 'rejected']) {
     await expect(page.locator('.reading-battery')).toHaveAccessibleName('当前设备不支持读取电量')
     await tapReadingArea(page)
     expect(await visibleReferenceCount(page)).toBeGreaterThan(0)
+    await openMenu(page)
+    await page.getByRole('button', { name: '返回书库', exact: true }).click()
+    await expect(page.locator('.library-title')).toBeVisible()
+    await page.locator('.book-card').filter({ has: page.locator('[data-ext="txt"]') }).first().click()
+    await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+    await expect(page.locator('.battery-value')).toHaveText('--')
     expect(errors).toEqual([])
   })
 }

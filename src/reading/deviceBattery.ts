@@ -9,7 +9,7 @@ export interface BrowserBattery extends EventTarget {
 }
 
 export interface BatteryNavigator {
-  getBattery?: () => Promise<BrowserBattery>
+  getBattery?: () => Promise<unknown>
 }
 
 // Native.js 的对象为桥接句柄，只能交给 invoke 调用，不能当作普通 JS 对象读取。
@@ -28,6 +28,15 @@ function normalizeBattery(level: unknown, isCharging: boolean): DeviceBattery | 
   return { level: Math.round(level), isCharging }
 }
 
+function isBrowserBattery(value: unknown): value is BrowserBattery {
+  return typeof value === 'object' && value !== null
+    && 'level' in value && typeof value.level === 'number'
+    && 'charging' in value && typeof value.charging === 'boolean'
+    && 'addEventListener' in value && typeof value.addEventListener === 'function'
+    && 'removeEventListener' in value && typeof value.removeEventListener === 'function'
+    && 'dispatchEvent' in value && typeof value.dispatchEvent === 'function'
+}
+
 export function observeBrowserBattery(source: BatteryNavigator, onChange: BatteryListener): () => void {
   let isDisposed = false
   let manager: BrowserBattery | null = null
@@ -35,13 +44,18 @@ export function observeBrowserBattery(source: BatteryNavigator, onChange: Batter
     if (!isDisposed && manager) onChange(normalizeBattery(manager.level * 100, manager.charging))
   }
   const getBattery = source.getBattery
-  if (!getBattery) {
+  if (typeof getBattery !== 'function') {
     onChange(null)
     return () => { isDisposed = true }
   }
   // 某些浏览器或非安全来源禁止电量 API，降级为未知电量，阅读仍可继续。
   void Promise.resolve().then(() => getBattery.call(source)).then((battery) => {
     if (isDisposed) return
+    // 部分 WebView/垫片返回不完整对象，先校验事件接口，避免订阅或清理时抛错。
+    if (!isBrowserBattery(battery)) {
+      onChange(null)
+      return
+    }
     manager = battery
     update()
     manager.addEventListener('levelchange', update)

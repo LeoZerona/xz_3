@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBackPress } from "@dcloudio/uni-app";
+import { onBackPress, onHide } from "@dcloudio/uni-app";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { storeToRefs } from "pinia";
@@ -12,6 +12,7 @@ import { getStage, loadStage, STAGES_BY_CATEGORY, type LevelCategory, type Level
 import { getEffectiveStudyModes, STUDY_MODES } from "../../study/modes";
 import type { StudyMode } from "../../study/modes";
 import type { StudyCharacterEntry } from "../../study/types";
+import { createWrongAttemptQueue, WRONG_ANSWER_FEEDBACK_MS } from "../../study/feedback";
 import StudyPreviewPanel from "../../components/StudyPreviewPanel.vue";
 import StudyQuestionCard from "../study/components/StudyQuestionCard.vue";
 
@@ -156,6 +157,10 @@ const hintLevel = ref(0);
 const forceDetail = ref(false);
 const isCorrectAnimating = ref(false);
 let pendingCorrectTimer: ReturnType<typeof setTimeout> | null = null;
+const wrongAttemptQueue = createWrongAttemptQueue((attempt) => {
+  learningStore.recordModeAttempt(attempt.characterId, attempt.mode, false, attempt.attemptedAt);
+  if (attempt.shouldResetModes) learningStore.resetCharacterModes(attempt.characterId, attempt.attemptedAt);
+});
 const wrongCountMap = new Map<string, number>();
 function taskKey(id: string, mode: string){ return id + "::" + mode }
 function incWrongCount(){ const c=currentCharacter.value; if(!c) return 0; const k=taskKey(c.id, activeMode.value); let cur=wrongCountMap.get(k); if(cur===undefined) cur=0; const n=cur+1; wrongCountMap.set(k,n); return n }
@@ -172,6 +177,7 @@ const hasAttempted = ref(false);
 const hasAnswered = ref(false);
 
 function resetQuestionState() {
+  wrongAttemptQueue.flush();
   selectedAnswer.value = null;
   inputAnswer.value = "";
   hasAttempted.value = false;
@@ -327,6 +333,7 @@ function completeAnswer(character: StudyCharacterEntry) {
   hasAttempted.value = false;
   pendingCorrectTimer = setTimeout(() => {
     pendingCorrectTimer = null;
+    wrongAttemptQueue.flush();
     learningStore.recordModeAttempt(character.id, mode, true);
     if (learningStore.isCharacterComplete(character.id)) {
       levelProgressStore.markCharacterCompleted(stageId, character.id);
@@ -334,38 +341,46 @@ function completeAnswer(character: StudyCharacterEntry) {
     hasAnswered.value = true;
     isCorrectAnimating.value = false;
     if (isStageComplete.value) levelProgressStore.markStageCompleted(stageId);
-  }, 400);
+  }, 150);
 }
 
 function recordWrongAnswer(character: StudyCharacterEntry) {
   hasAttempted.value = true;
   hintLevel.value = 1;
-  learningStore.recordModeAttempt(character.id, activeMode.value, false);
-  if (incWrongCount() < 2) return;
-  forceDetail.value = true;
-  if (activeMode.value !== effectiveModes.value[0]) {
-    learningStore.resetCharacterModes(character.id);
-  }
-  hasAnswered.value = true;
+  const mode = activeMode.value;
+  const wrongCount = incWrongCount();
+  wrongAttemptQueue.enqueue({
+    characterId: character.id,
+    mode,
+    attemptedAt: new Date().toISOString(),
+    shouldResetModes: wrongCount >= 2 && mode !== effectiveModes.value[0],
+  });
+  if (wrongCount < 2) return;
+  // 保留即时红色反馈，再展示错误后的详情；等待期间不重复记录作答。
+  pendingCorrectTimer = setTimeout(() => {
+    pendingCorrectTimer = null;
+    forceDetail.value = true;
+    hasAnswered.value = true;
+  }, WRONG_ANSWER_FEEDBACK_MS);
 }
 
 function handleChoiceAnswer(character: string) {
   const current = currentCharacter.value;
-  if (!current || hasAnswered.value || isCorrectAnimating.value || forceDetail.value) return;
+  if (!current || hasAnswered.value || pendingCorrectTimer || forceDetail.value) return;
   selectedAnswer.value = character;
   if (character === current.script_forms.simplified) completeAnswer(current);
   else recordWrongAnswer(current);
 }
 
 function handleInputAnswer(value: string) {
-  if (hasAnswered.value || isCorrectAnimating.value) return;
+  if (hasAnswered.value || pendingCorrectTimer) return;
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("");
   hasAttempted.value = false;
 }
 
 function submitInputAnswer(value: string) {
   const current = currentCharacter.value;
-  if (!current || hasAnswered.value || isCorrectAnimating.value || forceDetail.value) return;
+  if (!current || hasAnswered.value || pendingCorrectTimer || forceDetail.value) return;
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("");
   if (!inputAnswer.value) return;
   const expected = current.script_forms;
@@ -440,8 +455,11 @@ onMounted(() => {
   try { uni.pageScrollTo({ scrollTop: 0, duration: 0 }); } catch {}
 });
 
+onHide(() => wrongAttemptQueue.flush());
+
 onBeforeUnmount(()=>{
   stageLoadSeq += 1;
+  wrongAttemptQueue.flush();
   if(pendingCorrectTimer){ clearTimeout(pendingCorrectTimer); pendingCorrectTimer=null }
 });
 </script>
@@ -520,6 +538,7 @@ onBeforeUnmount(()=>{
       :hint-level="hintLevel"
       :force-detail="forceDetail"
       :is-correct-animating="isCorrectAnimating"
+      :detail-animated="false"
       completion-label="完成本关学习"
       @answer-choice="handleChoiceAnswer"
       @update:input-answer="handleInputAnswer"

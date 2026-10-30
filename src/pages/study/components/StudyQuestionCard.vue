@@ -5,6 +5,7 @@ import type { LearningFont } from '../../../fonts/types'
 import { getEffectiveStudyModes, INPUT_STUDY_MODE } from '../../../study/modes'
 import type { StudyMode } from '../../../study/modes'
 import type { StudyCharacterEntry } from '../../../study/types'
+import { WRONG_ANSWER_FEEDBACK_MS } from '../../../study/feedback'
 
 interface StudyQuestion {
   mode: StudyMode
@@ -34,6 +35,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const feedbackStyle = { '--wrong-answer-duration': `${WRONG_ANSWER_FEEDBACK_MS}ms` }
 
 const emit = defineEmits<{
   (event: 'answer-choice', character: string): void
@@ -52,6 +54,7 @@ const totalModes = computed(() => {
   try { const e = getEffectiveStudyModes(); return e.length > 0 ? e.length : 3 } catch { return 3 }
 })
 const localInputAnswer = ref(props.inputAnswer)
+const feedbackAttempt = ref(0)
 const showDetail = computed(() => props.isCorrect || Boolean(props.forceDetail))
 const hasWrongAnswer = computed(() => props.hasAttempted && !props.isCorrect && !props.isCorrectAnimating)
 const showClues = computed(() => (props.hintLevel ?? (wrongAttemptCount.value>0 ? 1 : 0)) >= 1)
@@ -86,11 +89,14 @@ function handlePrimaryAction() {
     emit('next')
     return
   }
+  if (!localInputAnswer.value.trim()) return
+  feedbackAttempt.value += 1
   emit('submit-input', localInputAnswer.value)
 }
 
 function handleChoiceAnswer(character: string) {
   if (showDetail.value || props.isCorrectAnimating) return
+  feedbackAttempt.value += 1
   if (character !== props.question.character.script_forms.simplified) {
     wrongAttemptCount.value += 1
   }
@@ -99,7 +105,7 @@ function handleChoiceAnswer(character: string) {
 </script>
 
 <template>
-  <view class="question-stage">
+  <view class="question-stage" :style="feedbackStyle">
     <view v-if="!showDetail" class="question-content">
       <view v-if="false" class="mode-status" role="status">
         <text>本字第 {{ modePosition }}/{{ totalModes }} 种</text>
@@ -123,7 +129,7 @@ function handleChoiceAnswer(character: string) {
         <view class="choice-grid" role="group" aria-label="请选择相同的文字">
           <button v-for="option in question.options"
              :key="option.id"
-            class="character-option" role="button" :class="{
+            class="character-option" role="button" hover-class="none" :class="{
               'is-selected': selectedAnswer === option.script_forms.simplified,
               'is-wrong': selectedAnswer === option.script_forms.simplified && option.id !== question.character.id,
               'is-correct': option.id===question.character.id && (isCorrect || Boolean(isCorrectAnimating)),
@@ -135,24 +141,25 @@ function handleChoiceAnswer(character: string) {
             <text :style="{ fontFamily: question.answerFont.fontFamily }">{{ option.script_forms.simplified }}</text>
           </button>
         </view>
-        <text v-if="hasWrongAnswer" class="answer-error" role="status">
+        <text v-if="hasWrongAnswer" :key="feedbackAttempt" class="answer-error" role="status">
           选择错误，请重新选择
         </text>
       </template>
 
       <view v-else class="input-panel">
-        <label class="input-label" :class="{ 'is-error': hasWrongAnswer }">
+        <label class="input-label" :class="{ 'is-error': hasWrongAnswer, 'is-correct': isCorrectAnimating }">
           <text class="sr-only">输入识别结果</text>
           <input class="answer-input" type="text" v-model="localInputAnswer"
             style="font-family: inherit;" maxlength="1" confirm-type="done" :disabled="Boolean(isCorrectAnimating)"
             placeholder="请输入一个字" placeholder-style="font-size: 13px; color: var(--color-text-muted);"
             @confirm="handlePrimaryAction">
         </label>
-        <text v-if="hasWrongAnswer" class="sr-only" role="status">答案不正确，请重新输入</text>
+        <text v-if="hasWrongAnswer" :key="feedbackAttempt" class="answer-error" role="status">答案不正确，请重新输入</text>
       </view>
+      <text v-if="isCorrectAnimating" class="answer-success" role="status">✓ 回答正确</text>
     </view>
 
-    <scroll-view v-else class="detail-scroll is-animated" scroll-y :show-scrollbar="false" aria-label="文字详情">
+    <scroll-view v-else class="detail-scroll" :class="{ 'is-animated': detailAnimated !== false }" scroll-y :show-scrollbar="false" aria-label="文字详情">
       <view class="detail-hero">
         <CharacterFontComparison :character="question.character.script_forms.simplified"
           :learning-font="question.learningFont" :reference-font="question.referenceFont" />
@@ -200,7 +207,7 @@ function handleChoiceAnswer(character: string) {
       </view>
     </scroll-view>
 
-    <button v-if="isInputMode || showDetail" class="primary-action" role="button"
+    <button v-if="isInputMode || showDetail" class="primary-action" role="button" hover-class="none"
       :aria-disabled="Boolean(isCorrectAnimating) || (!showDetail && !localInputAnswer.trim())"
       :disabled="Boolean(isCorrectAnimating) || (!showDetail && !localInputAnswer.trim())" :aria-label="actionAriaLabel" @click="handlePrimaryAction">
       <text>{{ actionLabel }}</text>
@@ -211,6 +218,8 @@ function handleChoiceAnswer(character: string) {
 
 <style scoped lang="scss">
 .question-stage {
+  --answer-success: var(--color-success, #15803d);
+  --answer-error: var(--color-error, #dc2626);
   min-height: 0;
   padding: clamp(28px, 4vh, 36px) 16px calc(18px + env(safe-area-inset-bottom));
   flex: 1;
@@ -293,26 +302,48 @@ function handleChoiceAnswer(character: string) {
   border: 0;
 }
 
+/* 答题反馈直接接管按钮，避免原生高亮和全局按压动效遮住答题状态。 */
+.character-option,
+.primary-action {
+  transition: none;
+}
+
+.character-option:active,
+.primary-action:active {
+  filter: none;
+  transform: none;
+}
+
 .character-option.is-selected {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
 }
 
 .character-option.is-wrong {
-  border-color: #e88455;
-  background: color-mix(in srgb, #e88455 10%, var(--color-surface));
-  color: #d16d3c;
-  animation: wrong-option-shake 360ms ease-out;
+  border-color: var(--answer-error);
+  background: color-mix(in srgb, var(--answer-error) 10%, var(--color-surface));
+  color: var(--answer-error);
+  transition: none;
+  animation: wrong-option-shake var(--wrong-answer-duration) ease-in-out;
 }
 
-.answer-error {
+.answer-error,
+.answer-success {
   width: 100%;
   margin-top: 10px;
   display: block;
-  color: #d16d3c;
   font-size: 11px;
   line-height: 1.5;
   text-align: center;
+}
+
+.answer-error {
+  color: var(--answer-error);
+}
+
+.answer-success {
+  color: var(--answer-success);
+  animation: answer-feedback-appear 150ms ease-out;
 }
 
 .input-panel {
@@ -337,8 +368,24 @@ function handleChoiceAnswer(character: string) {
 }
 
 .input-label.is-error {
-  border-color: #e88455;
-  background: color-mix(in srgb, #e88455 7%, var(--color-surface));
+  border-color: var(--answer-error);
+  background: color-mix(in srgb, var(--answer-error) 7%, var(--color-surface));
+  color: var(--answer-error);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--answer-error) 12%, transparent);
+  animation: wrong-option-shake var(--wrong-answer-duration) ease-in-out;
+}
+
+.character-option.is-correct,
+.input-label.is-correct {
+  border-color: var(--answer-success);
+  background: color-mix(in srgb, var(--answer-success) 14%, var(--color-surface));
+  color: var(--answer-success);
+  transition: none;
+  animation: correct-answer-pulse 150ms ease-out;
+}
+
+.input-label.is-correct {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--answer-success) 12%, transparent);
 }
 
 .answer-input {
@@ -347,6 +394,11 @@ function handleChoiceAnswer(character: string) {
   color: var(--color-text);
   font-size: 36px;
   text-align: center;
+}
+
+.input-label.is-error .answer-input,
+.input-label.is-correct .answer-input {
+  color: inherit;
 }
 
 .answer-input::placeholder {
@@ -518,6 +570,27 @@ function handleChoiceAnswer(character: string) {
   white-space: nowrap;
 }
 
+@keyframes correct-answer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes answer-feedback-appear {
+  from {
+    transform: translateY(3px);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes wrong-option-shake {
 
   0%,
@@ -525,20 +598,12 @@ function handleChoiceAnswer(character: string) {
     transform: translateX(0);
   }
 
-  20% {
-    transform: translateX(-6px);
-  }
-
-  40% {
-    transform: translateX(5px);
-  }
-
-  60% {
+  30% {
     transform: translateX(-3px);
   }
 
-  80% {
-    transform: translateX(2px);
+  65% {
+    transform: translateX(3px);
   }
 }
 
@@ -586,7 +651,12 @@ function handleChoiceAnswer(character: string) {
     scroll-behavior: auto;
   }
 
-  .character-option.is-wrong {
+  .character-option.is-wrong,
+  .character-option.is-correct,
+  .input-label.is-error,
+  .input-label.is-correct,
+  .answer-error,
+  .answer-success {
     animation: none;
   }
 }
