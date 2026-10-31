@@ -60,7 +60,8 @@ function goBack() {
   uni.reLaunch({ url: previewUrl.value })
 }
 
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })

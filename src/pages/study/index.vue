@@ -342,12 +342,9 @@ function handleBack(){
   uni.reLaunch({ url: "/pages/index/index" })
 }
 
-onBackPress(() => {
-  if (getCurrentPages().length > 1) {
-    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/index/index" }) })
-    return true
-  }
-  uni.reLaunch({ url: "/pages/index/index" })
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
+  handleBack()
   return true
 })
 

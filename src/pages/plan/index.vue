@@ -198,7 +198,8 @@ onMounted(() => {
   initialiseWheel()
 })
 
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   if (activeSection.value === 'catalog') {
     activeSection.value = 'fonts'
     return true

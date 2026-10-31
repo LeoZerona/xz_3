@@ -45,7 +45,8 @@ function goBack() {
   uni.reLaunch({ url: '/pages/index/index' })
 }
 
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })

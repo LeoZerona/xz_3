@@ -39,8 +39,9 @@ const navigationItems: NavigationItem[] = [
   { key: "profile", label: "我", icon: "contact-o", url: "/pages/profile/index" },
 ];
 
-function getAnimationType(target: TabKey): "fade-in" {
-  return "fade-in";
+function handleNavigationFailure() {
+  releaseNavigationLock();
+  uni.showToast({ title: "暂时无法切换页面，请重试", icon: "none" });
 }
 
 function navigateToTab(item: NavigationItem) {
@@ -52,14 +53,31 @@ function navigateToTab(item: NavigationItem) {
   isNavigating.value = true;
   const animationType = "fade-in" as const;
   const animationDuration = 0;
-  // 首页使用 reLaunch 以清空栈，其余使用 navigateTo 保持可返回；动画统一 220ms ease-out
+  // 返回栈中已有的主页面，避免反复切换创建多个相同页面并耗尽 App 页面栈。
+  const pages = getCurrentPages();
+  const existingIndex = pages.findIndex((page) => `/${page.route}` === item.url);
+  if (existingIndex >= 0) {
+    const delta = pages.length - 1 - existingIndex;
+    if (delta === 0) {
+      isNavigating.value = false;
+      return;
+    }
+    uni.navigateBack({
+      delta,
+      animationDuration,
+      success: () => releaseNavigationLock(600),
+      fail: handleNavigationFailure,
+    });
+    return;
+  }
+  // 直接打开其他主页面时，页面栈中可能没有首页。
   if (item.key === "study") {
     uni.reLaunch({
       url: item.url,
       animationType,
       animationDuration,
       complete: () => releaseNavigationLock(600),
-      fail: () => emit("unavailable", item.label),
+      fail: handleNavigationFailure,
     });
     return;
   }
@@ -67,15 +85,7 @@ function navigateToTab(item: NavigationItem) {
     url: item.url,
     animationType,
     animationDuration,
-    fail: () => {
-      // H5 下可能因已在同一页或栈限制失败，降级为 reLaunch
-      uni.reLaunch({
-        url: item.url as string,
-        animationType,
-        animationDuration,
-        complete: () => releaseNavigationLock(600),
-      });
-    },
+    fail: handleNavigationFailure,
     success: () => releaseNavigationLock(600),
   });
 }
@@ -151,6 +161,7 @@ onBeforeUnmount(() => {
       :class="{ 'is-active': item.key === activeTab }"
       :aria-current="item.key === activeTab ? 'page' : undefined"
       :aria-label="item.label"
+      :aria-disabled="isNavigating"
       role="button"
       tabindex="0"
       @click="handleItemClick(item)"

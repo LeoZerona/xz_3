@@ -67,7 +67,8 @@ function handleAvatarEdit() {
 function showIpExplanation() {
   uni.showToast({ title: 'IP 属地根据网络信息展示', icon: 'none' })
 }
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })

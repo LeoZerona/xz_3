@@ -435,12 +435,10 @@ function handleBack() {
   uni.reLaunch({ url: "/pages/levels/index" })
 }
 
-onBackPress(() => {
-  if (getCurrentPages().length > 1) {
-    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: "/pages/levels/index" }) })
-    return true
-  }
-  uni.reLaunch({ url: "/pages/levels/index" })
+onBackPress((event) => {
+  // navigateBack 也会触发本钩子，必须放行，避免递归返回和重建页面。
+  if (event.from === 'navigateBack') return false
+  handleBack()
   return true
 })
 

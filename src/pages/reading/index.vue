@@ -936,7 +936,8 @@ function handleExitReader(): void {
   stopAutoReading()
 }
 
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   if (showReaderSettings.value) {
     showReaderSettings.value = false
     return true

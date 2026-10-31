@@ -100,7 +100,8 @@ function goBack() {
 function goToProfile() {
   uni.reLaunch({ url: '/pages/personal-profile/index' })
 }
-onBackPress(() => {
+onBackPress((event) => {
+  if (event.from === 'navigateBack') return false
   goBack()
   return true
 })
