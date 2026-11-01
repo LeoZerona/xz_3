@@ -1,6 +1,7 @@
 import type { CharacterEntry } from '../search/characterSearch'
 
 export interface StudyCharacterEntry extends CharacterEntry {
+  level?: number
   structure: CharacterEntry['structure'] & {
     liushu: string
     liushu_detail: string

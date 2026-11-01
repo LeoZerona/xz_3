@@ -1,3 +1,4 @@
+import { readStored, reportPersistenceError, saveStored } from '../database/persistence'
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
@@ -12,7 +13,7 @@ interface LevelProgressState {
 
 function readState(): LevelProgressState {
   try {
-    const raw = uni.getStorageSync(LEVEL_PROGRESS_STORAGE_KEY) as unknown;
+    const raw = readStored(LEVEL_PROGRESS_STORAGE_KEY) as unknown;
     if (raw && typeof raw === "object") {
       const data = raw as Partial<LevelProgressState>;
       const ids = Array.isArray(data.completedStageIds) ? data.completedStageIds.filter((id): id is string => typeof id === "string") : [];
@@ -30,8 +31,8 @@ function readState(): LevelProgressState {
 function persist(state: LevelProgressState) {
   state.updatedAt = new Date().toISOString();
   try {
-    uni.setStorageSync(LEVEL_PROGRESS_STORAGE_KEY, state);
-  } catch {}
+    saveStored(LEVEL_PROGRESS_STORAGE_KEY, state);
+  } catch (error) { reportPersistenceError(error) }
 }
 
 export const useLevelProgressStore = defineStore("levelProgress", () => {

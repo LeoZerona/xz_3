@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia, storeToRefs } from 'pinia'
 import { DEFAULT_THEME_ID, THEME_STORAGE_KEY } from '../theme/themes'
 import { useThemeStore } from './theme'
+import { setupTestDatabase } from '../database/testSupport'
+import { flushPersistence, initializePersistence, readStored, resetPersistenceForTests } from '../database/persistence'
 
 describe('App 无 DOM 环境的主题状态', () => {
   beforeEach(() => {
@@ -10,12 +12,13 @@ describe('App 无 DOM 环境的主题状态', () => {
   })
   afterEach(() => { vi.unstubAllGlobals() })
 
-  it('切换时更新已绑定的页面样式，并在重新启动时恢复', () => {
+  it('切换时更新已绑定的页面样式，并在重新启动时恢复', async () => {
     const storage = new Map<string, unknown>([[THEME_STORAGE_KEY, 'jade-green']])
     vi.stubGlobal('uni', {
       getStorageSync: (key: string) => storage.get(key),
       setStorageSync: (key: string, value: unknown) => storage.set(key, value),
     })
+    await setupTestDatabase(storage)
     const store = useThemeStore()
     store.initialize()
     const { themeStyle } = storeToRefs(store)
@@ -25,7 +28,10 @@ describe('App 无 DOM 环境的主题状态', () => {
     expect(themeStyle.value['--color-page']).toBe('#151922')
     expect(themeStyle.value['--color-text']).toBe('#f1f4fa')
     expect(themeStyle.value.colorScheme).toBe('dark')
-    expect(storage.get(THEME_STORAGE_KEY)).toBe('ink-night')
+    expect(readStored(THEME_STORAGE_KEY)).toBe('ink-night')
+    await flushPersistence()
+    resetPersistenceForTests()
+    await initializePersistence()
 
     setActivePinia(createPinia())
     const restarted = useThemeStore()

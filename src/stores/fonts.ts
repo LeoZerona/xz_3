@@ -1,3 +1,4 @@
+import { readStored, reportPersistenceError, saveStored } from '../database/persistence'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import {
@@ -26,7 +27,7 @@ export interface PersistedCustomFont extends LearningFont {
 
 function readCustomFonts(): PersistedCustomFont[] {
   try {
-    const stored = uni.getStorageSync(CUSTOM_FONTS_STORAGE_KEY) as unknown
+    const stored = readStored(CUSTOM_FONTS_STORAGE_KEY) as unknown
     if (!Array.isArray(stored)) return []
     return stored.filter((item): item is PersistedCustomFont => {
       if (typeof item !== 'object' || item === null) return false
@@ -96,7 +97,7 @@ function uniqueValidIds(value: unknown, customFonts: LearningFont[]): string[] {
 
 function readStoredState(customFonts: LearningFont[]): StoredFontState {
   try {
-    const stored = uni.getStorageSync(FONT_STATE_STORAGE_KEY) as Partial<StoredFontState> | undefined
+    const stored = readStored(FONT_STATE_STORAGE_KEY) as Partial<StoredFontState> | undefined
     const addedIds = uniqueValidIds(stored?.addedIds, customFonts)
     if (addedIds.length > 0) {
       const currentId = typeof stored?.currentId === 'string' && addedIds.includes(stored.currentId)
@@ -108,7 +109,7 @@ function readStoredState(customFonts: LearningFont[]): StoredFontState {
       return { version: 2, addedIds, currentId, referenceId }
     }
 
-    const legacyCurrentId = uni.getStorageSync(LEGACY_CURRENT_FONT_STORAGE_KEY)
+    const legacyCurrentId = readStored(LEGACY_CURRENT_FONT_STORAGE_KEY)
     const currentId = typeof legacyCurrentId === 'string' && DEFAULT_ADDED_FONT_IDS.includes(legacyCurrentId)
       ? legacyCurrentId
       : DEFAULT_FONT_ID
@@ -129,6 +130,15 @@ export const useFontStore = defineStore('fonts', () => {
   const currentFontId = ref(storedState.currentId)
   const referenceFontId = ref(storedState.referenceId ?? storedState.currentId)
 
+  function initialize() {
+    customFonts.value = readCustomFonts()
+    registerAllCustomFonts(customFonts.value)
+    const state = readStoredState(customFonts.value)
+    addedFontIds.value = state.addedIds
+    currentFontId.value = state.currentId
+    referenceFontId.value = state.referenceId ?? state.currentId
+  }
+
   function getAnyFont(fontId: string): LearningFont | undefined {
     return getBuiltinFont(fontId) ?? customFonts.value.find((font) => font.id === fontId)
   }
@@ -145,15 +155,15 @@ export const useFontStore = defineStore('fonts', () => {
       referenceId: referenceFontId.value,
     }
     try {
-      uni.setStorageSync(FONT_STATE_STORAGE_KEY, state)
-      uni.setStorageSync(LEGACY_CURRENT_FONT_STORAGE_KEY, state.currentId)
-    } catch { /* 存储不可用时仍保留当前会话内的字体状态 */ }
+      saveStored(FONT_STATE_STORAGE_KEY, state)
+      saveStored(LEGACY_CURRENT_FONT_STORAGE_KEY, state.currentId)
+    } catch (error) { reportPersistenceError(error) }
   }
 
   function persistCustomFonts() {
     try {
-      uni.setStorageSync(CUSTOM_FONTS_STORAGE_KEY, customFonts.value)
-    } catch { /* 自定义字体持久化失败时仍保留内存状态 */ }
+      saveStored(CUSTOM_FONTS_STORAGE_KEY, customFonts.value)
+    } catch (error) { reportPersistenceError(error) }
   }
 
   function addFont(fontId: string) {
@@ -229,6 +239,7 @@ export const useFontStore = defineStore('fonts', () => {
   }
 
   return {
+    initialize,
     addedFontIds,
     addedFonts,
     currentFontId,

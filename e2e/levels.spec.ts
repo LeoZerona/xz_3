@@ -1,3 +1,4 @@
+import { characterRecord } from './databaseHelpers'
 import { expect, test } from '@playwright/test'
 
 test('mobile levels load in batches and open a stage', async ({ page }) => {
@@ -70,7 +71,7 @@ test('首次答对短暂停顿后进入详情，反馈中不提示错误且不�
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
   await expect(page.getByLabel('文字详情', { exact: true })).toHaveCSS('animation-name', 'none')
   await expect(page.getByLabel(/^学习字体.+中的一$/)).toBeVisible()
-  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  const record = await characterRecord(page, 'char-0001')
   expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 1, mistakes: 0 })
   await page.getByRole('button', { name: '进入下一题' }).click()
   await expect(page.locator('.prompt-character')).toHaveText('乙')
@@ -97,7 +98,7 @@ test('选错立即显示红色动画，改选正确答案立即显示正确动�
   await expect(page.getByText('选择错误，请重新选择')).toHaveCount(0)
   await page.clock.fastForward(150)
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
-  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  const record = await characterRecord(page, 'char-0001')
   expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 2, mistakes: 1 })
 })
 
@@ -146,20 +147,20 @@ test('存储耗时不会阻塞首帧红色反馈', async ({ page }) => {
     if (!wrongOption) throw new Error('错误选项未显示')
     let feedbackWasPainted = false
     let paintedAtSave: boolean | undefined
-    const originalSetItem = Storage.prototype.setItem
+    const originalPut = IDBObjectStore.prototype.put
     const firstFrame = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         feedbackWasPainted = getComputedStyle(wrongOption).borderTopColor === 'rgb(220, 38, 38)'
       })
     })
     try {
-      Storage.prototype.setItem = function (key: string, value: string) {
-        if (key === 'font-learning-character-data') {
+      IDBObjectStore.prototype.put = function (...args: Parameters<IDBObjectStore['put']>) {
+        if (this.name === 'character_mode_progress') {
           paintedAtSave = feedbackWasPainted
           const until = performance.now() + 120
           while (performance.now() < until) { /* 模拟真机同步存储耗时。 */ }
         }
-        originalSetItem.call(this, key, value)
+        return originalPut.apply(this, args)
       }
       wrongOption.click()
       await new Promise<void>((resolve) => {
@@ -171,7 +172,7 @@ test('存储耗时不会阻塞首帧红色反馈', async ({ page }) => {
       })
       return paintedAtSave
     } finally {
-      Storage.prototype.setItem = originalSetItem
+      IDBObjectStore.prototype.put = originalPut
       cancelAnimationFrame(firstFrame)
     }
   })
@@ -187,7 +188,7 @@ test('错误反馈尚未结束就离开页面，刷新后仍保留该次错误�
   await page.getByLabel('返回', { exact: true }).click()
   await expect(page).toHaveURL(/\/pages\/levels\/index/)
   await page.reload()
-  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  const record = await characterRecord(page, 'char-0001')
   expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 1, mistakes: 1, completedAt: null })
 })
 
@@ -207,7 +208,7 @@ test('第二次选错先完整显示舒缓的红色反馈，再进入详情且�
   await expect(page.getByLabel('文字详情', { exact: true })).toHaveCount(0)
   await page.clock.fastForward(1)
   await expect(page.getByLabel('文字详情', { exact: true })).toBeVisible()
-  const record = await page.evaluate(() => JSON.parse(localStorage.getItem('font-learning-character-data') ?? '{}').data.characters['char-0001'])
+  const record = await characterRecord(page, 'char-0001')
   expect(record.modes['seal-to-reference-choice']).toMatchObject({ attempts: 2, mistakes: 2, completedAt: null })
 })
 
@@ -238,8 +239,7 @@ test('已斩按钮再次点击后恢复学习，刷新后状态和题目均恢�
   const inactiveColor = await slashButton.evaluate((element) => getComputedStyle(element).backgroundColor)
   await slashButton.click()
   await expect(slashButton).toHaveAttribute('aria-pressed', 'true')
-  const activeColor = await slashButton.evaluate((element) => getComputedStyle(element).backgroundColor)
-  expect(activeColor).not.toBe(inactiveColor)
+  await expect(slashButton).not.toHaveCSS('background-color', inactiveColor)
   await expect(page.locator('.progress-item').filter({ hasText: '剩余题' })).toContainText('27')
   await firstRow.getByRole('button', { name: '取消斩一，恢复关卡学习' }).click()
   await expect(slashButton).toHaveAttribute('aria-pressed', 'false')

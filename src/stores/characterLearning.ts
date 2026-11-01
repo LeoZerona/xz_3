@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
+import { readStored, saveStored, saveCharacter } from '../database/persistence'
 import {
   createCharacterLearningRecord,
-  isCharacterCompleted,
   isModeCompleted,
   migrateLegacyPreferences,
   normalizeCharacterLearningData,
@@ -16,9 +16,9 @@ export const LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY = 'font-learning-character
 
 function readStoredData(): CharacterLearningData {
   try {
-    const stored = uni.getStorageSync(CHARACTER_LEARNING_STORAGE_KEY) as unknown
+    const stored = readStored(CHARACTER_LEARNING_STORAGE_KEY)
     if (stored) return normalizeCharacterLearningData(stored)
-    const legacy = uni.getStorageSync(LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY) as unknown
+    const legacy = readStored(LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY)
     return migrateLegacyPreferences(legacy)
   } catch {
     return normalizeCharacterLearningData(null)
@@ -40,6 +40,7 @@ function cloneRecord(record: CharacterLearningRecord): CharacterLearningRecord {
 
 export const useCharacterLearningStore = defineStore('characterLearning', () => {
   const data = ref<CharacterLearningData>(readStoredData())
+  function hydrate() { data.value = readStoredData() }
 
   const favoriteIds = computed(() => Object.values(data.value.characters)
     .filter((record) => record.favorite.active)
@@ -52,16 +53,11 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       const eff = getEffectiveStudyModes();
       return eff.length>0 ? eff.every((m)=> Boolean(r.modes[m].completedAt)) : true;
     })
-    // legacy: .filter(isCharacterCompleted)
     .map((record) => record.characterId))
 
   function persist(at = new Date().toISOString()) {
     data.value.updatedAt = at
-    try {
-      uni.setStorageSync(CHARACTER_LEARNING_STORAGE_KEY, data.value)
-    } catch {
-      // 存储不可用时保留当前会话中的学习数据。
-    }
+    saveStored(CHARACTER_LEARNING_STORAGE_KEY, data.value)
   }
 
   function getRecord(characterId: string): CharacterLearningRecord | undefined {
@@ -73,7 +69,8 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     const record = cloneRecord(data.value.characters[characterId] ?? createCharacterLearningRecord(characterId))
     update(record)
     data.value.characters = { ...data.value.characters, [characterId]: record }
-    persist(at)
+    data.value.updatedAt = at
+    saveCharacter(record, at)
   }
 
   function isFavorite(characterId: string): boolean {
@@ -162,10 +159,14 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       data.value.characters = { ...data.value.characters, [characterId]: next }
       changed = true
     }
-    if (changed) persist(at)
+    if (changed) {
+      data.value.updatedAt = at
+      for (const id of characterIds) { const record = data.value.characters[id]; if (record) saveCharacter(record, at) }
+    }
   }
 
   return {
+    hydrate,
     data,
     favoriteIds,
     excludedIds,

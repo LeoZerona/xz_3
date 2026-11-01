@@ -3,6 +3,7 @@ import uni from '@dcloudio/vite-plugin-uni'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pdfTextPlugin } from './build/pdfTextPlugin'
+import { catalogPlugin } from './build/catalogPlugin'
 
 const require = createRequire(import.meta.url)
 const uniH5Package = require.resolve('@dcloudio/uni-h5/package.json')
@@ -34,7 +35,7 @@ function inlineAppDynamicImports(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [uni(), inlineAppDynamicImports(), pdfTextPlugin()],
+  plugins: [uni(), inlineAppDynamicImports(), pdfTextPlugin(), catalogPlugin()],
   resolve: {
     alias: [
       { find: /^vue-router$/, replacement: vueRouterEntry },

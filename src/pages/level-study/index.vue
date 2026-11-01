@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress, onHide } from "@dcloudio/uni-app";
+import { applicationReady } from '../../database/application';
+import { useDatabaseTask } from '../../database/useDatabaseTask';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { storeToRefs } from "pinia";
@@ -44,7 +48,7 @@ onLoad((options) => {
 
 watch([queryCategory, queryStageId], () => {
   showPreview.value = true;
-  void refreshStage();
+  if (applicationReady.value) void refreshStage();
 });
 
 const loadedStage = ref<LevelStage | null>(null);
@@ -52,6 +56,7 @@ const stageLoadError = ref("");
 let stageLoadSeq = 0;
 const isStageLoading = ref(false);
 const stage = computed(() => loadedStage.value);
+useDatabaseTask(refreshStage);
 
 async function refreshStage() {
   const seq = ++stageLoadSeq;
@@ -464,6 +469,7 @@ onBeforeUnmount(()=>{
 
 <template>
   <view class="study-page" :style="themeStyle">
+    <DatabaseStatus />
     <view v-if="isStageLoading" class="top-progress-bar" aria-hidden="true" />
     <view class="study-topbar">
       <button class="topbar-button" aria-label="返回" @click="handleBack">

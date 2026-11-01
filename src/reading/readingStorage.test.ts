@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { normalizeAutoPageSeconds, readPreferences, readProgress, writePreferences, writeProgress, READING_PROGRESS_KEY } from './readingStorage'
 import type { ReadingProgress } from './types'
+import { setupTestDatabase } from '../database/testSupport'
+import { flushPersistence, persistenceError, readStored } from '../database/persistence'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -19,12 +21,13 @@ describe('reading preferences', () => {
     }
   })
 
-  it('remembers the hidden reference text preference', () => {
+  it('remembers the hidden reference text preference', async () => {
     let stored: unknown
     vi.stubGlobal('uni', {
       getStorageSync: () => stored,
       setStorageSync: (_key: string, value: unknown) => { stored = value },
     })
+    await setupTestDatabase()
     writePreferences({ ...readPreferences(), hideReferenceText: true })
     expect(readPreferences().hideReferenceText).toBe(true)
   })
@@ -36,15 +39,16 @@ describe('reading preferences', () => {
     }
   })
 
-  it('remembers the reveal mode without persisting the current page reveal count', () => {
+  it('remembers the reveal mode without persisting the current page reveal count', async () => {
     let stored: unknown
     vi.stubGlobal('uni', {
       getStorageSync: () => stored,
       setStorageSync: (_key: string, value: unknown) => { stored = value },
     })
+    await setupTestDatabase()
     writePreferences({ ...readPreferences(), referenceRevealMode: 'character' })
     expect(readPreferences().referenceRevealMode).toBe('character')
-    expect(stored).not.toHaveProperty('revealedReferenceCount')
+    expect(readStored('reading:preferences')).not.toHaveProperty('revealedReferenceCount')
   })
 })
 
@@ -63,8 +67,9 @@ describe('reading progress', () => {
     tableStyleId: 'light-grid', updatedAt: '2026-10-29T00:00:00.000Z',
   }
 
-  it('stores each book independently while remembering the most recent book', () => {
+  it('stores each book independently while remembering the most recent book', async () => {
     setupStorage()
+    await setupTestDatabase()
     expect(writeProgress(progress)).toBe(true)
     const second = { ...progress, bookId: 'second', page: 2, characterOffset: 98 }
     writeProgress(second)
@@ -74,10 +79,11 @@ describe('reading progress', () => {
     expect(readProgress('unread')).toBeNull()
   })
 
-  it('preserves the legacy last book before writing a different book', () => {
+  it('preserves the legacy last book before writing a different book', async () => {
     const stored = setupStorage()
     const legacy = { bookId: 'legacy', page: 8, rowsPerPage: 12, tableStyleId: 'light-grid', updatedAt: '' }
     stored.set(READING_PROGRESS_KEY, legacy)
+    await setupTestDatabase(stored)
     expect(readProgress('legacy')).toEqual(legacy)
     writeProgress(progress)
     expect(readProgress('legacy')).toEqual(legacy)
@@ -97,14 +103,19 @@ describe('reading progress', () => {
     }
   })
 
-  it('reports storage failures so the reader can show feedback', () => {
+  it('reports queued database failures and retries without losing the progress', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.stubGlobal('uni', {
       getStorageSync: () => undefined,
       setStorageSync: () => { throw new Error('storage full') },
     })
-    expect(writeProgress(progress)).toBe(false)
-    expect(warn).toHaveBeenCalledWith('保存阅读进度失败', expect.any(Error))
+    const db = await setupTestDatabase()
+    db.failNextCommit = true
+    expect(writeProgress(progress)).toBe(true)
+    await expect(flushPersistence()).rejects.toThrow('模拟磁盘写入失败')
+    expect(persistenceError.value).toContain('模拟磁盘写入失败')
+    await flushPersistence()
+    expect((await db.query('reading_progress'))[0]).toMatchObject({ id: 'first', page: 23 })
     warn.mockRestore()
   })
 })

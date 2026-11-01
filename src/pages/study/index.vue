@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { LearningFont } from '../../fonts/types'
-import characterTable from '../../static/character_table/first-level.json'
+import { getDailyCharacters } from '../../database/catalog'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
@@ -31,21 +34,24 @@ const dailyProgressStore = useDailyProgressStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const { reviewedCount: storedReviewedCount } = storeToRefs(dailyProgressStore)
-dailyProgressStore.hydrate()
-dailyProgressStore.reconcileLearned(learningStore.completedIds)
-const allCharacters: StudyCharacterEntry[] = characterTable.chars
-const availableCharacters = allCharacters.filter((entry) => !learningStore.isExcluded(entry.id))
-const candidateIds = availableCharacters
-  .filter((entry) => !learningStore.isCharacterComplete(entry.id))
-  .map((entry) => entry.id)
-dailyProgressStore.ensureSession(candidateIds, readPlanDailyCount())
-for (const characterId of dailyProgressStore.assignedIds) {
-  if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
-}
-
-const characterById = new Map(allCharacters.map((entry) => [entry.id, entry]))
+const allCharacters = ref<StudyCharacterEntry[]>([])
+const availableCharacters = computed(() => allCharacters.value.filter((entry) => !learningStore.isExcluded(entry.id)))
+useDatabaseTask(async () => {
+  allCharacters.value = await getDailyCharacters()
+  dailyProgressStore.hydrate()
+  dailyProgressStore.reconcileLearned(learningStore.completedIds)
+  const candidateIds = availableCharacters.value
+    .filter((entry) => !learningStore.isCharacterComplete(entry.id))
+    .map((entry) => entry.id)
+  dailyProgressStore.ensureSession(candidateIds, readPlanDailyCount())
+  for (const characterId of dailyProgressStore.assignedIds) {
+    if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
+  }
+  currentTaskIndex.value = findFirstIncompleteIndex()
+})
+const characterById = computed(() => new Map(allCharacters.value.map((entry) => [entry.id, entry])))
 const dailyCharacters = computed(() => dailyProgressStore.assignedIds.flatMap((id) => {
-  const entry = characterById.get(id)
+  const entry = characterById.value.get(id)
   return entry ? [entry] : []
 }))
 const effectiveModes = computed(() => getEffectiveStudyModes())
@@ -145,7 +151,7 @@ const learnedCount = computed(() => dailyProgressStore.learnedCount)
 const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget.value))
 const studyMinutes = computed(() => dailyProgressStore.minutes)
 const choiceOptions = computed(() => buildChoiceOptions(
-  availableCharacters,
+  availableCharacters.value,
   currentCharacter.value ?? undefined,
   (currentTaskIndex.value * 7 + modePosition.value),
 ))
@@ -362,6 +368,7 @@ onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTime
 
 <template>
   <view class="study-page" :style="themeStyle">
+    <DatabaseStatus />
     <view class="study-topbar">
       <button class="topbar-button" role="button" aria-label="返回" @click="handleBack">
         <svg class="back-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>

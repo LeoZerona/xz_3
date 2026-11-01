@@ -1,3 +1,4 @@
+import { readStored, reportPersistenceError, saveStored } from '../database/persistence'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { applyTheme, getThemeStyle } from '../theme/applyTheme'
@@ -5,7 +6,7 @@ import { DEFAULT_THEME_ID, getTheme, THEME_STORAGE_KEY, themes } from '../theme/
 
 function readStoredThemeId() {
   try {
-    const stored = uni.getStorageSync(THEME_STORAGE_KEY)
+    const stored = readStored(THEME_STORAGE_KEY)
     return getTheme(stored).id
   } catch {
     return DEFAULT_THEME_ID
@@ -26,7 +27,7 @@ export const useThemeStore = defineStore('theme', () => {
     const selected = getTheme(themeId)
     currentThemeId.value = selected.id
     applyTheme(selected)
-    try { uni.setStorageSync(THEME_STORAGE_KEY, selected.id) } catch { /* 浏览器隐私模式下仍保持当前会话主题 */ }
+    try { saveStored(THEME_STORAGE_KEY, selected.id) } catch (error) { reportPersistenceError(error) }
   }
 
   return { themes, currentThemeId, currentTheme, themeStyle, initialize, selectTheme }

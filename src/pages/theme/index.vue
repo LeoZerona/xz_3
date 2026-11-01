@@ -1,5 +1,6 @@
 <template>
   <div class="theme-page" :style="themeStyle">
+    <DatabaseStatus />
     <div class="theme-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">‹</div>
       <span aria-hidden="true" />
@@ -48,6 +49,8 @@
 </template>
 
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../../stores/theme'

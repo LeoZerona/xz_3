@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import characterTable from '../static/character_table/first-level.json'
+import characterTable from '../data/character-table/first-level.json'
 import { normalizePinyin, searchCharacters } from './characterSearch'
 
 describe('character search', () => {

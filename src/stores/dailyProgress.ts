@@ -1,3 +1,4 @@
+import { readStored, reportPersistenceError, saveStored } from '../database/persistence'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import {
@@ -25,7 +26,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
     const key = todayKey()
     dateKey.value = key
     try {
-      const raw = uni.getStorageSync(progressStorageKey(key)) as unknown
+      const raw = readStored(progressStorageKey(key)) as unknown
       const normalized = normalizeProgress(raw, key)
       assignedIds.value = normalized.assignedIds
       learnedIds.value = normalized.learnedIds
@@ -52,7 +53,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
     const targetKey = currentKey !== key ? currentKey : key
     if (currentKey !== key) dateKey.value = currentKey
     try {
-      uni.setStorageSync(progressStorageKey(targetKey), {
+      saveStored(progressStorageKey(targetKey), {
         dateKey: targetKey,
         assignedIds: [...assignedIds.value],
         learnedIds: [...learnedIds.value],
@@ -62,9 +63,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
         startedAt: startedAt.value,
         completedAt: completedAt.value,
       })
-    } catch {
-      // 存储不可用时仍保留内存中的进度。
-    }
+    } catch (error) { reportPersistenceError(error) }
   }
 
   function addLearned(characterId: string) {

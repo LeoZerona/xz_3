@@ -1,5 +1,6 @@
 <template>
   <div class="plan-page" :style="themeStyle">
+    <DatabaseStatus />
     <div class="nav-bar">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="handleBack" @keydown.enter="handleBack" @keydown.space.prevent="handleBack">‹</div>
       <div v-if="activeSection !== 'catalog'" class="nav-tabs" role="tablist" aria-label="计划设置">
@@ -50,8 +51,9 @@
             <text>完成天数</text>
           </view>
           <div class="wheel-stage">
+            <!-- #ifdef H5 -->
             <div class="wheel-highlight" aria-hidden="true" />
-            <div class="plan-wheel" role="listbox" aria-label="每日学习计划" @scroll.passive="handlePlanScroll">
+            <div ref="planWheelRef" class="plan-wheel" role="listbox" aria-label="每日学习计划" @scroll.passive="handlePlanScroll">
               <div class="wheel-spacer" aria-hidden="true" />
               <div v-for="(item, index) in planOptions" :key="item.count" class="picker-row" role="option" :aria-selected="initialPlanIndex === index">
                 <span>{{ item.count }} 个</span>
@@ -59,6 +61,17 @@
               </div>
               <div class="wheel-spacer" aria-hidden="true" />
             </div>
+            <!-- #endif -->
+            <!-- #ifdef APP-PLUS -->
+            <picker-view class="native-plan-wheel" :value="[initialPlanIndex]" indicator-style="height:42px" aria-label="每日学习计划" @change="handleNativePlanChange">
+              <picker-view-column>
+                <view v-for="item in planOptions" :key="item.count" class="picker-row">
+                  <text>{{ item.count }} 个</text>
+                  <text>{{ item.days }} 天</text>
+                </view>
+              </picker-view-column>
+            </picker-view>
+            <!-- #endif -->
           </div>
         </view>
 
@@ -85,11 +98,16 @@
 </template>
 
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
+import { flushPersistence, readStored, saveStored } from '../../database/persistence'
+
 import { onBackPress } from '@dcloudio/uni-app'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
-import characterTable from '../../static/character_table/first-level.json'
+import { getDailyCharacterIds } from '../../database/catalog'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import { getStudyModeLabel, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
@@ -105,13 +123,12 @@ const ROW_HEIGHT = 42
 type Section = 'plan' | 'fonts' | 'catalog'
 
 const activeSection = ref<Section>('plan')
-// 总字数以 first-level.json 为准，按你要求先以该文件为准。
-const TOTAL_CHAR_COUNT = characterTable.chars.length
-const planOptions = Array.from({ length: 19 }, (_, index) => {
+const totalCharCount = ref(0)
+const planOptions = computed(() => Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
-  return { count, days: Math.ceil(TOTAL_CHAR_COUNT / count) }
-})
-const saved = uni.getStorageSync(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
+  return { count, days: Math.ceil(totalCharCount.value / count) }
+}))
+const saved = readStored(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
 const modeOptions = STUDY_MODES
 const savedModes = normalizeStudyModes(saved?.modes)
 const selectedModes = ref<import('../../study/modes').StudyMode[]>(savedModes.length ? savedModes : [...STUDY_MODES])
@@ -125,10 +142,21 @@ function toggleMode(mode: import('../../study/modes').StudyMode) {
   }
 }
 
-const initialDailyCount = saved?.dailyCount && planOptions.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
-const initialPlan = planOptions.find((item) => item.count === initialDailyCount) ?? planOptions[1]
-const initialPlanIndex = Math.max(0, planOptions.findIndex((item) => item.count === initialDailyCount))
+const initialDailyCount = saved?.dailyCount && planOptions.value.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
 const dailyCount = ref(initialDailyCount)
+const planWheelRef = ref<HTMLElement | null>(null)
+const initialPlan = computed(() => planOptions.value.find((item) => item.count === dailyCount.value) ?? planOptions.value[1]!)
+const initialPlanIndex = computed(() => Math.max(0, planOptions.value.findIndex((item) => item.count === dailyCount.value)))
+useDatabaseTask(async () => {
+  totalCharCount.value = (await getDailyCharacterIds()).length
+  const plan = readStored(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
+  const restoredDailyCount = plan?.dailyCount && planOptions.value.some((item) => item.count === plan.dailyCount) ? plan.dailyCount : 15
+  dailyCount.value = restoredDailyCount
+  const modes = normalizeStudyModes(plan?.modes)
+  selectedModes.value = modes.length ? modes : [...STUDY_MODES]
+  await nextTick()
+  await initialiseWheel(restoredDailyCount)
+})
 const estimatedMinutes = computed(() => {
   const modeCount = selectedModes.value.length || 1
   const count = dailyCount.value
@@ -139,8 +167,8 @@ const estimatedMinutes = computed(() => {
 })
 
 function syncWheelSelection(element: HTMLElement) {
-  const index = Math.max(0, Math.min(planOptions.length - 1, Math.round(element.scrollTop / ROW_HEIGHT)))
-  const selected = planOptions[index]
+  const index = Math.max(0, Math.min(planOptions.value.length - 1, Math.round(element.scrollTop / ROW_HEIGHT)))
+  const selected = planOptions.value[index]
   if (!selected) return
   dailyCount.value = selected.count
   element.dataset.selectedCount = String(selected.count)
@@ -154,19 +182,47 @@ function syncWheelSelection(element: HTMLElement) {
 function handlePlanScroll(event: Event) {
   syncWheelSelection(event.currentTarget as HTMLElement)
 }
+function handleNativePlanChange(event: { detail: { value: Array<number | string> } }) {
+  const index = Number(event.detail.value[0])
+  const selected = planOptions.value[index]
+  if (selected) dailyCount.value = selected.count
+}
 
-function initialiseWheel() {
-  requestAnimationFrame(() => {
-    const wheel = document.querySelector<HTMLElement>('.plan-wheel')
-    if (!wheel) return
-    wheel.scrollTop = initialPlanIndex * ROW_HEIGHT
-    syncWheelSelection(wheel)
+let wheelFrame: number | null = null
+let completeWheel: (() => void) | null = null
+function cancelWheelInitialization() {
+  if (wheelFrame !== null) cancelAnimationFrame(wheelFrame)
+  wheelFrame = null
+  const complete = completeWheel
+  completeWheel = null
+  complete?.()
+}
+function initialiseWheel(targetCount = dailyCount.value): Promise<void> {
+  // App 使用原生 picker-view；H5 的滚轮在布局完成后才开放交互。
+  if (typeof document === 'undefined' || typeof requestAnimationFrame !== 'function') return Promise.resolve()
+  // 在等待布局前固定目标，避免初始 scroll 事件改变即将恢复的选择。
+  const targetIndex = Math.max(0, planOptions.value.findIndex((item) => item.count === targetCount))
+  cancelWheelInitialization()
+  return new Promise((resolve) => {
+    completeWheel = resolve
+    wheelFrame = requestAnimationFrame(() => {
+      const wheel = planWheelRef.value
+      if (!wheel) { cancelWheelInitialization(); return }
+      wheel.scrollTop = targetIndex * ROW_HEIGHT
+      syncWheelSelection(wheel)
+      wheelFrame = requestAnimationFrame(() => {
+        wheelFrame = null
+        completeWheel = null
+        resolve()
+      })
+    })
   })
 }
 
 function showSection(section: Section) {
+  const targetCount = dailyCount.value
   activeSection.value = section
-  if (section === 'plan') nextTick(initialiseWheel)
+  if (section === 'plan') void nextTick(() => initialiseWheel(targetCount)).catch((error: unknown) => console.error('计划选项初始化失败', error))
 }
 
 function returnToPrevious() {
@@ -188,15 +244,16 @@ function handleBack() {
   returnToPrevious()
 }
 
-function savePlan() {
+async function savePlan() {
   if (selectedModes.value.length===0){ uni.showToast({title:'请选择至少一种学习方式',icon:'none'});return }
-  uni.setStorageSync(STORAGE_KEY, { dailyCount: dailyCount.value, modes: [...selectedModes.value] })
-  returnToPrevious()
+  try {
+    saveStored(STORAGE_KEY, { dailyCount: dailyCount.value, modes: [...selectedModes.value] })
+    await flushPersistence()
+    returnToPrevious()
+  } catch (error) { console.error('保存计划失败', error); uni.showToast({ title: '保存计划失败，请重试', icon: 'none' }) }
 }
 
-onMounted(() => {
-  initialiseWheel()
-})
+onBeforeUnmount(cancelWheelInitialization)
 
 onBackPress((event) => {
   if (event.from === 'navigateBack') return false
@@ -236,6 +293,7 @@ onBackPress((event) => {
 .picker-head, .picker-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; text-align: center; }
 .picker-head { height: 42px; border-bottom: 1px solid var(--color-border); font-size: 12px; }
 .wheel-stage { position: relative; height: 126px; overflow: hidden; }
+.native-plan-wheel { width: 100%; height: 126px; }
 .wheel-highlight { position: absolute; z-index: 0; top: 41px; right: 0; left: 0; height: 54px; background: var(--color-selection); pointer-events: none; }
 .plan-wheel { position: relative; z-index: 1; width: 100%; height: 126px; overflow-x: hidden; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; mask-image: linear-gradient(to bottom, rgba(0,0,0,.38), #000 38%, #000 62%, rgba(0,0,0,.38)); }
 .plan-wheel::-webkit-scrollbar { display: none; }

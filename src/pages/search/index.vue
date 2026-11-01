@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress } from '@dcloudio/uni-app'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../../stores/theme'
-import characterTable from '../../static/character_table/first-level.json'
-import { searchCharacters } from '../../search/characterSearch'
+import { searchCatalog } from '../../database/catalog'
+import { applicationReady } from '../../database/application'
 import type { CharacterEntry } from '../../search/characterSearch'
 import { readLocal, writeLocal } from '../../utils/storage'
 
@@ -31,10 +33,27 @@ const searchHistory = ref<string[]>([])
 
 const trimmedQuery = computed(() => query.value.trim())
 const isCharacterMode = computed(() => activeMode.value === 'character')
-const results = computed<CharacterEntry[]>(() => (
-  isCharacterMode.value ? searchCharacters(characterTable.chars, trimmedQuery.value) : []
-))
-const resultSummary = computed(() => `找到 ${results.value.length} 个单字`)
+const results = ref<CharacterEntry[]>([])
+const totalResults = ref(0)
+const isSearching = ref(false)
+const searchError = ref('')
+let searchRequest = 0
+async function loadResults(append = false) {
+  const request = ++searchRequest
+  if (!applicationReady.value || !isCharacterMode.value || !trimmedQuery.value) { results.value = []; totalResults.value = 0; isSearching.value = false; return }
+  isSearching.value = true
+  searchError.value = ''
+  try {
+    const result = await searchCatalog(trimmedQuery.value, 50, append ? results.value.length : 0)
+    if (request !== searchRequest) return
+    results.value = append ? [...results.value, ...result.entries] : result.entries
+    totalResults.value = result.total
+  } catch (error) { if (request === searchRequest) searchError.value = error instanceof Error ? error.message : '搜索失败，请重试' }
+  finally { if (request === searchRequest) isSearching.value = false }
+}
+watch([trimmedQuery, isCharacterMode, applicationReady], () => { void loadResults() })
+onBeforeUnmount(() => { searchRequest++ })
+const resultSummary = computed(() => searchError.value || (isSearching.value ? '正在搜索…' : `找到 ${totalResults.value} 个单字`))
 const activeModeLabel = computed(() => modes.find((mode) => mode.id === activeMode.value)?.label ?? '')
 
 function goBack() {
@@ -106,6 +125,7 @@ onMounted(async () => {
 
 <template>
   <view class="search-page" :style="themeStyle">
+    <DatabaseStatus />
     <view class="search-header">
       <view class="search-field">
         <van-icon name="search" size="18" aria-hidden="true" />
@@ -189,6 +209,7 @@ onMounted(async () => {
           </view>
           <van-icon name="arrow" size="15" class="result-arrow" aria-hidden="true" />
         </div>
+        <button v-if="results.length < totalResults" role="button" aria-label="加载更多搜索结果" :disabled="isSearching" @click="loadResults(true)">加载更多</button>
       </scroll-view>
       <view v-else class="empty-state" role="status">
         <text class="empty-title">没有找到相关单字</text>

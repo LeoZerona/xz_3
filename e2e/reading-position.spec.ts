@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { databaseRows, replaceDatabaseRows } from './databaseHelpers'
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -101,6 +102,7 @@ test('rotation and restarting in a different viewport preserve the original cont
   const anchorRow = Number(await page.locator('.reading-row').first().getAttribute('aria-rowindex'))
   const portrait = page.viewportSize()!
   await page.setViewportSize({ width: 740, height: 360 })
+  await expect(page.locator('.reading-page-label')).not.toHaveText(original.label)
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   const landscape = await visiblePosition(page)
   expect(Number(await page.locator('.reading-row').first().getAttribute('aria-rowindex'))).toBeLessThanOrEqual(anchorRow)
@@ -110,6 +112,7 @@ test('rotation and restarting in a different viewport preserve the original cont
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   expect(await visiblePosition(page)).toEqual(landscape)
   await page.setViewportSize(portrait)
+  await expect(page.locator('.reading-page-label')).toHaveText(original.label)
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   expect(await visiblePosition(page)).toEqual(original)
 })
@@ -145,20 +148,15 @@ test('a failed load keeps the saved page and retry restores it', async ({ page }
   await openBook(page)
   await turnPages(page, 12)
   const original = await visiblePosition(page)
-  const originalBooks = await page.evaluate(() => {
-    const original = localStorage.getItem('reading:customBooks')!
-    const stored = JSON.parse(original)
-    stored.data[0].text = ''
-    localStorage.setItem('reading:customBooks', JSON.stringify(stored))
-    return original
-  })
+  const chunks = (await databaseRows(page, 'book_chunks')).filter((row) => row.bookId === 'position-book-0')
+  await replaceDatabaseRows(page, 'book_chunks', [], chunks.map((row) => String(row.id)))
   await page.reload()
   // 刷新离开阅读器时会正常保存一次；从本次加载开始比较，包含更新时间。
-  const saved = await page.evaluate(() => localStorage.getItem('reading:progress'))
+  const saved = await databaseRows(page, 'reading_progress')
   await page.getByRole('button', { name: '最近阅读入口，点击继续阅读' }).click()
   await expect(page.locator('.state-card--error')).toBeVisible()
-  expect(await page.evaluate(() => localStorage.getItem('reading:progress'))).toBe(saved)
-  await page.evaluate((books) => localStorage.setItem('reading:customBooks', books), originalBooks)
+  expect(await databaseRows(page, 'reading_progress')).toEqual(saved)
+  await replaceDatabaseRows(page, 'book_chunks', chunks)
   await page.getByRole('button', { name: '重试', exact: true }).click()
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   expect(await visiblePosition(page)).toEqual(original)
@@ -167,11 +165,10 @@ test('a failed load keeps the saved page and retry restores it', async ({ page }
 test('an older saved page migrates after measuring the actual page capacity', async ({ page }) => {
   await page.goto('/#/pages/reading/index')
   await expect(page.locator('.library-view')).toBeVisible()
-  await page.evaluate(() => {
-    const stored = JSON.parse(localStorage.getItem('reading:progress')!)
-    stored.data.page = 13
-    localStorage.setItem('reading:progress', JSON.stringify(stored))
-  })
+  await expect(page.locator('.database-overlay')).toHaveCount(0)
+  const progress = (await databaseRows(page, 'reading_progress')).find((row) => row.id === 'position-book-0')!
+  await replaceDatabaseRows(page, 'reading_progress', [{ ...progress, page: 13, characterOffset: null }])
+  await page.reload()
   await openBook(page)
   await expect(page.locator('.reading-page-label')).toContainText('第 13 /')
   const capacity = await page.locator('.reading-row').count()
@@ -188,7 +185,7 @@ test('a late load from another book cannot replace the current book or its progr
   let notifyStarted: () => void = () => {}
   const released = new Promise<void>((resolve) => { releaseLoad = resolve })
   const started = new Promise<void>((resolve) => { notifyStarted = resolve })
-  await page.route(/\/static\/books\/.*\.txt(?:\?.*)?$/, async (route) => {
+  await page.route(/\/(?:static\/books|assets)\/.*\.txt(?:\?.*)?$/, async (route) => {
     if (route.request().resourceType() !== 'fetch') {
       await route.continue()
       return
@@ -206,13 +203,13 @@ test('a late load from another book cannot replace the current book or its progr
     await openBook(page)
     await turnPages(page, 3)
     const original = await visiblePosition(page)
-    const saved = await page.evaluate(() => localStorage.getItem('reading:progress'))
+    const saved = await databaseRows(page, 'reading_progress')
     const response = page.waitForResponse((item) => item.request().resourceType() === 'fetch' && /\.txt(?:\?.*)?$/.test(item.url()))
     releaseLoad()
     await (await response).finished()
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
     expect(await visiblePosition(page)).toEqual(original)
-    expect(await page.evaluate(() => localStorage.getItem('reading:progress'))).toBe(saved)
+    expect(await databaseRows(page, 'reading_progress')).toEqual(saved)
   } finally {
     releaseLoad()
   }

@@ -3,11 +3,16 @@ import { defineStore } from 'pinia'
 import { createDefaultProfile, normalizeUserProfile } from '../profile/profileModel'
 import { PROFILE_STORAGE_KEY, type UserProfilePatch } from '../profile/types'
 import { readLocal, writeLocal } from '../utils/storage'
+import { readStored } from '../database/persistence'
 
 export const useProfileStore = defineStore('profile', () => {
   const profile = ref(createDefaultProfile())
   const isInitialized = ref(false)
   let initializePromise: Promise<void> | null = null
+  function hydrate() {
+    profile.value = normalizeUserProfile(readStored(PROFILE_STORAGE_KEY))
+    isInitialized.value = true
+  }
 
   function initialize() {
     if (isInitialized.value) return Promise.resolve()
@@ -33,5 +38,5 @@ export const useProfileStore = defineStore('profile', () => {
     profile.value = nextProfile
   }
 
-  return { profile, isInitialized, initialize, updateProfile }
+  return { profile, isInitialized, initialize, hydrate, updateProfile }
 })

@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import FontCover from '../../components/FontCover.vue'
-import characterTable from '../../static/character_table/first-level.json'
+import { getDailyCharacterIds } from '../../database/catalog'
+import { applicationReady } from '../../database/application'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
@@ -16,6 +20,8 @@ const { themeStyle } = storeToRefs(useThemeStore())
 const preferencesStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
 const planDailyCount = ref(readPlanDailyCount())
+const characterIds = ref<string[]>([])
+useDatabaseTask(async () => { characterIds.value = await getDailyCharacterIds(); refreshPlan() })
 
 function refreshPlan() {
   dailyProgressStore.hydrate()
@@ -23,9 +29,8 @@ function refreshPlan() {
   planDailyCount.value = readPlanDailyCount()
 }
 
-refreshPlan()
 onShow(() => {
-  refreshPlan()
+  if (applicationReady.value) refreshPlan()
 })
 
 const displayedFonts = computed(() => [
@@ -35,8 +40,8 @@ const displayedFonts = computed(() => [
 
 const dailyTarget = computed(() => {
   if (dailyProgressStore.assignedIds.length > 0) return dailyProgressStore.assignedIds.length
-  const available = characterTable.chars.filter((entry) => (
-    !preferencesStore.isExcluded(entry.id) && !preferencesStore.isCharacterComplete(entry.id)
+  const available = characterIds.value.filter((id) => (
+    !preferencesStore.isExcluded(id) && !preferencesStore.isCharacterComplete(id)
   )).length
   const count = Math.max(1, Math.trunc(planDailyCount.value))
   return Math.min(available, count)
@@ -56,6 +61,7 @@ function openSearch() {
 
 <template>
   <view class="home" :style="themeStyle">
+    <DatabaseStatus />
     <view class="topbar">
       <view class="topbar-spacer" aria-hidden="true"></view>
       <view class="topbar-actions">

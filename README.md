@@ -4,7 +4,7 @@
 
 ## 环境要求
 
-- Node.js 22 或更高版本（本项目创建和验证时使用 Node.js 24）
+- Node.js 22.13 或更高版本，推荐 Node.js 24（数据库单元测试使用 Node 内置 SQLite）
 - pnpm 11
 - 手机与开发电脑连接同一个局域网
 
@@ -50,7 +50,7 @@ pnpm build:h5     # 生成 dist/build/h5
 2. 将模板的依赖精简为 H5 所需的 `@dcloudio/uni-app`、`@dcloudio/uni-components`、`@dcloudio/uni-h5`、Vue 3、Vue I18n，以及匹配该模板的 `@dcloudio/vite-plugin-uni` 和 Vite 5.2.8。所有 DCloud 构建包固定在同一个 `3.0.0-5020420260813003` 版本，避免混用编译器版本。
 3. 在 `package.json` 中加入 Pinia 2.3.1、Vant 4、`@vant/use`、`@vant/popperjs`、Vitest 2、Playwright、TypeScript 和 `vue-tsc`。随后执行 `pnpm install`，生成 `pnpm-lock.yaml`。`pnpm-workspace.yaml` 明确允许 esbuild 等依赖运行安装时所需的构建脚本。
 4. 在 `src/styles/reset.css` 重置常见 HTML 标签默认样式；在 `src/styles/theme.css` 设置字体、背景和 Vant 主色；在 `src/main.ts` 注册 Pinia 与使用到的 Vant 组件。
-5. 用 `src/data/tasks.json` 提供首页任务；`src/stores/day.ts` 管理完成状态；`src/utils/storage.ts` 在 H5 优先使用 IndexedDB，失败或不可用时回退到 uni Storage。首页的日出图案使用 SVG，装饰圆弧由 Canvas 绘制。
+5. `src/database/` 提供本地数据库与数据访问层：App 使用 `plus.sqlite`，H5 使用 IndexedDB；`src/utils/storage.ts` 通过这一层持久化少量设置。数据库初始化或迁移失败时显示重试入口，不回退写入旧 Storage。静态任务配置保留在 `src/data/tasks.json`。
 6. 运行类型检查、Vitest、H5 构建以及 Playwright 的手机视口测试，验证页面显示、任务交互和刷新后的状态保留。
 
 ## 对照文字逐步展示
@@ -66,6 +66,8 @@ pnpm build:h5     # 生成 dist/build/h5
 电量读取：Android App 通过 [Native.js](https://www.html5plus.org/doc/zh_cn/android.html) 读取系统电池广播的当前状态，每 30 秒刷新；退出阅读或应用进入后台时停止，回到前台重新读取。H5 在支持的安全环境中使用 [Battery Status API](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/getBattery)，随电量及充电状态变化更新。浏览器不支持、权限受限或读取失败时显示 `--`，不显示虚构电量。
 
 ## 平台范围
+
+本地数据结构、字库导入、旧数据迁移、备份恢复和专项验证见 [数据库说明](src/database/README.md)。首次运行会导入内置字库；之后页面通过数据库读取内容。App 已声明 SQLite 模块，真机运行时需要包含 SQLite 的运行基座；旧基座缺少该模块时，应用会给出重新打包提示。
 
 阅读器通过 `PdfTextBridge.vue` 的 renderjs 在 WebView 视图层提取 PDF 文字，逻辑层仅负责二进制读取、文本分页和渲染。`build/pdfTextPlugin.ts` 会在开发与生产构建中自动生成离线解析脚本及 CMap/字体资源，资源位于 `static/pdf/`，无需 CDN 或后端接口。App service 不应导入 PDF.js。扫描版 PDF 需先进行 OCR，加密 PDF 需先解除密码。
 

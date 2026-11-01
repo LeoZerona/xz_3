@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { onLaunch } from '@dcloudio/uni-app'
+import { onHide, onLaunch } from '@dcloudio/uni-app'
+import { flushApplication, prepareApplication } from './database/application'
 import { useThemeStore } from './stores/theme'
 
 const themeStore = useThemeStore()
 
 // App.vue 不承载页面模板，主题样式由各页面根节点绑定。
-onLaunch(themeStore.initialize)
+onLaunch(() => {
+  themeStore.initialize()
+  void prepareApplication().catch((error: unknown) => console.error('应用数据初始化失败', error))
+})
+onHide(flushApplication)
 </script>
 
 <style>

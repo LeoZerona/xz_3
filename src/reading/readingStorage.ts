@@ -1,3 +1,4 @@
+import { readStored, reportPersistenceError, saveStored } from '../database/persistence'
 import type { ReadingProgress, ReferenceRevealMode, RowsPerPage, TableStyleId } from './types'
 import { isTableStyleId } from './tableStyles'
 
@@ -76,7 +77,7 @@ function isRowsPerPage(value: unknown): value is RowsPerPage {
 
 export function readPreferences(): ReadingPreferences {
   try {
-    const raw = uni.getStorageSync(READING_PREFERENCES_KEY) as unknown
+    const raw = readStored(READING_PREFERENCES_KEY) as unknown
     if (raw && typeof raw === 'object') {
       const data = raw as Partial<ReadingPreferences> & Record<string, unknown>
       const hasChars = typeof data.charsPerLine !== 'undefined'
@@ -103,8 +104,8 @@ export function readPreferences(): ReadingPreferences {
 
 export function writePreferences(prefs: ReadingPreferences): void {
   try {
-    uni.setStorageSync(READING_PREFERENCES_KEY, prefs)
-  } catch {}
+    saveStored(READING_PREFERENCES_KEY, prefs)
+  } catch (error) { reportPersistenceError(error) }
 }
 
 function progressKey(bookId: string): string {
@@ -132,10 +133,10 @@ function normalizeProgress(raw: unknown): ReadingProgress | null {
 export function readProgress(bookId?: string): ReadingProgress | null {
   try {
     if (bookId) {
-      const saved = normalizeProgress(uni.getStorageSync(progressKey(bookId)))
+      const saved = normalizeProgress(readStored(progressKey(bookId)))
       if (saved?.bookId === bookId) return saved
     }
-    const recent = normalizeProgress(uni.getStorageSync(READING_PROGRESS_KEY))
+    const recent = normalizeProgress(readStored(READING_PROGRESS_KEY))
     return !bookId || recent?.bookId === bookId ? recent : null
   } catch (error) {
     console.warn('读取阅读进度失败', error)
@@ -147,11 +148,11 @@ export function writeProgress(progress: ReadingProgress): boolean {
   try {
     // 首次换书时保留旧版仅有的最近阅读记录。
     const recent = readProgress()
-    if (recent && recent.bookId !== progress.bookId && !uni.getStorageSync(progressKey(recent.bookId))) {
-      uni.setStorageSync(progressKey(recent.bookId), recent)
+    if (recent && recent.bookId !== progress.bookId && !readStored(progressKey(recent.bookId))) {
+      saveStored(progressKey(recent.bookId), recent)
     }
-    uni.setStorageSync(progressKey(progress.bookId), progress)
-    uni.setStorageSync(READING_PROGRESS_KEY, progress)
+    saveStored(progressKey(progress.bookId), progress)
+    saveStored(READING_PROGRESS_KEY, progress)
     return true
   } catch (error) {
     console.warn('保存阅读进度失败', error)

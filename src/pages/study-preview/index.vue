@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress } from '@dcloudio/uni-app'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import StudyPreviewPanel from '../../components/StudyPreviewPanel.vue'
 import { storeToRefs } from 'pinia'
-import characterTable from '../../static/character_table/first-level.json'
+import { getDailyCharacters } from '../../database/catalog'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
+import type { StudyCharacterEntry } from '../../study/types'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
@@ -16,21 +20,22 @@ const dailyProgressStore = useDailyProgressStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const { assignedIds, learnedIds } = storeToRefs(dailyProgressStore)
-const dailyCount = Math.min(characterTable.chars.length, readPlanDailyCount())
-
-dailyProgressStore.hydrate()
-dailyProgressStore.reconcileLearned(learningStore.completedIds)
-const candidateIds = characterTable.chars
-  .filter((entry) => !learningStore.isExcluded(entry.id) && !learningStore.isCharacterComplete(entry.id))
-  .map((entry) => entry.id)
-dailyProgressStore.ensureSession(candidateIds, dailyCount)
-for (const characterId of assignedIds.value) {
-  if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
-}
-
-const characterById = new Map(characterTable.chars.map((entry) => [entry.id, entry]))
+const characters = ref<StudyCharacterEntry[]>([])
+useDatabaseTask(async () => {
+  characters.value = await getDailyCharacters()
+  dailyProgressStore.hydrate()
+  dailyProgressStore.reconcileLearned(learningStore.completedIds)
+  const candidateIds = characters.value
+    .filter((entry) => !learningStore.isExcluded(entry.id) && !learningStore.isCharacterComplete(entry.id))
+    .map((entry) => entry.id)
+  dailyProgressStore.ensureSession(candidateIds, Math.min(characters.value.length, readPlanDailyCount()))
+  for (const characterId of assignedIds.value) {
+    if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
+  }
+})
+const characterById = computed(() => new Map(characters.value.map((entry) => [entry.id, entry])))
 const dailyCharacters = computed(() => assignedIds.value.flatMap((id) => {
-  const entry = characterById.get(id)
+  const entry = characterById.value.get(id)
   return entry ? [entry] : []
 }))
 const isDayComplete = computed(() => (
@@ -73,6 +78,7 @@ function startLearning() {
 
 <template>
   <view class="preview-page" :style="themeStyle">
+    <DatabaseStatus />
     <view class="preview-header">
       <button class="header-button" role="button" aria-label="返回" @click="goBack">
         <text class="back-icon" aria-hidden="true">‹</text>

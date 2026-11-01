@@ -1,3 +1,4 @@
+import { readStored } from '../database/persistence'
 export const STUDY_MODES = [
   'seal-to-reference-choice',
   'reference-to-seal-choice',
@@ -39,7 +40,7 @@ export function normalizeStudyModes(value: unknown): StudyMode[] {
 
 export function getEffectiveStudyModes() {
   try {
-    const saved = uni.getStorageSync("font-learning-plan");
+    const saved = readStored("font-learning-plan") as { modes?: unknown } | undefined;
     const normalized = normalizeStudyModes(saved && saved.modes);
     return normalized.length>0?normalized:[...STUDY_MODES];
   } catch(e){ return [...STUDY_MODES]; }

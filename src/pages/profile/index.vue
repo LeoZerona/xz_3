@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
@@ -77,6 +79,7 @@ function openPersonalProfile() {
 
 <template>
   <view class="profile-page" :style="themeStyle">
+    <DatabaseStatus />
     <scroll-view class="profile-scroll" scroll-y :show-scrollbar="false" :bounces="false">
       <view class="profile-header">
         <view class="header-actions">

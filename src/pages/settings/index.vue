@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+import DatabaseBackupPanel from '../../components/DatabaseBackupPanel.vue'
+
+import { readStored, reportPersistenceError, saveStored } from '../../database/persistence'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
+
 import { onBackPress } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -26,11 +32,12 @@ const informationItems: SettingItem[] = [
 ]
 
 const isSeniorMode = ref(readSeniorMode())
+useDatabaseTask(() => { isSeniorMode.value = readSeniorMode() })
 const { themeStyle } = storeToRefs(useThemeStore())
 
 function readSeniorMode() {
   try {
-    return uni.getStorageSync(SENIOR_MODE_STORAGE_KEY) === true
+    return readStored(SENIOR_MODE_STORAGE_KEY) === true
   } catch {
     // 浏览器隐私模式不可用时，回退为默认关闭状态。
     return false
@@ -67,10 +74,8 @@ function handleSetting(item: SettingItem) {
 
 function saveSeniorMode(nextValue: boolean) {
   try {
-    uni.setStorageSync(SENIOR_MODE_STORAGE_KEY, nextValue)
-  } catch {
-    // 存储失败不阻断当前会话中的设置切换。
-  }
+    saveStored(SENIOR_MODE_STORAGE_KEY, nextValue)
+  } catch (error) { reportPersistenceError(error); return }
 
   uni.showToast({ title: nextValue ? '已开启长辈版' : '已关闭长辈版', icon: 'none' })
 }
@@ -84,6 +89,7 @@ onBackPress((event) => {
 
 <template>
   <view class="settings-page" :style="themeStyle" :class="{ 'is-senior-mode': isSeniorMode }">
+    <DatabaseStatus />
     <view class="settings-nav">
       <button class="back-button" role="button" aria-label="返回" @click="goBack">
         <van-icon name="arrow-left" size="24" aria-hidden="true" />
@@ -143,6 +149,8 @@ onBackPress((event) => {
           <van-icon class="setting-arrow" name="arrow" size="17" aria-hidden="true" />
         </button>
       </view>
+
+      <view class="settings-group"><DatabaseBackupPanel /></view>
 
       <button class="logout-button" role="button" aria-label="退出登录" @click="showPlaceholder('退出登录')">
         退出登录

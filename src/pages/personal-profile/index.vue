@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -76,6 +78,7 @@ onBackPress((event) => {
 
 <template>
   <div class="personal-profile-page" :style="themeStyle">
+    <DatabaseStatus />
     <header class="profile-nav">
       <div class="back-button" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter="goBack" @keydown.space.prevent="goBack">
         <span class="back-glyph" aria-hidden="true">‹</span>

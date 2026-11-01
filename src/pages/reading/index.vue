@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBackPress, onHide } from '@dcloudio/uni-app'
+import { prepareApplication } from '../../database/application'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { getBooksCatalog } from '../../reading/booksCatalog'
@@ -715,8 +718,8 @@ function getBookProgressLabel(book: BookMeta): string {
   return book.source === 'custom' ? '本地上传' : '内置书籍'
 }
 
-function refreshCustomBooks(): void {
-  customBooks.value = readCustomBooks()
+async function refreshCustomBooks(): Promise<void> {
+  customBooks.value = await readCustomBooks()
 }
 function refreshBuiltinBooks(): void {
   builtinBooks.value = getBooksCatalog()
@@ -791,8 +794,8 @@ async function handleUniFilePicked(file: { name: string; path: string }): Promis
       throw new Error('请使用底部上传按钮选择本地文件')
     }
     const record = createCustomRecord(fileName, text, ext)
-    addCustomBook(record)
-    refreshCustomBooks()
+    await addCustomBook(record)
+    await refreshCustomBooks()
     uni.showToast({ title: '已加入我的上传', icon: 'none' })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -860,15 +863,17 @@ function handleRemoveCustomBook(id: string): void {
   uni.showModal({
     title: '确认删除',
     content: '确定删除该文件？',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        removeCustomBook(id)
-        refreshCustomBooks()
+        try {
+        await removeCustomBook(id)
+        await refreshCustomBooks()
         if (activeBookId.value === id) {
           activeBookId.value = books.value[0]?.id ?? ''
           if (activeBookId.value) void fetchBook()
         }
         uni.showToast({ title: '已删除', icon: 'none' })
+        } catch (error) { console.error('删除书籍失败', error); uni.showToast({ title: '删除失败，请重试', icon: 'none' }) }
       }
     },
   })
@@ -896,8 +901,8 @@ async function handleFileInputChange(event: Event): Promise<void> {
       if (!text.trim()) throw new Error('PDF 未提取到可读文本，请确认为文字版 PDF')
     }
     const record = createCustomRecord(file.name, text, ext)
-    addCustomBook(record)
-    refreshCustomBooks()
+    await addCustomBook(record)
+    await refreshCustomBooks()
     uni.showToast({ title: '已加入我的上传', icon: 'none' })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -967,9 +972,11 @@ function handleSliderChange(event: unknown): void {
   if (!Number.isNaN(val)) handlePageChange(val)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+  await prepareApplication()
   refreshBuiltinBooks()
-  refreshCustomBooks()
+  await refreshCustomBooks()
   const saved = readProgress()
   const prefsStored = readPreferences()
   prefs.value = prefsStored
@@ -990,6 +997,7 @@ onMounted(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
   refreshRecentProgress() // init
+  } catch (error) { loadError.value = error instanceof Error ? error.message : '书籍数据加载失败' }
 })
 
 function handleVisibilityChange() {
@@ -1059,6 +1067,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 <template>
   <view class="reading-page" :style="themeStyle" @keydown="handleKeydown" @keyup="handleKeyup" tabindex="0">
+    <DatabaseStatus />
     <PdfTextBridge ref="pdfTextBridgeRef" />
     <view v-if="viewMode === 'library'" class="library-view">
       <view class="library-header">

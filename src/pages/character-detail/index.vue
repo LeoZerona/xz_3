@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
-import characterTable from '../../static/character_table/first-level.json'
+import { getCharacter } from '../../database/catalog'
+import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import type { StudyCharacterEntry } from '../../study/types'
-import { loadStage } from '../../study/levelData'
 import type { LevelCategory } from '../../study/levelData'
 import CharacterDetailContent from './components/CharacterDetailContent.vue'
 
@@ -16,32 +18,28 @@ const preferencesStore = useCharacterLearningStore()
 const { favoriteIds, excludedIds } = storeToRefs(preferencesStore)
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
 const { themeStyle } = storeToRefs(useThemeStore())
-const characters: StudyCharacterEntry[] = characterTable.chars
 const stageContext = ref<{ category: LevelCategory; stageId: string } | null>(null)
 const stageCharacter = ref<StudyCharacterEntry | null>(null)
 const isCharacterLoading = ref(false)
 const characterLoadError = ref('')
 let characterRequestId = 0
 
-const character = computed(() => characters.find((entry) => entry.id === characterId.value) ?? stageCharacter.value)
+const character = computed(() => stageCharacter.value)
 const isFavorite = computed(() => Boolean(character.value && favoriteIds.value.includes(character.value.id)))
 const isExcluded = computed(() => Boolean(character.value && excludedIds.value.includes(character.value.id)))
 const previewUrl = computed(() => stageContext.value
   ? `/pages/level-study/index?category=${stageContext.value.category}&stageId=${encodeURIComponent(stageContext.value.stageId)}`
   : '/pages/study-preview/index')
 
-// 每日字表只覆盖部分文字，后段关卡的详情需从对应分片补充读取。
 async function loadCharacterDetail() {
-  const context = stageContext.value
-  if (!context || character.value) return
   const requestId = ++characterRequestId
   const requestedId = characterId.value
   isCharacterLoading.value = true
   characterLoadError.value = ''
   try {
-    const stage = await loadStage(context.category, context.stageId)
+    const entry = await getCharacter(requestedId)
     if (requestId !== characterRequestId) return
-    stageCharacter.value = stage?.characters.find((entry) => entry.id === requestedId) ?? null
+    stageCharacter.value = entry
   } catch (error) {
     if (requestId !== characterRequestId) return
     characterLoadError.value = error instanceof Error ? error.message : '文字详情加载失败，请重试'
@@ -51,6 +49,7 @@ async function loadCharacterDetail() {
 }
 
 onBeforeUnmount(() => { characterRequestId += 1 })
+useDatabaseTask(loadCharacterDetail)
 
 function goBack() {
   if (getCurrentPages().length > 1) {
@@ -93,13 +92,13 @@ onLoad((options) => {
   if ((category === 'radical' || category === 'level1' || category === 'level2' || category === 'level3')
     && typeof options?.stageId === 'string') {
     stageContext.value = { category, stageId: options.stageId }
-    void loadCharacterDetail()
   }
 })
 </script>
 
 <template>
   <view class="detail-page" :style="themeStyle">
+    <DatabaseStatus />
     <view class="detail-header">
       <button class="header-button back-button" role="button" aria-label="返回" @click="goBack">
         <text aria-hidden="true">‹</text>

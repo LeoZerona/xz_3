@@ -2,7 +2,7 @@ import type { BookMeta, LoadResult, ReadingRow } from './types'
 
 import { loadAssetBuffer } from '../utils/assetLoader'
 import { decodeGb18030, decodeUtf16, decodeUtf8 } from '../utils/textEncoding'
-import { getCustomBookById } from './customBooks'
+import { getCustomBookById, readCustomBookText } from './customBooks'
 import type { PdfTextExtractor } from './pdfTextBridge'
 
 function normalizeLine(raw: string): string {
@@ -112,8 +112,7 @@ export async function loadPdfBook(book: BookMeta, charsPerLine: number = CHARS_P
 }
 
 async function loadCustomBook(book: BookMeta, charsPerLine: number = CHARS_PER_VISUAL_LINE): Promise<LoadResult> {
-  const custom = getCustomBookById(book.id)
-  const rawText = (custom?.text ?? (book as unknown as { text?: string }).text ?? '') as string
+  const rawText = await readCustomBookText(book.id)
   if (!rawText) throw new Error('自定义文件内容丢失，请重新上传')
   const rows = parseTextToRows(rawText, book.id, charsPerLine)
   if (rows.length === 0) throw new Error('自定义文件未解析到可显示的文本行')
@@ -123,7 +122,7 @@ async function loadCustomBook(book: BookMeta, charsPerLine: number = CHARS_PER_V
 export async function loadBook(book: BookMeta, charsPerLine: number = CHARS_PER_VISUAL_LINE, extractText?: PdfTextExtractor): Promise<LoadResult> {
   const n = clampCharsPerLine(charsPerLine)
   if (book.source === 'custom') return loadCustomBook(book, n)
-  const maybeCustom = getCustomBookById(book.id)
+  const maybeCustom = await getCustomBookById(book.id)
   if (maybeCustom) return loadCustomBook(maybeCustom, n)
   if (book.ext === 'pdf') return loadPdfBook(book, n, extractText)
   return loadTxtBook(book, n)
