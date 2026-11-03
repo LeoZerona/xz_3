@@ -43,11 +43,11 @@ const menuSections = computed<MenuItem[][]>(() => [
     { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
     { label: '关卡布局', icon: 'apps-o', url: '/pages/level-layout/index', note: currentLayout.value.name },
     { label: '学习提醒', icon: 'clock-o', url: '/pages/reminders/index' },
-    { label: '数据与隐私', icon: 'shield-o' },
+    { label: '数据与隐私', icon: 'shield-o', url: '/pages/data-privacy/index' },
   ],
   [
-    { label: '帮助与反馈', icon: 'question-o' },
-    { label: '关于我们', icon: 'info-o' },
+    { label: '帮助与反馈', icon: 'question-o', url: '/pages/help/index' },
+    { label: '关于我们', icon: 'info-o', url: '/pages/about/index' },
   ],
 ])
 

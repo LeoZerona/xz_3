@@ -11,6 +11,16 @@
         }
       }
     },
+    { "path": "pages/data-privacy/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/backup-preview/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/backup-result/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/cache-management/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/privacy-information/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/help/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/help-article/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/feedback/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/feedback-detail/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
+    { "path": "pages/about/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
     { "path": "pages/practice-setup/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/practice-session/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/practice-result/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },

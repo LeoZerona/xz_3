@@ -3,6 +3,7 @@ import { flushPersistence, initializePersistence, reloadPersistence } from './pe
 import { columns, schema, type Row, type Table } from './schema'
 import { ADDITIONAL_USER_TABLES, object, USER_TABLES } from './records'
 import type { Change } from './types'
+import {validateBackupRelations} from './backupRelations'
 
 const BACKUP_TABLES: Table[] = [...USER_TABLES, 'books', 'book_chunks']
 interface Backup { format: 'font-learning-backup'; version: 1; createdAt: string; data: Record<string, Row[]> }
@@ -15,7 +16,7 @@ export async function exportBackup(): Promise<string> {
   const backup: Backup = { format: 'font-learning-backup', version: 1, createdAt: new Date().toISOString(), data }
   return JSON.stringify(backup)
 }
-function validateBackup(text: string): Map<Table, Row[]> {
+export function validateBackup(text: string): Map<Table, Row[]> {
   const backup = object(JSON.parse(text) as unknown)
   if (backup.format !== 'font-learning-backup' || backup.version !== 1) throw new Error('备份格式或版本不支持')
   const data = object(backup.data)
@@ -42,16 +43,16 @@ function validateBackup(text: string): Map<Table, Row[]> {
     }
     result.set(table, rows)
   }
-  const books = new Set(result.get('books')!.map((row) => row.id))
-  if (result.get('book_chunks')!.some((row) => !books.has(String(row.bookId)))) throw new Error('备份正文缺少对应书籍')
+  validateBackupRelations(result)
   return result
 }
 
 export async function restoreBackup(text: string): Promise<void> {
   const incoming = validateBackup(text)
+  const db = await getDatabase()
+  validateBackupRelations(incoming,new Set((await db.query('characters')).map(row=>row.id)))
   // 校验完成再执行写入；保留恢复前快照，并在同一事务内替换全部用户数据。
   const previous = await exportBackup()
-  const db = await getDatabase()
   const changes: Change[] = [{ table: 'meta', row: { id: 'before-restore-backup', value: previous } }]
   // 全文索引由正文重建，恢复时必须移除旧索引，避免命中已经不存在的书籍。
   for (const row of await db.query('book_search')) changes.push({table:'book_search',deleteId:row.id})

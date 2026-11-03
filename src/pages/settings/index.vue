@@ -25,14 +25,14 @@ const primaryItems = computed<SettingItem[]>(() => [
   { label: '学习设置', url: '/pages/learning-settings/index' },
   { label: '显示设置', url: '/pages/theme/index', note: '主题配色' },
   { label: '关卡布局', url: '/pages/level-layout/index', note: currentLayout.value.name },
-  { label: '隐私设置' },
+  { label: '隐私设置', url: '/pages/data-privacy/index' },
 ])
 
 const informationItems: SettingItem[] = [
-  { label: '缓存管理' },
-  { label: '个人信息收集清单' },
-  { label: '第三方合作清单' },
-  { label: '关于我们' },
+  { label: '缓存管理', url: '/pages/cache-management/index' },
+  { label: '个人信息收集清单', url: '/pages/privacy-information/index' },
+  { label: '第三方合作清单', url: '/pages/privacy-information/index' },
+  { label: '关于我们', url: '/pages/about/index' },
 ]
 
 const isSeniorMode = ref(readSeniorMode())

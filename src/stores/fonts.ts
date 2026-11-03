@@ -8,6 +8,7 @@ import {
   getFont,
 } from '../fonts/catalog'
 import type { LearningFont } from '../fonts/types'
+import {isSafeCustomFont} from '../fonts/validation'
 
 export const FONT_STATE_STORAGE_KEY = 'font-learning-fonts'
 export const CUSTOM_FONTS_STORAGE_KEY = 'font-learning-custom-fonts'
@@ -32,7 +33,7 @@ function readCustomFonts(): PersistedCustomFont[] {
     return stored.filter((item): item is PersistedCustomFont => {
       if (typeof item !== 'object' || item === null) return false
       const font = item as Partial<PersistedCustomFont>
-      return typeof font.id === 'string' && typeof font.name === 'string' && typeof font.fontFamily === 'string'
+      return isSafeCustomFont(font)
     })
   } catch {
     return []
@@ -218,6 +219,7 @@ export const useFontStore = defineStore('fonts', () => {
   }
 
   function addCustomFont(font: PersistedCustomFont) {
+    if (!isSafeCustomFont(font)) throw new Error('字体名称或本地资源格式无效')
     if (customFonts.value.some((item) => item.id === font.id)) return
     customFonts.value = [...customFonts.value, font]
     persistCustomFonts()
