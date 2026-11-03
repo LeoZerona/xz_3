@@ -5,6 +5,15 @@ import { flushPersistence, readStored, saveStored } from './persistence'
 import { addCustomBook, readCustomBookText } from '../reading/customBooks'
 
 describe('备份恢复', () => {
+  it('兼容尚未包含训练与复习表的旧备份', async () => {
+    const db = await setupTestDatabase()
+    saveStored('font-learning-theme', 'jade-green')
+    const backup = JSON.parse(await exportBackup()) as { data: Record<string, unknown> }
+    for (const table of ['stage_training', 'stage_training_modes', 'level_review']) delete backup.data[table]
+    await restoreBackup(JSON.stringify(backup))
+    expect(readStored('font-learning-theme')).toBe('jade-green')
+    expect(await db.query('level_review')).toEqual([])
+  })
   it('恢复用户数据及书籍正文，并保存恢复前快照', async () => {
     const db = await setupTestDatabase()
     saveStored('font-learning-theme', 'jade-green')

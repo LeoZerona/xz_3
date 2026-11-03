@@ -34,6 +34,25 @@ test('点击卡片只看预览也立即保存选择，返回后高亮，再选�
   expect(await databaseRows(page, 'stage_progress')).toEqual([])
 })
 
+test('从关卡预览返回保留目录滚动位置，从其他主页面进入才自动定位', async ({ page }) => {
+  await prepareRecent(page, 5)
+  await expect(page.locator('#stage-level1-stage-05')).toBeInViewport()
+  const chosen = page.locator('#stage-level1-stage-10')
+  await chosen.scrollIntoViewIfNeeded()
+  const scroller = page.locator('.levels-scroll .uni-scroll-view-scrollbar-hidden')
+  const before = await scroller.evaluate((element) => element.scrollTop)
+  await chosen.click()
+  await expect(page.getByRole('region', { name: '关卡预览' })).toBeVisible()
+  await page.getByRole('button', { name: '返回', exact: true }).click()
+  await expect(page.locator('#stage-level1-stage-10')).toHaveClass(/is-current/)
+  await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBe(before)
+  await scroller.evaluate((element) => { element.scrollTop = 0 })
+  await expect(chosen).not.toBeInViewport()
+  await page.getByRole('button', { name: '我', exact: true }).click()
+  await page.getByRole('button', { name: '关卡学习', exact: true }).click()
+  await expect(page.locator('#stage-level1-stage-10')).toBeInViewport()
+})
+
 test('仅预览不答题，刷新和关闭页面后重新打开都恢复同一选择', async ({ page }) => {
   await page.goto('/#/pages/levels/index')
   await page.locator('#stage-level1-stage-05').click()

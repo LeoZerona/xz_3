@@ -11,6 +11,7 @@ export interface LevelStageView {
   completedChars: number
   isDone: boolean
   progress: number
+  trainingCount?: number
 }
 
 export const DEFAULT_LEVEL_LAYOUT: LevelLayoutId = 'cards'
@@ -26,7 +27,8 @@ export function getLevelLayout(value: unknown): LevelLayoutOption {
   return LEVEL_LAYOUTS.find((layout) => layout.id === value) ?? LEVEL_LAYOUTS[0]!
 }
 export function stageProgressLabel(item: LevelStageView): string {
-  return item.stage.isPlaceholder ? '字表准备中' : `${item.completedChars} / ${item.stage.characters.length} 字`
+  if (item.stage.isPlaceholder) return '字表准备中'
+  return item.trainingCount ? `已训练 ${item.trainingCount} 次` : `${item.completedChars} / ${item.stage.characters.length} 字`
 }
 export function stageActionLabel(item: LevelStageView, isLastStudied = false): string {
   if (item.stage.isPlaceholder) return '敬请期待'

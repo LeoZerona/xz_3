@@ -1,0 +1,47 @@
+import { expect, test } from '@playwright/test'
+import { databaseRows, replaceDatabaseRows } from './databaseHelpers'
+
+test('完成关卡后可反复训练，按完整轮次计数，中途退出继续本轮', async ({ page }) => {
+  test.setTimeout(60_000)
+  await page.goto('/#/pages/levels/index')
+  await expect(page.locator('.stage-card')).toHaveCount(24)
+  await replaceDatabaseRows(page, 'settings', [{ id: 'font-learning-plan', value: JSON.stringify({ modes: ['seal-to-reference-choice'] }) }])
+  await replaceDatabaseRows(page, 'stage_progress', [{ id: 'level1-stage-01', completed: 1, updatedAt: new Date().toISOString() }])
+  await page.reload()
+  await page.locator('#stage-level1-stage-01').click()
+  await expect(page.locator('.training-count')).toContainText('已完成 1 次训练')
+  await page.getByRole('button', { name: '再次学习', exact: true }).click()
+  await expect(page.locator('.prompt-character')).toHaveText('一')
+  await page.getByRole('button', { name: '选择文字一', exact: true }).click()
+  await page.getByRole('button', { name: '进入下一题', exact: true }).click()
+  await page.getByRole('button', { name: '返回', exact: true }).click()
+  await page.locator('#stage-level1-stage-01').click()
+  await page.locator('.uni-modal__btn_primary').click()
+  await page.getByRole('button', { name: '继续本轮学习', exact: true }).click()
+  await expect(page.locator('.prompt-character')).toHaveText('乙')
+  expect((await databaseRows(page, 'stage_training'))[0]).toMatchObject({ completionCount: 1, active: 1 })
+  for (const word of ['乙', '二', '十', '丁', '厂', '七', '卜', '八', '人']) {
+    await expect(page.locator('.prompt-character')).toHaveText(word)
+    await page.getByRole('button', { name: '选择文字' + word, exact: true }).click()
+    if (word !== '人') await page.getByRole('button', { name: '进入下一题', exact: true }).click()
+  }
+  await expect(page.locator('.training-count')).toContainText('已完成 2 次训练')
+  await page.getByRole('button', { name: '完成本关学习', exact: true }).click()
+  await page.locator('.uni-modal__btn_primary').click()
+  await expect(page.locator('#stage-level1-stage-01')).toContainText('已训练 2 次')
+  await page.locator('#stage-level1-stage-01').click()
+  await page.getByRole('button', { name: '再次学习', exact: true }).click()
+  await expect(page.locator('.prompt-character')).toHaveText('一')
+  expect((await databaseRows(page, 'stage_training'))[0]).toMatchObject({ completionCount: 2, active: 1 })
+})
+
+test('全部一级字可以离线学习，最后一关已补齐', async ({ page }) => {
+  await page.goto('/#/pages/levels/index')
+  await expect(page.locator('.load-more-stages')).toContainText('24/351')
+  await page.goto('/#/pages/level-study/index?category=level1&stageId=level1-stage-351')
+  await expect(page.locator('.character-row')).toHaveCount(3)
+  await page.context().setOffline(true)
+  await page.getByRole('button', { name: '开始学习', exact: true }).click()
+  await expect(page.locator('.prompt-character')).toBeVisible()
+  expect(await databaseRows(page, 'characters')).toHaveLength(3500)
+})

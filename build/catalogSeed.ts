@@ -19,17 +19,23 @@ export function buildCatalogSeed(daily: SourceEntry[], sources: SourceEntry[][])
     entry.semantics.words.forEach((word, index) => changes.push({ table: 'character_words', row: { id: compound(entry.id, index), characterId: entry.id, word, position: index } }))
   }
   daily.forEach((entry, position) => changes.push({ table: 'character_sets', row: { id: compound('daily', entry.id), setId: 'daily', characterId: entry.id, position } }))
-  function addStages(category: string, characters: SourceEntry[], placeholderCount = 0) {
+  function addStages(category: string, characters: SourceEntry[], placeholderCount = 0, startPosition = 0) {
     const count = placeholderCount || Math.ceil(characters.length / 10)
     for (let position = 0; position < count; position++) {
-      const id = `${category}-stage-${String(position + 1).padStart(2, '0')}`
-      changes.push({ table: 'levels', row: { id, category, position: position + 1, title: `关卡 ${String(position + 1).padStart(2, '0')}`, placeholder: Number(placeholderCount > 0) } })
+      const stageIndex = startPosition + position + 1
+      const id = `${category}-stage-${String(stageIndex).padStart(2, '0')}`
+      changes.push({ table: 'levels', row: { id, category, position: stageIndex, title: `关卡 ${String(stageIndex).padStart(2, '0')}`, placeholder: Number(placeholderCount > 0) } })
       characters.slice(position * 10, position * 10 + 10).forEach((entry, index) => changes.push({ table: 'level_characters', row: { id: compound(id, entry.id), levelId: id, characterId: entry.id, position: index } }))
     }
   }
-  addStages('level1', ordered)
+  const legacy = ordered.filter((entry) => !entry.id.startsWith('char-l1-'))
+  const supplement = ordered.filter((entry) => entry.id.startsWith('char-l1-'))
+  // 原末关仅 7 字，继续保留其完整成员，防止旧完成标记误覆盖新增字。
+  addStages('level1', legacy)
+  addStages('level1', supplement, 0, Math.ceil(legacy.length / 10))
   const groups = new Map<string, SourceEntry[]>()
-  for (const entry of ordered) { const key = entry.structure.radical_id ?? 'unknown'; const group = groups.get(key) ?? []; group.push(entry); groups.set(key, group) }
+  // 部首关卡沿用旧字库，补齐一级字表不改变已有部首关卡的成员。
+  for (const entry of legacy) { const key = entry.structure.radical_id ?? 'unknown'; const group = groups.get(key) ?? []; group.push(entry); groups.set(key, group) }
   addStages('radical', [...groups.values()].sort((a, b) => b.length - a.length).slice(0, 30).map((group) => group[0]!))
   addStages('level2', [], 15); addStages('level3', [], 12)
   return changes

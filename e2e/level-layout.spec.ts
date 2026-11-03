@@ -8,6 +8,7 @@ async function chooseLayout(page: Page, id: LevelLayoutId): Promise<void> {
   await page.goto('/#/pages/level-layout/index')
   const name = LEVEL_LAYOUTS.find((item) => item.id === id)!.name
   const option = page.getByRole('radio', { name, exact: true })
+  await expect(page.locator('.database-overlay')).toHaveCount(0, { timeout: 30000 })
   await expect(option).toHaveAttribute('aria-disabled', 'false')
   await option.click()
   await expect(option).toHaveAttribute('aria-checked', 'true')
@@ -90,7 +91,7 @@ test('四种布局共用已完成进度、进行中关卡，并保留分类与�
   await page.reload()
   for (const { id } of LEVEL_LAYOUTS) {
     await chooseLayout(page, id)
-    await expect(page.locator('.overview-caption')).toHaveText('已完成 1 / 256 关')
+    await expect(page.locator('.overview-caption')).toHaveText('已完成 1 / 351 关')
     const action = id === 'cards' ? '.stage-card.is-current' : id === 'notebook' ? '.notebook-start' : id === 'flashcards' ? '.flash-start' : '.dock-start'
     await expect(page.locator(action)).toHaveAttribute('aria-label', /继续学习/)
     await expect(page.locator('.last-study-title')).toHaveText('一级汉字 · 关卡 02')

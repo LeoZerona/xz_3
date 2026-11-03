@@ -68,6 +68,9 @@ function showPlaceholder(label: string) {
         </view>
       </view>
 
+      <navigator class="review-entry" url="/pages/level-review/index" hover-class="none" role="button" aria-label="关卡复习">
+        <text>关卡复习</text><text>复习已学文字 <van-icon name="arrow" size="12" aria-hidden="true" /></text>
+      </navigator>
       <scroll-view
         :key="activeCategory + currentLayoutId"
         id="level-stage-panel"
@@ -109,6 +112,7 @@ function showPlaceholder(label: string) {
               :completed-chars="item.completedChars"
               :is-done="item.isDone"
               :progress="item.progress"
+              :training-count="item.trainingCount"
               :is-current="item.stage.id === lastStudiedStage?.stageId"
               @stage-select="handleStageTap"
             />
@@ -225,6 +229,9 @@ function showPlaceholder(label: string) {
   height: 100%;
   min-height: 0;
 }
+.review-entry { display: flex; justify-content: space-between; align-items: center; flex: none; min-height: 44px; margin-bottom: 12px; color: var(--color-text); font-size: 14px; }
+.review-entry > :last-child { color: var(--color-text-secondary); font-size: 12px; }
+.review-entry:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 .levels-content {
   padding: 4px 0 32px;
 }

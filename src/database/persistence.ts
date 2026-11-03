@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import { getDatabase } from './connection'
 import { BOOKS_KEY, LEARNING_KEY, USER_TABLES, bookRows, characterRows, decodeStored, encodeStored, legacyLearning, object, setting } from './records'
 import type { CharacterLearningRecord } from '../study/learningData'
+import type { LevelReviewRecord } from '../study/levelReview'
+import { LEVEL_REVIEW_KEY } from '../study/levelReview'
 import type { Change } from './types'
 import type { Row, Table } from './schema'
 
@@ -104,6 +106,18 @@ export function saveCharacter(record: CharacterLearningRecord, at: string): void
   characters[record.characterId] = next
   cache.set(LEARNING_KEY, { ...data, characters, updatedAt: at })
   changes.push(setting(`${LEARNING_KEY}:meta`, { version: 2, updatedAt: at }))
+  queue(changes)
+}
+export function saveLevelReviewRecords(records: Record<string, LevelReviewRecord>): void {
+  if (!initialized) throw new Error('数据库尚未就绪，请稍后重试')
+  const previous = object(cache.get(LEVEL_REVIEW_KEY))
+  const changes: Change[] = []
+  for (const [id, record] of Object.entries(records)) {
+    const next = { ...record }
+    previous[id] = next
+    changes.push({ table: 'level_review', row: { id, ...next } })
+  }
+  cache.set(LEVEL_REVIEW_KEY, previous)
   queue(changes)
 }
 export function flushPersistence(): Promise<void> {

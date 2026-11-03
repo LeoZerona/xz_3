@@ -1,17 +1,19 @@
 # 本地数据库
 
-App-vue 使用 HTML5+ `plus.sqlite`，数据库路径为 `_doc/font-learning.db`；H5 使用 IndexedDB，名称为 `font-learning`。不需要后端服务，也未引入 ORM 或新的运行时依赖。当前数据库结构版本为 1。
+App-vue 使用 HTML5+ `plus.sqlite`，数据库路径为 `_doc/font-learning.db`；H5 使用 IndexedDB，名称为 `font-learning`。不需要后端服务，也未引入 ORM 或新的运行时依赖。当前数据库结构版本为 2。
 
 ## 数据组织与读取
 
 - `characters`：高频检索字段；汉字 ID 主键，简繁体、标准化拼音、级别与字序、部首与字序索引。
 - `character_details`：说文、六书与非检索扩展信息；按 ID 加载，不参与搜索列表读取。
 - `character_words`：组词；按汉字与词序、词语建立索引。
-- `character_sets`：字单范围；`daily` 保留原 204 字每日字表。完整字库为 2557 字。
+- `character_sets`：字单范围；`daily` 保留原 204 字每日字表。完整字库为 3500 字。
 - `levels` / `level_characters`：关卡定义和有序字单；按分类与关序、关卡与字序检索。后段关卡可直接读取，无须依次加载前面的分片。
 - `character_progress` / `character_mode_progress` / `character_actions`：长期状态、各模式进度、斩字历史；答题只更新变化的记录。
 - `daily_sessions` / `daily_session_items`：每日会话和固定字单；日期使用原存储格式，保持迁移一致性。
 - `stage_progress` / `stage_character_progress`：独立关卡完成情况，重置关卡不删除长期单字记录。
+- `stage_training` / `stage_training_modes`：各关累计完整训练次数与本轮模式进度，重新训练保留旧关完成及长期学习记录。旧已完成关卡默认视为一次。
+- `level_review`：仅关卡已学文字的首次学习、到期时间、复习阶段、复习次数、遗忘次数；作答只写入该字的排期记录。`settings` 中的 `morning-pages:level-review-session` 保存各范围的当前位置。
 - `books` / `book_chunks` / `reading_progress`：书籍信息、16K UTF-16 单元左右的正文块、按书保存的字符偏移及排版位置。正文不在代理对中间分块。
 - `settings`：主题、学习计划、字体元信息、个人资料、阅读偏好等少量配置。复杂配置序列化在数据库字段中，业务列表和学习记录不保存为整份 JSON 快照。
 - `meta`：迁移完成标记、字库内容版本、恢复前快照。
@@ -34,6 +36,8 @@ App-vue 使用 HTML5+ `plus.sqlite`，数据库路径为 `_doc/font-learning.db`
 运行时页面不直接导入或请求原字表 JSON。首次导入及内容替换使用事务；内容版本更新只替换内容表，保留全部用户表。JSON 仍用于构建种子和用户主动导出的便携备份，不用于日常业务持久化。
 
 数据库结构升级与内容升级分开。未来修改 schema 时，应增加 `DATABASE_VERSION` 并实现对应的 SQLite / IndexedDB 迁移；不能仅修改列定义。App 拒绝打开比当前应用版本更新的数据库。
+
+结构版本 1 → 2 只新增三个训练 / 复习表，不改写旧表：SQLite 在事务内建表后更新 `user_version`，IndexedDB 的升级事务创建新对象仓库。旧备份缺少这些新增表时按空表恢复，之后从历史关卡记录补齐复习数据；新备份包含全部新增表。
 
 ## 旧数据迁移与错误
 

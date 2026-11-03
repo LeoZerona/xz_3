@@ -6,7 +6,7 @@ export interface TableSchema {
 }
 
 export const DATABASE_NAME = 'font-learning'
-export const DATABASE_VERSION = 1
+export const DATABASE_VERSION = 2
 export const schema = {
   meta: { columns: { value: 'TEXT' } },
   settings: { columns: { value: 'TEXT' } },
@@ -25,6 +25,9 @@ export const schema = {
   daily_sessions: { columns: { currentCharacterId: 'TEXT', reviewedCount: 'INTEGER', studySeconds: 'INTEGER', startedAt: 'TEXT', completedAt: 'TEXT' } },
   daily_session_items: { columns: { dateKey: 'TEXT', characterId: 'TEXT', position: 'INTEGER', learnedPosition: 'INTEGER', assigned: 'INTEGER', learned: 'INTEGER' }, indexes: [['dateKey', 'position']] },
   stage_progress: { columns: { completed: 'INTEGER', updatedAt: 'TEXT' } },
+  stage_training: { columns: { completionCount: 'INTEGER', active: 'INTEGER' } },
+  stage_training_modes: { columns: { stageId: 'TEXT', characterId: 'TEXT', mode: 'TEXT', completedAt: 'TEXT' }, indexes: [['stageId', 'characterId']] },
+  level_review: { columns: { firstLearnedAt: 'TEXT', lastReviewedAt: 'TEXT', dueAt: 'TEXT', step: 'INTEGER', reviewCount: 'INTEGER', forgottenCount: 'INTEGER' }, indexes: [['dueAt']] },
   stage_character_progress: { columns: { stageId: 'TEXT', characterId: 'TEXT', position: 'INTEGER' }, indexes: [['stageId', 'position']] },
   books: { columns: { name: 'TEXT', fileName: 'TEXT', ext: 'TEXT', url: 'TEXT', source: 'TEXT', createdAt: 'INTEGER', position: 'INTEGER', textLength: 'INTEGER' }, indexes: [['source', 'position']] },
   book_chunks: { columns: { bookId: 'TEXT', position: 'INTEGER', startOffset: 'INTEGER', text: 'TEXT' }, indexes: [['bookId', 'position']] },

@@ -17,7 +17,7 @@ const completionRatio = computed(() => props.totalCount > 0 ? props.completedCou
   <view class="level-overview" :class="'overview-' + appearance">
     <view class="overview-heading">
       <h1 class="overview-title">{{ category.label }}</h1>
-      <text class="overview-description">每关 {{ category.stageSize }} 字</text>
+      <text class="overview-description">每关最多 {{ category.stageSize }} 字</text>
     </view>
     <text class="overview-caption">已完成 <text class="overview-count">{{ completedCount }}</text> / {{ totalCount }} 关</text>
     <view

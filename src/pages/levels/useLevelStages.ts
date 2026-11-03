@@ -29,7 +29,7 @@ export function useLevelStages() {
   const locationRequest = ref(0)
   let stageLoadRequestId = 0
   let initialized = false
-  let lastLocatedStudy = ''
+  let isReturningFromStudy = false
 
   const currentMeta = computed(() => LEVEL_CATEGORIES.find((category) => category.key === activeCategory.value)!)
   const completedCount = computed(() => levelProgressStore.completedCountByCategory[activeCategory.value] ?? 0)
@@ -44,7 +44,7 @@ export function useLevelStages() {
     const learned = stage.characters.filter((character) => completedCharacterIds.value.has(character.id)).length
     const completedChars = isDone ? stage.characters.length : Math.max(tracked, learned)
     const progress = stage.characters.length === 0 ? 0 : Math.min(1, completedChars / stage.characters.length)
-    return { stage, completedChars, isDone, progress }
+    return { stage, completedChars, isDone, progress, trainingCount: levelProgressStore.getTrainingCount(stage.id) }
   }))
   const featuredStage = computed(() => visibleStages.value.find((item) => item.stage.id === lastStudiedStage.value?.stageId && !item.stage.isPlaceholder)
     ?? visibleStages.value.find((item) => !item.stage.isPlaceholder && !item.isDone && item.completedChars > 0)
@@ -62,8 +62,9 @@ export function useLevelStages() {
     isNavigating.value = false
     levelProgressStore.hydrate()
     if (!applicationReady.value || !initialized || isLoadingStages.value) return
+    if (isReturningFromStudy) { isReturningFromStudy = false; return }
     const recent = lastStudiedStage.value
-    if (recent && `${recent.stageId}:${recent.studiedAt}` !== lastLocatedStudy) void locateLastStage(false)
+    if (recent) void locateLastStage(false)
     else void loadCurrentStages(false)
   })
   onBeforeUnmount(() => { stageLoadRequestId++ })
@@ -111,7 +112,6 @@ export function useLevelStages() {
     visibleStageCount.value = Math.max(visibleStageCount.value, Math.ceil(recent.index / STAGE_BATCH_SIZE) * STAGE_BATCH_SIZE)
     try {
       if (!await loadCurrentStages(false)) return
-      lastLocatedStudy = `${recent.stageId}:${recent.studiedAt}`
       locationRequest.value++
       await nextTick()
       if (activeCategory.value !== recent.category) return
@@ -133,12 +133,14 @@ export function useLevelStages() {
     if (isPlaceholder) { uni.showToast({ title: '该关卡敬请期待', icon: 'none' }); return }
     if (isNavigating.value) return
     isNavigating.value = true
+    isReturningFromStudy = true
     handleStageSelection(stageId)
     uni.navigateTo({
       url: '/pages/level-study/index?category=' + activeCategory.value + '&stageId=' + stageId,
       animationType: 'slide-in-right', animationDuration: 220,
       fail: () => {
         isNavigating.value = false
+        isReturningFromStudy = false
         uni.showToast({ title: '暂时无法进入学习', icon: 'none' })
       },
     })

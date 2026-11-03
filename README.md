@@ -38,6 +38,10 @@ pnpm build:h5     # 生成 dist/build/h5
 
 ## HBuilderX Android 真机运行
 
+项目 DCloud 编译包已统一为 `3.0.0-5030420261029002`（HBuilderX 5.34 对应的 Vue 3 CLI 版本），`@dcloudio/types` 为 3.4.31。截图中 5.24 编译产物运行在 5.34 SDK 上的启动告警由版本错配引起；本项目通过同步编译器版本处理，未配置 `compatible.ignoreVersion` 隐藏检查。[DCloud 官方版本说明](https://uniapp.dcloud.net.cn/tutorial/version.html)。
+
+更新后先执行 `pnpm install`、`pnpm build:app`，停止 HBuilderX 中的旧运行任务，再用 HBuilderX 5.34 重新运行至 5.34 Android 基座。若用自定义基座或离线 SDK，也需保持 5.34 并重新制作基座 / 打包；旧 APK 不会因修改源码而自动更新。不要通过卸载正式应用清理告警，以免丢失本地学习数据。
+
 1. 在 HBuilderX 中打开本仓库根目录（包含 `package.json` 的目录），不要只打开 `src` 或 `dist/build/app`。
 2. 先在终端执行 `pnpm install`。项目必须安装与其他 DCloud 编译包完全同版本的 `@dcloudio/uni-app-plus`，否则 `uni build -p app` 会错误地产生 H5 的 `index.html/assets`，HBuilderX 无法向真机基座同步 App 资源。
 3. 手机开启开发者模式与 USB 调试，连接电脑，并允许这台电脑进行 USB 调试。
@@ -47,7 +51,7 @@ pnpm build:h5     # 生成 dist/build/h5
 ## 创建与安装过程
 
 1. 从 [DCloud 的 uni-app Vue 3 + TypeScript 模板](https://github.com/dcloudio/uni-preset-vue/tree/vite-ts) 的 `vite-ts` 分支获取项目骨架，复制到当前空仓库。保留 `src/main.ts`、`src/pages.json`、`src/manifest.json`、`index.html`、`vite.config.ts` 和 TypeScript 配置。
-2. 将模板的依赖精简为 H5 所需的 `@dcloudio/uni-app`、`@dcloudio/uni-components`、`@dcloudio/uni-h5`、Vue 3、Vue I18n，以及匹配该模板的 `@dcloudio/vite-plugin-uni` 和 Vite 5.2.8。所有 DCloud 构建包固定在同一个 `3.0.0-5020420260813003` 版本，避免混用编译器版本。
+2. 将模板的依赖精简为 H5 所需的 `@dcloudio/uni-app`、`@dcloudio/uni-components`、`@dcloudio/uni-h5`、Vue 3、Vue I18n，以及匹配该模板的 `@dcloudio/vite-plugin-uni` 和 Vite 5.2.8。所有 DCloud 构建包固定在同一个 `3.0.0-5030420261029002` 版本，避免混用编译器版本。
 3. 在 `package.json` 中加入 Pinia 2.3.1、Vant 4、`@vant/use`、`@vant/popperjs`、Vitest 2、Playwright、TypeScript 和 `vue-tsc`。随后执行 `pnpm install`，生成 `pnpm-lock.yaml`。`pnpm-workspace.yaml` 明确允许 esbuild 等依赖运行安装时所需的构建脚本。
 4. 在 `src/styles/reset.css` 重置常见 HTML 标签默认样式；在 `src/styles/theme.css` 设置字体、背景和 Vant 主色；在 `src/main.ts` 注册 Pinia 与使用到的 Vant 组件。
 5. `src/database/` 提供本地数据库与数据访问层：App 使用 `plus.sqlite`，H5 使用 IndexedDB；`src/utils/storage.ts` 通过这一层持久化少量设置。数据库初始化或迁移失败时显示重试入口，不回退写入旧 Storage。静态任务配置保留在 `src/data/tasks.json`。
@@ -65,7 +69,17 @@ pnpm build:h5     # 生成 dist/build/h5
 
 四种布局共用关卡、学习进度和分类，配色始终跟随用户主题设置。切换布局不会重置学习记录；闪卡和棋盘可以继续浏览后续批次的关卡。
 
-关卡页头部保留分类和搜索。点击关卡卡片即保存最近选择，只打开预览也会更新；棋盘点选和闪卡选关共用该记录，默认展示不自动记为选择。再次进入关卡页或重新打开应用后，会恢复分类、加载到目标批次并滚动到对应卡片。卡片使用浅主题底色、主题边框及“上次选择”标记区分，不改变学习进度。分类下方以单行显示“最近选择”和关卡名称，点击整行“回到该关”可重新定位；没有记录时隐藏该入口。
+关卡页头部保留分类和搜索。点击关卡卡片即保存最近选择，只打开预览也会更新；棋盘点选和闪卡选关共用该记录，默认展示不自动记为选择。从其他主页面进入关卡页或重新打开应用后，会恢复分类、加载到目标批次并滚动到对应卡片。从关卡预览 / 答题页面返回则保留当前目录滚动位置，不强制重新定位。卡片使用浅主题底色、主题边框及“上次选择”标记区分，不改变学习进度。分类下方以单行显示“最近选择”和关卡名称，点击整行“回到该关”可重新定位；没有记录时隐藏该入口。
+
+一级汉字已补齐为 3500 字、351 关，目录继续分批显示以保持手机浏览流畅，末关可直接加载。原字 ID、前 256 关、每日字单与部首关卡保持原样，第 256 关原有 7 字不变，补充文字另起第 257–351 关。数据来源与补充字段的范围见 [字库说明](src/data/character-table/SOURCES.md)。
+
+已完成的关卡可点击“再次学习”，每轮均使用独立答题进度，只有本轮所有未斩文字完成所选练习模式才增加训练次数；退出后可继续未完成的一轮。旧已完成关卡按 1 次计数。重新开始本轮不清除长期学习记录、收藏、斩字和历史训练次数。
+
+## 关卡复习
+
+首页“关卡复习”、关卡页入口和“我 → 关卡复习”打开同一个模块。只复习关卡中实际答题、查看详情或执行斩字的文字；升级前已完成的关卡及逐字完成记录自动补入，单纯浏览关卡预览不会将整关标记为已学。支持“全部 / 斩列表 / 收藏列表”，筛选范围内只显示学习字体，以及“认识 / 不认识”两个作答按钮；各范围分别保存当前字，退出、刷新和重启后继续。
+
+采用以遗忘曲线为依据的间隔策略：首次学习后 5 分钟开始，认识后依次安排 30 分钟、12 小时、1 / 2 / 4 / 7 / 15 / 30 天；不认识则回到 5 分钟。到期文字按最早到期、最久未复习排序，不随机截取或按每日数量丢弃旧字。没有到期字时可以“提前复习”，每字在该轮最多出现一次。复习次数、遗忘次数、排期与当前位置保存在本地并纳入备份；重复关卡训练不会重置已有排期。这是一套可执行的间隔策略，并不声称能精确预测每个人的遗忘时间。
 
 ## 对照文字逐步展示
 

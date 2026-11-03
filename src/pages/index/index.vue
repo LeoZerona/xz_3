@@ -97,7 +97,7 @@ function showPlaceholder(label: string) {
             role="button"
             aria-label="开始学习"
           >开始学习</navigator>
-          <button class="action-button action-secondary" role="button">复习</button>
+          <navigator class="action-button action-secondary" url="/pages/level-review/index" hover-class="none" role="button">关卡复习</navigator>
         </view>
       </view>
     </scroll-view>

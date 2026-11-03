@@ -8,7 +8,8 @@ const props = withDefaults(defineProps<{
   isDone: boolean
   progress: number
   isCurrent?: boolean
-}>(), { isCurrent: false })
+  trainingCount?: number
+}>(), { isCurrent: false, trainingCount: 0 })
 const emit = defineEmits<{
   (event: 'stage-select', stageId: string, isPlaceholder: boolean): void
 }>()
@@ -29,7 +30,7 @@ const actionLabel = computed(() => {
 })
 const progressLabel = computed(() => props.stage.isPlaceholder
   ? '字表准备中'
-  : props.completedChars + ' / ' + props.stage.characters.length + ' 字')
+  : props.trainingCount > 0 ? `已训练 ${props.trainingCount} 次` : props.completedChars + ' / ' + props.stage.characters.length + ' 字')
 const accessibleLabel = computed(() => props.stage.title + '，' + progressLabel.value + (props.isCurrent ? '，上次选择' : '') + '，' + actionLabel.value)
 
 function handleSelect() {

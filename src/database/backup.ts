@@ -22,7 +22,8 @@ function validateBackup(text: string): Map<Table, Row[]> {
   if (Object.keys(data).some((table) => !BACKUP_TABLES.includes(table as Table))) throw new Error('备份包含未知数据表')
   const result = new Map<Table, Row[]>()
   for (const table of BACKUP_TABLES) {
-    const values = data[table]
+    // v1 备份没有训练轮次及复习表；恢复后由历史关卡记录补齐。
+    const values = data[table] ?? (['stage_training', 'stage_training_modes', 'level_review'].includes(table) ? [] : undefined)
     if (!Array.isArray(values)) throw new Error(`备份缺少数据表：${table}`)
     const ids = new Set<string>()
     const rows: Row[] = []

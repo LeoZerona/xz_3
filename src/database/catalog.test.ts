@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import dailySource from '../data/character-table/first-level.json'
+import supplement from '../data/character-table/first-level-supplement.json'
+import levelOneCharacters from '../data/character-table/level1-characters.json'
 import type { StudyCharacterEntry } from '../study/types'
 import { buildCatalogSeed } from '../../build/catalogSeed'
 import { setupTestDatabase } from './testSupport'
@@ -8,7 +10,8 @@ import { loadStage } from '../study/levelData'
 import { searchCharacters } from '../search/characterSearch'
 
 const sources = import.meta.glob<{ chars: StudyCharacterEntry[] }>('../data/character-table/firstLevel/*.json', { eager: true, import: 'default' })
-const shards = Object.entries(sources).sort(([a], [b]) => Number(a.match(/(\d+)\.json$/)?.[1]) - Number(b.match(/(\d+)\.json$/)?.[1])).map(([, data]) => data.chars)
+const legacyShards = Object.entries(sources).sort(([a], [b]) => Number(a.match(/(\d+)\.json$/)?.[1]) - Number(b.match(/(\d+)\.json$/)?.[1])).map(([, data]) => data.chars)
+const shards = [...legacyShards, supplement.chars]
 afterEach(() => { resetCatalogForTests(); vi.unstubAllGlobals() })
 function mockSeed(version: string) {
   const changes = buildCatalogSeed(dailySource.chars, shards)
@@ -21,13 +24,17 @@ describe('数据库字库与页面查询', () => {
     const db = await setupTestDatabase()
     const fetcher = mockSeed('v1')
     await initializeCatalog()
-    expect(await db.query('characters')).toHaveLength(2557)
+    const characters = await db.query('characters')
+    expect(characters).toHaveLength(3500)
+    expect(new Set(characters.map((row) => row.simplified))).toEqual(new Set(levelOneCharacters))
     const daily = await getDailyCharacters()
     expect(daily.map((entry) => entry.id)).toEqual(dailySource.chars.map((entry) => entry.id))
     expect(daily[0]).toMatchObject(dailySource.chars[0]!)
-    expect(categoryCounts.value.level1).toBe(256)
-    const lastStage = await loadStage('level1', 'level1-stage-256')
-    expect(lastStage?.characters.map((entry) => entry.id)).toEqual(shards.flat().slice(2550).map((entry) => entry.id))
+    expect(categoryCounts.value.level1).toBe(351)
+    const lastStage = await loadStage('level1', 'level1-stage-351')
+    expect(lastStage?.characters.map((entry) => entry.id)).toEqual(supplement.chars.slice(940).map((entry) => entry.id))
+    const legacyStage = await loadStage('level1', 'level1-stage-256')
+    expect(legacyStage?.characters.map((entry) => entry.id)).toEqual(legacyShards.flat().slice(2550).map((entry) => entry.id))
     expect(await getCharacter(shards.flat()[2500]!.id)).not.toBeNull()
     await initializeCatalog()
     expect(fetcher).toHaveBeenCalledTimes(2)
@@ -49,7 +56,7 @@ describe('数据库字库与页面查询', () => {
     await db.commit([{ table: 'reading_progress', row: { id: 'book', page: 3 } }])
     resetCatalogForTests(); mockSeed('v2'); await initializeCatalog()
     expect((await db.query('reading_progress'))[0]).toMatchObject({ id: 'book', page: 3 })
-    expect(await db.query('characters')).toHaveLength(2557)
+    expect(await db.query('characters')).toHaveLength(3500)
     expect((await db.query('meta', { where: { id: 'catalog-version' } }))[0]?.value).toBe('v2')
   })
   it('完整字库搜索覆盖每日字表之外的关卡文字，保持原分页排序', async () => {

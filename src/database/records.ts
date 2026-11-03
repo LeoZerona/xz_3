@@ -9,10 +9,11 @@ export { compound } from './keys'
 
 export const LEARNING_KEY = 'font-learning-character-data'
 export const LEVEL_KEY = 'font-learning-level-progress'
+export const LEVEL_REVIEW_KEY = 'font-learning-level-review'
 export const DAILY_PREFIX = 'font-learning-daily-progress:'
 export const READING_KEY = 'reading:progress'
 export const BOOKS_KEY = 'reading:customBooks'
-export const USER_TABLES: Table[] = ['settings', 'character_progress', 'character_mode_progress', 'character_actions', 'daily_sessions', 'daily_session_items', 'stage_progress', 'stage_character_progress', 'reading_progress']
+export const USER_TABLES: Table[] = ['settings', 'character_progress', 'character_mode_progress', 'character_actions', 'daily_sessions', 'daily_session_items', 'stage_progress', 'stage_character_progress', 'stage_training', 'stage_training_modes', 'level_review', 'reading_progress']
 export function object(value: unknown): Record<string, unknown> { return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {} }
 function strings(value: unknown): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [] }
 function text(value: unknown): string | null { return typeof value === 'string' ? value : null }
@@ -45,10 +46,18 @@ export function encodeStored(key: string, value: unknown): Change[] {
     const completed = strings(data.completedStageIds)
     const map = object(data.stageCharacterCompleted)
     const ids = [...new Set([...completed, ...Object.keys(map)])]
-    return [setting(`${key}:meta`, { updatedAt: text(data.updatedAt) }), ...ids.flatMap((id): Change[] => [
+    const training = object(data.training)
+    const modeProgress = object(data.modeProgress)
+    return [setting(`${key}:meta`, { updatedAt: text(data.updatedAt) }),
+      ...Object.entries(training).map(([id, value]): Change => ({ table: 'stage_training', row: { id, completionCount: number(object(value).completionCount) ?? 0, active: Number(object(value).active === true) } })),
+      ...Object.entries(modeProgress).flatMap(([stageId, value]) => Object.entries(object(value)).flatMap(([characterId, modes]) => Object.entries(object(modes)).flatMap(([mode, at]): Change[] => typeof at === 'string' ? [{ table: 'stage_training_modes', row: { id: compound(stageId, characterId, mode), stageId, characterId, mode, completedAt: at } }] : []))),
+      ...ids.flatMap((id): Change[] => [
       { table: 'stage_progress', row: { id, completed: Number(completed.includes(id)), updatedAt: text(data.updatedAt) } },
       ...strings(map[id]).map((characterId, position): Change => ({ table: 'stage_character_progress', row: { id: compound(id, characterId), stageId: id, characterId, position } })),
     ])]
+  }
+  if (key === LEVEL_REVIEW_KEY) {
+    return Object.entries(object(value)).map(([id, record]): Change => ({ table: 'level_review', row: { id, ...object(record) } as Row }))
   }
   if (key === READING_KEY || key.startsWith(`${READING_KEY}:`)) {
     const data = object(value)
@@ -94,7 +103,11 @@ export function decodeStored(data: Map<Table, Row[]>): Map<string, unknown> {
   for (const row of (data.get('stage_character_progress') ?? []).sort((a, b) => Number(a.position) - Number(b.position))) {
     const id = String(row.stageId); (stageCharacterCompleted[id] ??= []).push(String(row.characterId))
   }
-  result.set(LEVEL_KEY, { completedStageIds: stages.filter((row) => row.completed === 1).map((row) => row.id), stageCharacterCompleted, updatedAt: object(result.get(`${LEVEL_KEY}:meta`)).updatedAt })
+  const training = Object.fromEntries((data.get('stage_training') ?? []).map((row) => [row.id, { completionCount: row.completionCount, active: row.active === 1 }]))
+  const modeProgress: Record<string, Record<string, Record<string, string>>> = {}
+  for (const row of data.get('stage_training_modes') ?? []) ((modeProgress[String(row.stageId)] ??= {})[String(row.characterId)] ??= {})[String(row.mode)] = String(row.completedAt)
+  result.set(LEVEL_KEY, { completedStageIds: stages.filter((row) => row.completed === 1).map((row) => row.id), stageCharacterCompleted, training, modeProgress, updatedAt: object(result.get(`${LEVEL_KEY}:meta`)).updatedAt })
+  result.set(LEVEL_REVIEW_KEY, Object.fromEntries((data.get('level_review') ?? []).map(({ id, ...record }) => [id, record])))
   for (const row of data.get('reading_progress') ?? []) {
     const progress = { bookId: row.id, page: row.page, rowsPerPage: row.rowsPerPage, tableStyleId: row.tableStyleId, updatedAt: row.updatedAt,
       ...(row.characterOffset !== null ? { characterOffset: row.characterOffset } : {}), ...(row.charsPerLine !== null ? { charsPerLine: row.charsPerLine } : {}) }

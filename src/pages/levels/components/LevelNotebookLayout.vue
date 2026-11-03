@@ -50,7 +50,7 @@ function handleSelect(item: LevelStageView): void { emit('stage-select', item.st
       >
         <text class="lesson-glyph" aria-hidden="true">{{ item.stage.characters[0]?.script_forms.simplified || '待' }}</text>
         <view class="lesson-copy">
-          <view class="lesson-meta"><text>{{ item.stage.title }}</text><text>{{ item.isDone ? '已完成' : stageProgressLabel(item) }}</text></view>
+          <view class="lesson-meta"><text>{{ item.stage.title }}</text><text>{{ stageProgressLabel(item) }}</text></view>
           <view v-if="!item.stage.isPlaceholder" class="lesson-glyphs" aria-hidden="true">
             <text v-for="character in item.stage.characters.slice(0, 10)" :key="character.id">{{ character.script_forms.simplified }}</text>
           </view>

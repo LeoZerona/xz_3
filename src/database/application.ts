@@ -10,6 +10,7 @@ import { useProfileStore } from '../stores/profile'
 import { useLevelLayoutStore } from '../stores/levelLayout'
 import { useCharacterComparisonStore } from '../stores/characterComparison'
 import { useLevelActivityStore } from '../stores/levelActivity'
+import { useLevelReviewStore } from '../stores/levelReview'
 
 export const applicationReady = ref(false)
 export const applicationError = ref('')
@@ -23,6 +24,7 @@ export function prepareApplication(): Promise<void> {
     useCharacterLearningStore().hydrate()
     useDailyProgressStore().hydrate()
     useLevelProgressStore().hydrate()
+    useLevelReviewStore().hydrate()
     useFontStore().initialize()
     useProfileStore().hydrate()
     useThemeStore().initialize()

@@ -13,6 +13,7 @@ import { useFontStore } from "../../stores/fonts";
 import { useThemeStore } from "../../stores/theme";
 import { useLevelProgressStore } from "../../stores/levelProgress";
 import { useLevelActivityStore } from '../../stores/levelActivity';
+import { useLevelReviewStore } from '../../stores/levelReview';
 import { getStage, loadStage, STAGES_BY_CATEGORY, type LevelCategory, type LevelStage } from "../../study/levelData";
 import { getEffectiveStudyModes, STUDY_MODES } from "../../study/modes";
 import type { StudyMode } from "../../study/modes";
@@ -36,6 +37,7 @@ const fontStore = useFontStore();
 const learningStore = useCharacterLearningStore();
 const levelProgressStore = useLevelProgressStore();
 const levelActivityStore = useLevelActivityStore();
+const reviewStore = useLevelReviewStore();
 const { currentFont, referenceFont } = storeToRefs(fontStore);
 const { themeStyle } = storeToRefs(useThemeStore());
 
@@ -112,9 +114,14 @@ const stageCharacters = computed<StudyCharacterEntry[]>(() => previewCharacters.
   .filter((character) => !learningStore.isExcluded(character.id)));
 const excludedStageCount = computed(() => previewCharacters.value.length - stageCharacters.value.length);
 const previewDescription = computed(() => `参与学习 ${stageCharacters.value.length} 字 · 已斩 ${excludedStageCount.value} 字 · 再次点击已斩可恢复`);
+const startLearningLabel = computed(() => {
+  if (levelProgressStore.isTrainingActive(queryStageId.value)) return '继续本轮学习';
+  return levelProgressStore.getTrainingCount(queryStageId.value) > 0 ? '再次学习' : '开始学习';
+});
 
 function handleToggleCharacterSlash(characterId: string) {
   learningStore.toggleExcluded(characterId);
+  reviewStore.registerCharacters([characterId]);
   uni.showToast({
     title: learningStore.isExcluded(characterId) ? "已斩，后续关卡学习不再出现" : "已取消斩，恢复关卡学习",
     icon: "none",
@@ -122,6 +129,7 @@ function handleToggleCharacterSlash(characterId: string) {
 }
 
 function openCharacterDetail(characterId: string) {
+  reviewStore.registerCharacters([characterId]);
   uni.navigateTo({ url: `/pages/character-detail/index?id=${encodeURIComponent(characterId)}&category=${queryCategory.value}&stageId=${encodeURIComponent(queryStageId.value)}` });
 }
 
@@ -155,7 +163,7 @@ function findFirstIncompleteIndex(): number {
   const tasks = allTasksInterleaved.value;
   for (let i = 0; i < tasks.length; i++) {
     const t = tasks[i]!;
-    if (!learningStore.isModeComplete(t.character.id, t.mode)) return i;
+    if (!levelProgressStore.isModeComplete(queryStageId.value, t.character.id, t.mode)) return i;
   }
   return tasks.length;
 }
@@ -168,7 +176,8 @@ const isCorrectAnimating = ref(false);
 let pendingCorrectTimer: ReturnType<typeof setTimeout> | null = null;
 const wrongAttemptQueue = createWrongAttemptQueue((attempt) => {
   learningStore.recordModeAttempt(attempt.characterId, attempt.mode, false, attempt.attemptedAt);
-  if (attempt.shouldResetModes) learningStore.resetCharacterModes(attempt.characterId, attempt.attemptedAt);
+  reviewStore.registerCharacters([attempt.characterId], attempt.attemptedAt);
+  if (attempt.shouldResetModes) levelProgressStore.resetCharacterModes(queryStageId.value, attempt.characterId);
 });
 const wrongCountMap = new Map<string, number>();
 function taskKey(id: string, mode: string){ return id + "::" + mode }
@@ -177,6 +186,15 @@ const showPreview = ref(true);
 const isPreviewVisible = computed(() => { if(!showPreview.value) return false; if(isStageLoading.value) return false; if(!stage.value) return false; return true });
 function startPreviewLearning() {
   if (stageCharacters.value.length === 0) return;
+  // 只有显式开始才创建新一轮，反复查看预览不会增加次数。
+  const legacyModes: Record<string, Partial<Record<StudyMode, string>>> = {};
+  if (levelProgressStore.getStageCompletedCount(queryStageId.value) > 0) {
+    for (const character of stageCharacters.value) {
+      const record = learningStore.getRecord(character.id);
+      legacyModes[character.id] = Object.fromEntries(effectiveModes.value.flatMap((mode) => record?.modes[mode].completedAt ? [[mode, record.modes[mode].completedAt]] : []));
+    }
+  }
+  levelProgressStore.beginTraining(queryStageId.value, legacyModes);
   showPreview.value = false;
   currentTaskIndex.value = findFirstIncompleteIndex();
   resetQuestionState();
@@ -211,7 +229,6 @@ function maybePromptResume() {
   }
   hasPromptedResume.value = true
   const stageId = s.id
-  const charIds = stageCharacters.value.map((character) => character.id)
   try {
     uni.showModal({
       title: "继续学习",
@@ -225,7 +242,6 @@ function maybePromptResume() {
         } else {
           // 重新开始：即使不答题也要立即清零并持久化，保证下次进入为 0
           levelProgressStore.resetStage(stageId)
-          learningStore.resetCharacters(charIds)
           wrongCountMap.clear()
           currentTaskIndex.value = 0
           resetQuestionState()
@@ -265,7 +281,7 @@ watch(allTasksInterleaved, (tasks, previousTasks) => {
   resetQuestionState();
 });
 
-const remainingTasks = computed(() => allTasksInterleaved.value.filter((t) => !learningStore.isModeComplete(t.character.id, t.mode)));
+const remainingTasks = computed(() => allTasksInterleaved.value.filter((t) => !levelProgressStore.isModeComplete(queryStageId.value, t.character.id, t.mode)));
 const currentTask = computed(() => allTasksInterleaved.value[currentTaskIndex.value] ?? null);
 const currentCharacter = computed(() => currentTask.value?.character ?? null);
 const activeMode = computed<StudyMode>(() => currentTask.value?.mode ?? effectiveModes.value[0] ?? STUDY_MODES[0]);
@@ -289,7 +305,7 @@ const isLastMode = computed(() => {
   if (!lastMode) return false;
   const charId = currentCharacter.value.id;
   // 是否该字所有模式都已完成
-  return effectiveModes.value.every((m) => learningStore.isModeComplete(charId, m) || (activeMode.value === m && hasAnswered.value));
+  return effectiveModes.value.every((m) => levelProgressStore.isModeComplete(queryStageId.value, charId, m) || (activeMode.value === m && hasAnswered.value));
 });
 
 const isLastCharacter = computed(() => remainingTasks.value.length === 0 && hasAnswered.value && !forceDetail.value);
@@ -300,7 +316,7 @@ const isStageComplete = computed(() => !isStageLoading.value
   && remainingTasks.value.length === 0);
 
 const stageProgressText = computed(() => {
-  const done = stageCharacters.value.filter((character) => learningStore.isCharacterComplete(character.id)).length;
+  const done = stageCharacters.value.filter((character) => levelProgressStore.isCharacterComplete(queryStageId.value, character.id, effectiveModes.value)).length;
   return `${done}/${stageCharacters.value.length}`;
 });
 
@@ -344,7 +360,9 @@ function completeAnswer(character: StudyCharacterEntry) {
     pendingCorrectTimer = null;
     wrongAttemptQueue.flush();
     learningStore.recordModeAttempt(character.id, mode, true);
-    if (learningStore.isCharacterComplete(character.id)) {
+    reviewStore.registerCharacters([character.id]);
+    levelProgressStore.recordModeCompleted(stageId, character.id, mode);
+    if (levelProgressStore.isCharacterComplete(stageId, character.id, effectiveModes.value)) {
       levelProgressStore.markCharacterCompleted(stageId, character.id);
     }
     hasAnswered.value = true;
@@ -400,7 +418,7 @@ function submitInputAnswer(value: string) {
 function advanceToNextIncomplete() {
   const tasks = allTasksInterleaved.value;
   let next = currentTaskIndex.value + 1;
-  while (next < tasks.length && learningStore.isModeComplete(tasks[next]!.character.id, tasks[next]!.mode)) next++;
+  while (next < tasks.length && levelProgressStore.isModeComplete(queryStageId.value, tasks[next]!.character.id, tasks[next]!.mode)) next++;
   // 错误后查看详情不会完成练习；走到末尾时回到尚未答对的题。
   currentTaskIndex.value = next < tasks.length ? next : findFirstIncompleteIndex();
 }
@@ -481,7 +499,7 @@ onBeforeUnmount(()=>{
       </button>
       <view style="text-align:center;min-width:0">
         <text style="display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ categoryLabel }} · {{ stageTitle }}</text>
-        <text style="display:block;color:var(--color-text-muted);font-size:8px">本关 {{ previewCharacters.length }} 字 · 已斩 {{ excludedStageCount }} 字 · {{ stageProgressText }}</text>
+        <text class="training-count">已完成 {{ levelProgressStore.getTrainingCount(queryStageId) }} 次训练 · 本轮 {{ stageProgressText }}</text>
       </view>
       <view class="topbar-actions">
         <button class="topbar-button" aria-label="收藏" @click="toggleFavorite">
@@ -529,7 +547,7 @@ onBeforeUnmount(()=>{
         @open-detail="openCharacterDetail"
       />
       <view class="preview-start-wrap">
-        <button class="preview-start-button" role="button" :disabled="stageCharacters.length === 0" :aria-disabled="stageCharacters.length === 0" @click="startPreviewLearning">开始学习</button>
+        <button class="preview-start-button" role="button" :disabled="stageCharacters.length === 0" :aria-disabled="stageCharacters.length === 0" @click="startPreviewLearning">{{ startLearningLabel }}</button>
       </view>
     </view>
     <StudyQuestionCard
@@ -568,6 +586,7 @@ onBeforeUnmount(()=>{
 .topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--color-text); line-height: 1; }
 .topbar-button::after { border: 0; }
 .back-icon { font-size: 27px; font-weight: 300; }
+.training-count { display: block; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }
 .progress-card { margin: 2px 16px 0; padding: 15px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent); border-radius: 18px; background: var(--color-surface); box-shadow: 0 10px 28px color-mix(in srgb, var(--color-shadow) 88%, transparent); }
 .progress-item { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .progress-label { color: var(--color-text-muted); font-size: 10px; }

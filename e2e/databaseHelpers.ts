@@ -4,7 +4,7 @@ import type { StudyMode } from '../src/study/modes'
 
 export async function databaseRows(page: Page, table: string): Promise<Array<Record<string, unknown>>> {
   return page.evaluate((name) => new Promise<Array<Record<string, unknown>>>((resolve, reject) => {
-    const request = indexedDB.open('font-learning', 1)
+    const request = indexedDB.open('font-learning')
     request.onerror = () => reject(request.error)
     request.onsuccess = () => {
       const db = request.result
@@ -23,7 +23,7 @@ export async function characterRecord(page: Page, characterId: string): Promise<
 }
 export async function replaceDatabaseRows(page: Page, table: string, rows: Array<Record<string, unknown>>, deleteIds: string[] = []): Promise<void> {
   await page.evaluate(({ table, rows, deleteIds }) => new Promise<void>((resolve, reject) => {
-    const request = indexedDB.open('font-learning', 1)
+    const request = indexedDB.open('font-learning')
     request.onerror = () => reject(request.error)
     request.onsuccess = () => {
       const db = request.result

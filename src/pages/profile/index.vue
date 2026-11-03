@@ -25,6 +25,7 @@ onMounted(() => { void profileStore.initialize() })
 const menuSections = computed<MenuItem[][]>(() => [
   [
     { label: '我的日历', icon: 'calendar-o' },
+    { label: '关卡复习', icon: 'replay', url: '/pages/level-review/index' },
     { label: '我的学习', icon: 'play-circle-o' },
     { label: '我的词汇量', icon: 'chart-trending-o' },
   ],

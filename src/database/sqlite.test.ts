@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTestDatabase } from './testSupport'
 import { openSqlite } from './sqlite'
+import { DATABASE_VERSION } from './schema'
 
 afterEach(() => vi.unstubAllGlobals())
 function nativeBridge(initiallyOpen = false) {
@@ -35,6 +36,16 @@ function nativeBridge(initiallyOpen = false) {
   return { backing, isOpenDatabase, openDatabase, closeDatabase }
 }
 describe('App SQLite 桥接', () => {
+  it('从版本 1 升级时新增训练与复习表并保留原关卡进度', async () => {
+    const { backing } = nativeBridge()
+    backing.native.exec('DROP TABLE stage_training; DROP TABLE stage_training_modes; DROP TABLE level_review; PRAGMA user_version=1')
+    await backing.commit([{ table: 'stage_progress', row: { id: 'level1-stage-01', completed: 1, updatedAt: null } }])
+    const db = await openSqlite()
+    expect(await db.query('stage_progress')).toMatchObject([{ id: 'level1-stage-01', completed: 1 }])
+    expect(await db.query('stage_training')).toEqual([])
+    expect(await db.query('stage_training_modes')).toEqual([])
+    expect(await db.query('level_review')).toEqual([])
+  })
   it('复用热重载前已打开的原生连接，保留原有数据', async () => {
     const { backing, openDatabase, closeDatabase } = nativeBridge(true)
     await backing.commit([{ table: 'settings', row: { id: 'saved', value: '学习进度' } }])
@@ -88,13 +99,13 @@ describe('App SQLite 桥接', () => {
   })
   it('拒绝比应用更新的数据库，并释放连接', async () => {
     const { backing, closeDatabase } = nativeBridge()
-    backing.native.exec('PRAGMA user_version=2')
+    backing.native.exec(`PRAGMA user_version=${DATABASE_VERSION + 1}`)
     await expect(openSqlite()).rejects.toThrow('请升级应用')
     expect(closeDatabase).toHaveBeenCalled()
   })
   it('初始化失败等待原生连接关闭后才返回，随后可以重试', async () => {
     const { backing, openDatabase, closeDatabase } = nativeBridge()
-    backing.native.exec('PRAGMA user_version=2')
+    backing.native.exec(`PRAGMA user_version=${DATABASE_VERSION + 1}`)
     const close = closeDatabase.getMockImplementation()!
     let finishClose: (() => void) | undefined
     closeDatabase.mockImplementationOnce((options) => { finishClose = () => close(options) })

@@ -162,6 +162,10 @@
       "path": "pages/level-study/index"
     },
     {
+      "path": "pages/level-review/index",
+      "style": { "navigationStyle": "custom", "navigationBarTitleText": "关卡复习", "disableScroll": true, "app-plus": { "bounce": "none" } }
+    },
+    {
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",

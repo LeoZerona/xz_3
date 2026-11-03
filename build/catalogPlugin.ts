@@ -8,7 +8,7 @@ import type { StudyCharacterEntry } from '../src/study/types'
 export function catalogPlugin(): Plugin {
   let isBuild = false
   let generated: Promise<{ version: string; source: string }> | undefined
-  const files = ['src/data/character-table/first-level.json', ...Array.from({ length: 13 }, (_, index) => `src/data/character-table/firstLevel/${index + 1}.json`)]
+  const files = ['src/data/character-table/first-level.json', ...Array.from({ length: 13 }, (_, index) => `src/data/character-table/firstLevel/${index + 1}.json`), 'src/data/character-table/first-level-supplement.json']
   function generate() {
     generated ??= Promise.all(files.map(async (file) => JSON.parse(await readFile(path.resolve(file), 'utf8')) as { chars: StudyCharacterEntry[] })).then(([daily, ...shards]) => {
       const changes = buildCatalogSeed(daily!.chars, shards.map((source) => source.chars))

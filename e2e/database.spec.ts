@@ -5,13 +5,13 @@ async function records(page: Page, table: string): Promise<Array<Record<string, 
   return databaseRows(page, table)
 }
 
-test('数据库保留每日 204 字、完整 2557 字及原关卡顺序', async ({ page }) => {
+test('数据库保留每日 204 字、完整 3500 字及原关卡顺序', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/#/pages/levels/index')
   await expect(page.locator('.database-overlay')).toHaveCount(0, { timeout: 30000 })
   await expect(page.locator('.stage-card')).toHaveCount(24)
-  expect(await records(page, 'characters')).toHaveLength(2557)
+  expect(await records(page, 'characters')).toHaveLength(3500)
   expect(await records(page, 'character_sets')).toHaveLength(204)
   const firstStage = (await records(page, 'level_characters')).filter((row) => row.levelId === 'level1-stage-01').sort((a, b) => Number(a.position) - Number(b.position))
   expect(firstStage.slice(0, 3).map((row) => row.characterId)).toEqual(['char-0001', 'char-0002', 'char-0003'])
@@ -102,6 +102,8 @@ test('每日计划与启用模式保存到数据库，重新打开后恢复', as
     element.scrollTop = 84
     element.dispatchEvent(new Event('scroll'))
   })
+  // 滚动吸附可能在下一帧才更新选择，先确认用户看到的目标已选中。
+  await expect(page.locator('.plan-wheel')).toHaveAttribute('data-selected-count', '20')
   await page.getByRole('button', { name: '保存计划', exact: true }).click()
   await expect.poll(async () => {
     const row = (await records(page, 'settings')).find((entry) => entry.id === 'font-learning-plan')
