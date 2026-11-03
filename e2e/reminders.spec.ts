@@ -1,0 +1,25 @@
+import {expect,test} from '@playwright/test'
+import {databaseRows} from './databaseHelpers'
+test('原提醒入口可创建、编辑、关闭并导出日历，能力说明准确',async({page})=>{
+  await page.goto('/#/pages/profile/index');await page.getByRole('button',{name:'学习提醒',exact:true}).click()
+  await page.getByRole('button',{name:'新建学习提醒',exact:true}).click()
+  await page.getByLabel('提醒名称').fill('晚间识字')
+  await page.getByLabel('提醒时间（HH:mm）').fill('20:30')
+  await page.getByRole('button',{name:'保存应用内提醒',exact:true}).click()
+  await expect(page.getByText('晚间识字 · 20:30',{exact:true})).toBeVisible()
+  const download=page.waitForEvent('download');await page.getByRole('button',{name:'导出未来四周日历',exact:true}).click();expect((await download).suggestedFilename()).toMatch(/\.ics$/)
+  await expect(page.getByRole('status').filter({hasText:'文件已导出'})).toBeVisible()
+  await page.getByRole('switch',{name:'关闭提醒',exact:true}).click()
+  await expect(page.getByText('已关闭，不再触发',{exact:true})).toBeVisible()
+  expect((await databaseRows(page,'reminders'))[0]).toMatchObject({title:'晚间识字',enabled:0,time:'20:30'})
+  await page.getByRole('button',{name:'查看系统提醒与日历能力',exact:false}).click()
+  await expect(page.getByText('未启用',{exact:true})).toBeVisible()
+  await page.goto('/#/pages/index/index');await page.getByRole('button',{name:'消息提示',exact:true}).click()
+  await expect(page.getByRole('heading',{name:'本机消息',exact:true})).toBeVisible()
+})
+test('新增功能按钮可用键盘进入和操作',async({page})=>{
+  await page.goto('/#/pages/reminders/index')
+  const create=page.getByRole('button',{name:'新建学习提醒',exact:true})
+  await create.focus();await create.press('Enter')
+  await expect(page.getByRole('heading',{name:'新建提醒',exact:true})).toBeVisible()
+})

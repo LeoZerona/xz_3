@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { onHide, onLaunch } from '@dcloudio/uni-app'
+import { onHide, onLaunch, onShow } from '@dcloudio/uni-app'
 import { flushApplication, prepareApplication } from './database/application'
 import { useThemeStore } from './stores/theme'
+import {startReminderClock,stopReminderClock} from './notifications/platform'
 
 const themeStore = useThemeStore()
+let isAppVisible = true
 
 // App.vue 不承载页面模板，主题样式由各页面根节点绑定。
 onLaunch(() => {
   themeStore.initialize()
   void prepareApplication().catch((error: unknown) => console.error('应用数据初始化失败', error))
 })
-onHide(flushApplication)
+onShow(()=>{isAppVisible=true;void prepareApplication().then(()=>{if(isAppVisible)startReminderClock()}).catch((error:unknown)=>console.error('提醒初始化失败',error))})
+onHide(()=>{isAppVisible=false;stopReminderClock();flushApplication()})
 </script>
 
 <style>

@@ -4,6 +4,26 @@ import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../stores/theme'
 import DatabaseStatus from './DatabaseStatus.vue'
 import { goFeatureBack } from '../features/useFeatureTask'
+import {onBeforeUnmount,onMounted} from 'vue'
+
+const pageId = `feature-page-${Math.random().toString(36).slice(2)}`
+let disposeKeyboard: (()=>void) | undefined
+onMounted(()=>{
+  // #ifdef H5
+  const root=document.getElementById(pageId)
+  if(!root)return
+  // uni-button 在 H5 是自定义元素；只为新增页面补上原生按钮的焦点和键盘语义。
+  const sync=()=>{for(const button of Array.from(root.querySelectorAll<HTMLElement>('uni-button'))){
+    const disabled=button.hasAttribute('disabled')||button.classList.contains('uni-button-disabled')
+    button.tabIndex=disabled?-1:0
+    const value=String(disabled);if(button.getAttribute('aria-disabled')!==value)button.setAttribute('aria-disabled',value)
+  }}
+  const handleKey=(event:KeyboardEvent)=>{const target=event.target;if(event.defaultPrevented||!(target instanceof HTMLElement)||target.tagName!=='UNI-BUTTON'||target.getAttribute('aria-disabled')==='true')return;if(event.key==='Enter'||event.key===' '){event.preventDefault();target.click()}}
+  const observer=new MutationObserver(sync);observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class']});root.addEventListener('keydown',handleKey);sync()
+  disposeKeyboard=()=>{observer.disconnect();root.removeEventListener('keydown',handleKey)}
+  // #endif
+})
+onBeforeUnmount(()=>disposeKeyboard?.())
 
 const props = withDefaults(defineProps<{ title: string; backUrl?: string; loading?: boolean; error?: string; beforeBack?: () => Promise<boolean> }>(), {
   backUrl: '/pages/profile/index', loading: false, error: '',
@@ -17,7 +37,7 @@ async function goBack(): Promise<void> {
 </script>
 
 <template>
-  <view class="feature-page" :style="themeStyle">
+  <view :id="pageId" class="feature-page" :style="themeStyle">
     <DatabaseStatus />
     <header class="feature-header">
       <button role="button" class="feature-back" aria-label="返回" @click="goBack"><van-icon name="arrow-left" size="23" aria-hidden="true" /></button>

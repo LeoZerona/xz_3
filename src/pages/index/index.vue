@@ -57,6 +57,7 @@ const studyMinutesDisplay = computed(() => `${Math.floor(summary.value.today.stu
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
 }
+function openMessages(): void { uni.navigateTo({url:'/pages/messages/index',fail:()=>uni.showToast({title:'消息暂时无法打开，请重试',icon:'none'})}) }
 
 </script>
 
@@ -67,7 +68,7 @@ function showPlaceholder(label: string) {
       <view class="topbar-spacer" aria-hidden="true"></view>
       <view class="topbar-actions">
         <CharacterSearchButton />
-        <button class="icon-button" role="button" aria-label="消息提示"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
+        <button class="icon-button" role="button" aria-label="消息提示" @click="openMessages"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
       </view>
     </view>
 

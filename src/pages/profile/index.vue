@@ -38,7 +38,7 @@ const menuSections = computed<MenuItem[][]>(() => [
   [
     { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
     { label: '关卡布局', icon: 'apps-o', url: '/pages/level-layout/index', note: currentLayout.value.name },
-    { label: '学习提醒', icon: 'clock-o' },
+    { label: '学习提醒', icon: 'clock-o', url: '/pages/reminders/index' },
     { label: '数据与隐私', icon: 'shield-o' },
   ],
   [

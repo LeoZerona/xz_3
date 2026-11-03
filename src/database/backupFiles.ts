@@ -1,6 +1,9 @@
 export function writeNativeBackup(text: string): Promise<string> {
+  return writeNativeTextFile(text, 'json', 'font-learning-backup')
+}
+export function writeNativeTextFile(text: string, extension: 'json' | 'txt' | 'ics', prefix = 'font-learning'): Promise<string> {
   return new Promise((resolve, reject) => {
-    const fileName = `font-learning-backup-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.json`
+    const fileName = `${prefix.replace(/[^a-z0-9-]/gi, '')}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${extension}`
     plus.io.resolveLocalFileSystemURL('_doc/', (directory) => {
       const entry = directory as PlusIoDirectoryEntry
       entry.getFile(fileName, { create: true, exclusive: true }, (file) => {

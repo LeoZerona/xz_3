@@ -34,11 +34,11 @@ export function recordActivity(event: ActivityEvent): void {
   activityRevision.value++
 }
 
-export async function readActivities(options: { dateKey?: string; sessionId?: string; limit?: number; offset?: number } = {}): Promise<ActivityEvent[]> {
+export async function readActivities(options: { dateKey?: string; sessionId?: string; kind?: ActivityKind; limit?: number; offset?: number } = {}): Promise<ActivityEvent[]> {
   await flushPersistence()
   const db = await getDatabase()
   const rows = await db.query('activity_events', { where: { ...(options.dateKey ? { dateKey: options.dateKey } : {}),
-    ...(options.sessionId ? { sessionId: options.sessionId } : {}) }, orderBy: 'at', limit: options.limit, offset: options.offset })
+    ...(options.sessionId ? { sessionId: options.sessionId } : {}), ...(options.kind ? {kind:options.kind}: {}) }, orderBy: 'at', limit: options.limit, offset: options.offset })
   return rows.map((row): ActivityEvent => ({ id: row.id, sessionId: String(row.sessionId), source: row.source as ActivitySource,
     kind: row.kind as ActivityKind, characterId: row.characterId === null ? null : String(row.characterId),
     mode: isStudyMode(row.mode) ? row.mode : null, correct: row.correct === null ? null : row.correct === 1,

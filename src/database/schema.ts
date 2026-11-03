@@ -6,7 +6,7 @@ export interface TableSchema {
 }
 
 export const DATABASE_NAME = 'font-learning'
-export const DATABASE_VERSION = 7
+export const DATABASE_VERSION = 8
 export const schema = {
   meta: { columns: { value: 'TEXT' } },
   settings: { columns: { value: 'TEXT' } },
@@ -41,6 +41,8 @@ export const schema = {
   annotations: { columns: { bookId: 'TEXT', kind: 'TEXT', fingerprint: 'TEXT', startOffset: 'INTEGER', endOffset: 'INTEGER', quote: 'TEXT', note: 'TEXT', tags: 'TEXT', createdAt: 'TEXT', updatedAt: 'TEXT' }, indexes: [['bookId', 'startOffset'], ['updatedAt']] },
   book_search: { columns: { bookId: 'TEXT', startOffset: 'INTEGER', text: 'TEXT', fingerprint: 'TEXT' }, indexes: [['bookId', 'startOffset']] },
   import_history: { columns: { bookId: 'TEXT', fileName: 'TEXT', characters: 'INTEGER', at: 'TEXT' }, indexes: [['at']] },
+  reminders: { columns: { title: 'TEXT', time: 'TEXT', weekdays: 'TEXT', enabled: 'INTEGER', quietStart: 'TEXT', quietEnd: 'TEXT', skipCompleted: 'INTEGER', createdAt: 'TEXT', updatedAt: 'TEXT' } },
+  local_messages: { columns: { title: 'TEXT', body: 'TEXT', kind: 'TEXT', relatedId: 'TEXT', at: 'TEXT', readAt: 'TEXT' }, indexes: [['at'], ['readAt']] },
 } satisfies Record<string, TableSchema>
 
 export type Table = keyof typeof schema
