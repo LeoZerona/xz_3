@@ -8,6 +8,7 @@ import { findCharactersByText } from '../../database/catalog'
 import { readCollection } from '../../collections/repository'
 import { parseCollectionText } from '../../collections/model'
 import { createPractice, listPractices } from '../../practice/repository'
+import { listMistakes } from '../../review/mistakes'
 import { getEffectiveStudyModes, STUDY_MODES, STUDY_MODE_LABELS } from '../../study/modes'
 import { openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
 import type { StudyMode } from '../../study/modes'
@@ -36,7 +37,7 @@ const { loading, error, reload } = useFeatureTask(async () => {
     characterIds.value = (await db.query('character_progress', { where: source.value === 'favorites' ? { favorite: 1 } : { excluded: 1 } })).map((row) => row.id)
     name.value = `${labels[source.value]}练习`
   } else if (source.value === 'mistakes') {
-    characterIds.value = [...new Set((await db.query('activity_events', { where: { kind: 'answer', correct: 0 } })).flatMap((row) => row.characterId ? [String(row.characterId)] : []))]
+    characterIds.value = [...new Set((await listMistakes({ consolidated: false })).map(item => item.characterId))]
     name.value = '错题专项'
   } else name.value = '自选汉字练习'
   history.value = await listPractices()

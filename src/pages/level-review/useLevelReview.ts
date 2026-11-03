@@ -25,8 +25,8 @@ export function useLevelReview() {
   let timer: ReturnType<typeof setInterval> | undefined
   let initialized = false
   let isVisible = true
-  const eligibleIds = computed(() => Object.keys(store.records).filter((id) => filter.value === 'all'
-    || (filter.value === 'slashed' ? learning.isExcluded(id) : learning.isFavorite(id))))
+  const eligibleIds = computed(() => Object.keys(store.records).filter((id) => store.hasSource(id, 'level') && (filter.value === 'all'
+    || (filter.value === 'slashed' ? learning.isExcluded(id) : learning.isFavorite(id)))))
   const dueCount = computed(() => orderReviewIds(store.records, eligibleIds.value, now.value).length)
   const totalCount = computed(() => eligibleIds.value.length)
   const nextDueLabel = computed(() => {

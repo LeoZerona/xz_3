@@ -13,6 +13,7 @@ import type { StudyMode } from '../study/modes'
 import { activityRevision, activityRow, localDateKey } from '../learning/activity'
 import type { ActivityEvent } from '../learning/types'
 import type { Change } from '../database/types'
+import { useLevelReviewStore } from './levelReview'
 
 interface AttemptContext { source: 'daily' | 'level'; sessionId: string }
 
@@ -132,6 +133,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
           id: `learned:${characterId}`, kind: 'completed', correct: null }), ifAbsent: true })
       }
     }, at, relatedChanges)
+    if (source === 'daily') useLevelReviewStore().registerCharacters([characterId], at, 'daily')
     activityRevision.value++
   }
 
