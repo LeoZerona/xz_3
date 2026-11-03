@@ -79,6 +79,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
 
   function ensureSession(candidateIds: string[], targetCount: number) {
     if (todayKey() !== dateKey.value) hydrate()
+    if (assignedIds.value.length > 0) return
     const nextAssignment = buildDailyAssignment(assignedIds.value, candidateIds, targetCount)
     const hasChanged = nextAssignment.some((id, index) => id !== assignedIds.value[index])
       || nextAssignment.length !== assignedIds.value.length

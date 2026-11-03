@@ -7,11 +7,14 @@ import { getDatabase } from './connection'
 import type { Change } from './types'
 import { tables, type Row, type Table } from './schema'
 import { object } from './records'
+import { readLearningSettings } from '../learning/settings'
+import { localDateKey } from '../learning/activity'
 
 export const categoryCounts = ref<Record<string, number>>({})
 let initialization: Promise<void> | undefined
 let dailyCharacters: Promise<StudyCharacterEntry[]> | undefined
 let dailyIds: Promise<string[]> | undefined
+let dailyCacheKey = ''
 let searchEntries: Promise<CharacterEntry[]> | undefined
 let allSearchEntries: Promise<CharacterEntry[]> | undefined
 const CONTENT_TABLES: Table[] = ['characters', 'character_details', 'character_words', 'character_sets', 'levels', 'level_characters']
@@ -67,6 +70,7 @@ export async function getCharacters(ids: string[]): Promise<StudyCharacterEntry[
   })
 }
 export async function getDailyCharacters(): Promise<StudyCharacterEntry[]> {
+  refreshDailyCache()
   dailyCharacters ??= loadDailyCharacters().catch((error: unknown) => { dailyCharacters = undefined; throw error })
   return dailyCharacters
 }
@@ -74,12 +78,19 @@ async function loadDailyCharacters(): Promise<StudyCharacterEntry[]> {
   return getCharacters(await getDailyCharacterIds())
 }
 export function getDailyCharacterIds(): Promise<string[]> {
+  refreshDailyCache()
   dailyIds ??= (async () => {
     await initializeCatalog()
     const db = await getDatabase()
+    const course = readLearningSettings().course
+    if (course !== 'daily') return (await db.query('characters', { where: { level: Number(course.slice(-1)) }, orderBy: 'position' })).map(row => row.id)
     return (await db.query('character_sets', { where: { setId: 'daily' }, orderBy: 'position' })).map((row) => String(row.characterId))
   })().catch((error: unknown) => { dailyIds = undefined; throw error })
   return dailyIds
+}
+function refreshDailyCache(): void {
+  const key = `${localDateKey(new Date())}:${readLearningSettings().course}`
+  if (key !== dailyCacheKey) { dailyCacheKey = key; dailyIds = undefined; dailyCharacters = undefined; searchEntries = undefined }
 }
 export async function searchCatalog(query: string, limit = 50, offset = 0, scope: 'daily' | 'all' = 'daily'): Promise<{ entries: CharacterEntry[]; total: number }> {
   await initializeCatalog()

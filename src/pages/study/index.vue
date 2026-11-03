@@ -11,13 +11,15 @@ import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
-import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { readPlanDailyCount } from '../../study/dailyProgress'
 import { useActivityClock } from '../../learning/useActivityClock'
 import { useLearningSummary } from '../../learning/useLearningSummary'
 import { getEffectiveStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
 import StudyQuestionCard from './components/StudyQuestionCard.vue'
+import { readDailySessionModes, readLearningSettings } from '../../learning/settings'
+import { localDateKey } from '../../learning/activity'
 
 interface StudyQuestion {
   mode: StudyMode
@@ -37,8 +39,12 @@ const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const { summary } = useLearningSummary()
 const allCharacters = ref<StudyCharacterEntry[]>([])
+const sessionModes = ref<StudyMode[]>(getEffectiveStudyModes())
+const reviewTarget = ref(20)
 const availableCharacters = computed(() => allCharacters.value.filter((entry) => !learningStore.isExcluded(entry.id)))
 useDatabaseTask(async () => {
+  sessionModes.value = readDailySessionModes()
+  reviewTarget.value = readLearningSettings().reviewTarget
   allCharacters.value = await getDailyCharacters()
   dailyProgressStore.hydrate()
   dailyProgressStore.reconcileLearned(learningStore.completedIds)
@@ -56,7 +62,7 @@ const dailyCharacters = computed(() => dailyProgressStore.assignedIds.flatMap((i
   const entry = characterById.value.get(id)
   return entry ? [entry] : []
 }))
-const effectiveModes = computed(() => getEffectiveStudyModes())
+const effectiveModes = computed(() => sessionModes.value)
 const totalModeCount = computed(() => effectiveModes.value.length)
 
 function buildInterleaved(chars: StudyCharacterEntry[], modes: StudyMode[]): Array<{ character: StudyCharacterEntry; mode: StudyMode }> {
@@ -206,7 +212,7 @@ function handleChoiceAnswer(character: string) {
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(current.id, activeMode.value, true) } catch {}
+      try { learningStore.recordModeAttempt(current.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
       if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
     }, 400)
     return
@@ -214,12 +220,12 @@ function handleChoiceAnswer(character: string) {
   const n = incWrongCount()
   if (n === 1) {
     hintLevel.value = 1
-    try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+    try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
     return
   }
   hintLevel.value = 1
   forceDetail.value = true
-  try { learningStore.recordModeAttempt(current.id, activeMode.value, false) } catch {}
+  try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
   const firstMode = effectiveModes.value[0]
   if (activeMode.value !== firstMode) {
     try { learningStore.resetCharacterModes(current.id) } catch {}
@@ -256,7 +262,7 @@ function submitInputAnswer(value: string) {
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true) } catch {}
+      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
       if (learningStore.isCharacterComplete(curChar.id)) dailyProgressStore.addLearned(curChar.id)
     }, 400)
     return
@@ -264,12 +270,12 @@ function submitInputAnswer(value: string) {
   const n = incWrongCount()
   if (n === 1) {
     hintLevel.value = 1
-    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
     return
   }
   hintLevel.value = 1
   forceDetail.value = true
-  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false) } catch {}
+  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
   const firstMode = effectiveModes.value[0]
   if (activeMode.value !== firstMode) {
     try { learningStore.resetCharacterModes(curChar.id) } catch {}
@@ -387,7 +393,7 @@ const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.v
       </view>
       <view class="progress-item">
         <text class="progress-label">今日复习</text>
-        <text class="progress-value">{{ reviewedCount }}/{{ REVIEW_TARGET }}</text>
+        <text class="progress-value">{{ reviewedCount }}/{{ reviewTarget }}</text>
       </view>
       <view class="progress-item">
         <text class="progress-label">学习时间</text>

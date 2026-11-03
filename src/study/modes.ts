@@ -1,4 +1,4 @@
-import { readStored } from '../database/persistence'
+import { readPlanConfig } from './planConfig'
 export const STUDY_MODES = [
   'seal-to-reference-choice',
   'reference-to-seal-choice',
@@ -38,9 +38,9 @@ export function normalizeStudyModes(value: unknown): StudyMode[] {
 }
 
 
-export function getEffectiveStudyModes() {
+export function getEffectiveStudyModes(now = new Date()) {
   try {
-    const saved = readStored("font-learning-plan") as { modes?: unknown } | undefined;
+    const saved = readPlanConfig(now);
     const normalized = normalizeStudyModes(saved && saved.modes);
     return normalized.length>0?normalized:[...STUDY_MODES];
   } catch(e){ return [...STUDY_MODES]; }

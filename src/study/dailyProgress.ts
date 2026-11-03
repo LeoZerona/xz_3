@@ -1,4 +1,4 @@
-import { readStored } from '../database/persistence'
+import { readPlanConfig } from './planConfig'
 export const PLAN_STORAGE_KEY = 'font-learning-plan'
 export const DEFAULT_DAILY_COUNT = 15
 export const REVIEW_TARGET = 20
@@ -32,9 +32,9 @@ export function normalizeDailyCount(value: unknown): number {
 }
 
 /** 读取用户在修改计划页保存的每日新学数，存储不可用时回退默认值。 */
-export function readPlanDailyCount(): number {
+export function readPlanDailyCount(now = new Date()): number {
   try {
-    const saved = readStored(PLAN_STORAGE_KEY) as { dailyCount?: unknown } | undefined
+    const saved = readPlanConfig(now)
     if (saved && typeof saved.dailyCount !== 'undefined') return normalizeDailyCount(saved.dailyCount)
   } catch {
     // 存储不可用时使用默认计划。

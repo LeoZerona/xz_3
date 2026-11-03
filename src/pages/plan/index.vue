@@ -100,7 +100,8 @@
 <script setup lang="ts">
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 
-import { flushPersistence, readStored, saveStored } from '../../database/persistence'
+import { readPlanConfig } from '../../study/planConfig'
+import { saveDailyPlan } from '../../learning/settings'
 
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
@@ -111,7 +112,7 @@ import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import { getStudyModeLabel, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
-import { REVIEW_TARGET } from '../../study/dailyProgress'
+import { readLearningSettings } from '../../learning/settings'
 import { estimatePlan } from '../../learning/plan'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import FontCatalog from './components/FontCatalog.vue'
@@ -121,7 +122,6 @@ const { currentFont } = storeToRefs(useFontStore())
 const learningStore = useCharacterLearningStore()
 const { themeStyle } = storeToRefs(useThemeStore())
 
-const STORAGE_KEY = 'font-learning-plan'
 const ROW_HEIGHT = 42
 type Section = 'plan' | 'fonts' | 'catalog'
 
@@ -131,7 +131,7 @@ const planOptions = computed(() => Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
   return { count, days: Math.ceil(totalCharCount.value / count) }
 }))
-const saved = readStored(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
+const saved = readPlanConfig(new Date(), true) as { dailyCount?: number; modes?: string[] }
 const modeOptions = STUDY_MODES
 const savedModes = normalizeStudyModes(saved?.modes)
 const selectedModes = ref<import('../../study/modes').StudyMode[]>(savedModes.length ? savedModes : [...STUDY_MODES])
@@ -153,7 +153,7 @@ const initialPlan = computed(() => planOptions.value.find((item) => item.count =
 const initialPlanIndex = computed(() => Math.max(0, planOptions.value.findIndex((item) => item.count === dailyCount.value)))
 useDatabaseTask(async () => {
   totalCharCount.value = (await getDailyCharacterIds()).filter((id) => !learningStore.isCharacterComplete(id) && !learningStore.isExcluded(id)).length
-  const plan = readStored(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
+  const plan = readPlanConfig(new Date(), true) as { dailyCount?: number; modes?: string[] }
   const restoredDailyCount = plan?.dailyCount && planOptions.value.some((item) => item.count === plan.dailyCount) ? plan.dailyCount : 15
   dailyCount.value = restoredDailyCount
   const modes = normalizeStudyModes(plan?.modes)
@@ -166,7 +166,7 @@ const estimatedMinutes = computed(() => {
   const count = dailyCount.value
   // 每字每种必修约 24 秒，新学 15字*3种 ≈ 18 分钟；复习 20字约 4 分钟，+1 分钟基础开销，向上取整
   const newMinutes = count * modeCount * 0.4
-  const reviewMinutes = REVIEW_TARGET * 0.2
+  const reviewMinutes = readLearningSettings().reviewTarget * 0.2
   return Math.max(3, Math.ceil(newMinutes + reviewMinutes + 1))
 })
 
@@ -251,8 +251,7 @@ function handleBack() {
 async function savePlan() {
   if (selectedModes.value.length===0){ uni.showToast({title:'请选择至少一种学习方式',icon:'none'});return }
   try {
-    saveStored(STORAGE_KEY, { dailyCount: dailyCount.value, modes: [...selectedModes.value] })
-    await flushPersistence()
+    await saveDailyPlan({ dailyCount: dailyCount.value, modes: [...selectedModes.value] })
     returnToPrevious()
   } catch (error) { console.error('保存计划失败', error); uni.showToast({ title: '保存计划失败，请重试', icon: 'none' }) }
 }

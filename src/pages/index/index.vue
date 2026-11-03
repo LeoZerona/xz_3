@@ -14,7 +14,8 @@ import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
-import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { readPlanDailyCount } from '../../study/dailyProgress'
+import { readLearningSettings } from '../../learning/settings'
 import { useLearningSummary } from '../../learning/useLearningSummary'
 
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
@@ -50,7 +51,7 @@ const dailyTarget = computed(() => {
   return Math.min(available, count)
 })
 const learnedDisplay = computed(() => `${Math.max(dailyProgressStore.learnedCount, summary.value.today.newCount)}/${dailyTarget.value}`)
-const reviewedDisplay = computed(() => `${summary.value.today.reviewCount}/${REVIEW_TARGET}`)
+const reviewedDisplay = computed(() => `${summary.value.today.reviewCount}/${readLearningSettings().reviewTarget}`)
 const studyMinutesDisplay = computed(() => `${Math.floor(summary.value.today.studySeconds / 60)}`)
 
 function showPlaceholder(label: string) {

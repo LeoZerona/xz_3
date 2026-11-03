@@ -26,10 +26,10 @@ onMounted(() => { void profileStore.initialize() })
 
 const menuSections = computed<MenuItem[][]>(() => [
   [
-    { label: '我的日历', icon: 'calendar-o' },
+    { label: '我的日历', icon: 'calendar-o', url: '/pages/learning-calendar/index' },
     { label: '关卡复习', icon: 'replay', url: '/pages/level-review/index' },
-    { label: '我的学习', icon: 'play-circle-o' },
-    { label: '我的词汇量', icon: 'chart-trending-o' },
+    { label: '我的学习', icon: 'play-circle-o', url: '/pages/learning-records/index' },
+    { label: '我的词汇量', icon: 'chart-trending-o', url: '/pages/literacy/index' },
   ],
   [
     { label: '我的收藏', icon: 'star-o', url: '/pages/collections/index' },

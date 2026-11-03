@@ -49,6 +49,7 @@ export function initializePersistence(): Promise<void> {
   initialization ??= (async () => {
     const db = await getDatabase()
     const migrated = await db.query('meta', { where: { id: 'legacy-v1' } })
+    let isExistingUser = migrated.length > 0
     if (!migrated.length) {
       const values = await legacyIndexedSettings()
       const keys = new Set<string>(typeof uni !== 'undefined' ? uni.getStorageInfoSync().keys : [])
@@ -56,6 +57,7 @@ export function initializePersistence(): Promise<void> {
         if (!/^(font-learning|reading:|morning-pages:)/.test(key)) continue
         if (!values.has(key)) values.set(key, uni.getStorageSync(key) as unknown)
       }
+      isExistingUser = values.size > 0
       const changes: Change[] = []
       const learning = legacyLearning(values.get(LEARNING_KEY), values.get('font-learning-character-preferences'))
       values.set(LEARNING_KEY, learning)
@@ -67,6 +69,9 @@ export function initializePersistence(): Promise<void> {
       }
       changes.push({ table: 'meta', row: { id: 'legacy-v1', value: 'complete' } })
       await db.commit(changes)
+    }
+    if (!(await db.query('settings', { where: { id: 'font-learning-settings' } })).length) {
+      await db.commit([setting('font-learning-settings', { course: isExistingUser ? 'daily' : 'level1', reviewTarget: 20 })])
     }
     const data = new Map<Table, Row[]>()
     for (const table of USER_TABLES) data.set(table, await db.query(table))

@@ -21,7 +21,7 @@ function mockSeed(version: string) {
 }
 describe('数据库字库与页面查询', () => {
   it('保存完整字库、独立每日范围和关卡顺序，详情与原字表一致', async () => {
-    const db = await setupTestDatabase()
+    const db = await setupTestDatabase(new Map([['font-learning-plan', { dailyCount: 15 }]]))
     const fetcher = mockSeed('v1')
     await initializeCatalog()
     const characters = await db.query('characters')
@@ -40,7 +40,7 @@ describe('数据库字库与页面查询', () => {
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
   it('搜索保持汉字、拼音、组词和释义的匹配顺序，并提供分页', async () => {
-    await setupTestDatabase()
+    await setupTestDatabase(new Map([['font-learning-plan', { dailyCount: 15 }]]))
     mockSeed('v1')
     for (const query of ['一', 'shi', 'yi', '表示', '常用']) {
       const expected = searchCharacters(dailySource.chars, query)

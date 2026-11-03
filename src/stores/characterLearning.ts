@@ -15,7 +15,7 @@ import type { ActivityEvent } from '../learning/types'
 import type { Change } from '../database/types'
 import { useLevelReviewStore } from './levelReview'
 
-interface AttemptContext { source: 'daily' | 'level'; sessionId: string }
+interface AttemptContext { source: 'daily' | 'level'; sessionId: string; modes?: StudyMode[] }
 
 export const CHARACTER_LEARNING_STORAGE_KEY = 'font-learning-character-data'
 export const LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY = 'font-learning-character-preferences'
@@ -124,7 +124,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       if (isCorrect) progress.completedAt ??= at
       record.firstStartedAt ??= at
       record.lastStudiedAt = at
-      const effective = getEffectiveStudyModes();
+      const effective = context?.modes ?? getEffectiveStudyModes();
       const isComplete = effective.every((studyMode) => Boolean(record.modes[studyMode].completedAt))
       record.status = record.completedAt || record.status === 'completed' || isComplete ? 'completed' : 'learning'
       if (isComplete) record.completedAt ??= at

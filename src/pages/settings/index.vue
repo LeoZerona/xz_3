@@ -22,7 +22,7 @@ const SENIOR_MODE_STORAGE_KEY = 'morning-pages:senior-mode'
 const { currentLayout } = storeToRefs(useLevelLayoutStore())
 const primaryItems = computed<SettingItem[]>(() => [
   { label: '学习提醒' },
-  { label: '学习设置' },
+  { label: '学习设置', url: '/pages/learning-settings/index' },
   { label: '显示设置', url: '/pages/theme/index', note: '主题配色' },
   { label: '关卡布局', url: '/pages/level-layout/index', note: currentLayout.value.name },
   { label: '隐私设置' },
