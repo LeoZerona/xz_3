@@ -75,6 +75,8 @@ function handleSetting(item: SettingItem) {
     fail: () => uni.showToast({ title: `暂时无法打开${item.label}`, icon: 'none' }),
   })
 }
+function openAccount():void{handleSetting({label:'账号管理',url:'/pages/account-status/index'})}
+function handleLogout():void{uni.showToast({title:'当前为离线档案，未登录账号，学习数据已保留',icon:'none'})}
 
 function saveSeniorMode(nextValue: boolean) {
   try {
@@ -104,7 +106,7 @@ onBackPress((event) => {
 
     <view class="settings-content">
       <view class="settings-group account-group">
-        <button class="setting-row account-row" role="button" aria-label="账号管理" @click="showPlaceholder('账号管理')">
+        <button class="setting-row account-row" role="button" aria-label="账号管理" @click="openAccount">
           <text class="setting-label">账号管理</text>
           <view class="account-channels" aria-hidden="true">
             <view class="channel-icon"><van-icon name="phone-o" size="19" /></view>
@@ -156,7 +158,7 @@ onBackPress((event) => {
 
       <view class="settings-group"><DatabaseBackupPanel /></view>
 
-      <button class="logout-button" role="button" aria-label="退出登录" @click="showPlaceholder('退出登录')">
+      <button class="logout-button" role="button" aria-label="退出登录" @click="handleLogout">
         退出登录
       </button>
     </view>

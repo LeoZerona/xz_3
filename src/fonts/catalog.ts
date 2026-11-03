@@ -1,6 +1,6 @@
 import type { FontCoverTone, LearningFont } from './types'
 
-interface BuiltinFont extends LearningFont {
+export interface BuiltinFont extends LearningFont {
   fontFaceFamily: string
   fontSource: string
 }
@@ -53,7 +53,7 @@ export function buildFontCatalog(fontModules: Record<string, string>): BuiltinFo
     })
 }
 
-export const fontCatalog: LearningFont[] = buildFontCatalog(builtinFontModules)
+export const fontCatalog: BuiltinFont[] = buildFontCatalog(builtinFontModules)
 export const DEFAULT_FONT_ID = fontCatalog[0]?.id ?? ''
 export const DEFAULT_ADDED_FONT_IDS = fontCatalog.slice(0, 2).map((font) => font.id)
 

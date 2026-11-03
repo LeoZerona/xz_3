@@ -8,6 +8,8 @@ import { useProfileStore } from '../../stores/profile'
 import { useThemeStore } from '../../stores/theme'
 import { useLevelLayoutStore } from '../../stores/levelLayout'
 import { useLearningSummary } from '../../learning/useLearningSummary'
+import {useLocalIdentity} from '../../profile/identity'
+import {useAvatar} from '../../profile/avatar'
 
 type MenuItem = {
   label: string
@@ -17,6 +19,8 @@ type MenuItem = {
 }
 
 const profileStore = useProfileStore()
+const localIdentity=useLocalIdentity()
+const {avatarStyle,placeholderStyle}=useAvatar()
 const { summary } = useLearningSummary()
 const { profile } = storeToRefs(profileStore)
 const { themeStyle } = storeToRefs(useThemeStore())
@@ -50,6 +54,7 @@ const menuSections = computed<MenuItem[][]>(() => [
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
 }
+function openScan():void{uni.navigateTo({url:'/pages/scan-import/index',fail:()=>uni.showToast({title:'资料码页面暂时无法打开',icon:'none'})})}
 
 function handleMenu(item: MenuItem) {
   if (item.url) {
@@ -89,7 +94,7 @@ function openPersonalProfile() {
     <scroll-view class="profile-scroll" scroll-y :show-scrollbar="false" :bounces="false">
       <view class="profile-header">
         <view class="header-actions">
-          <button class="header-action" aria-label="扫一扫" @click="showPlaceholder('扫一扫')">
+          <button class="header-action" role="button" tabindex="0" aria-label="扫一扫" @click="openScan" @keydown.enter="openScan" @keydown.space.prevent="openScan">
             <van-icon name="scan" size="24" aria-hidden="true" />
           </button>
           <button class="header-action" role="button" aria-label="个人设置" @click="openSettings">
@@ -106,14 +111,14 @@ function openPersonalProfile() {
           @keydown.enter="openPersonalProfile"
           @keydown.space.prevent="openPersonalProfile"
         >
-          <view class="avatar" aria-hidden="true">
-            <view class="avatar-head" />
-            <view class="avatar-body" />
+          <view class="avatar" :style="avatarStyle" aria-hidden="true">
+            <view class="avatar-head" :style="placeholderStyle" />
+            <view class="avatar-body" :style="placeholderStyle" />
           </view>
           <view class="identity-copy">
             <text class="user-name">{{ profile.nickname }}</text>
             <view class="user-meta">
-              <text>BczID: 1835661333</text>
+              <text>BczID: {{ localIdentity || '读取中' }}</text>
             </view>
           </view>
           <van-icon class="identity-arrow" name="arrow" size="18" aria-hidden="true" />

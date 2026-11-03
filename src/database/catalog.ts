@@ -142,4 +142,5 @@ export async function findCharactersByText(texts: readonly string[]): Promise<{ 
   const missing = texts.filter((_, index) => !rows[index])
   return { entries, missing }
 }
-export function resetCatalogForTests(): void { initialization = undefined; dailyCharacters = undefined; dailyIds = undefined; searchEntries = undefined; allSearchEntries = undefined; categoryCounts.value = {} }
+export function resetCatalogCaches(): void { initialization = undefined; dailyCharacters = undefined; dailyIds = undefined; searchEntries = undefined; allSearchEntries = undefined; categoryCounts.value = {} }
+export function resetCatalogForTests(): void { resetCatalogCaches() }

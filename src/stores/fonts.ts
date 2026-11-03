@@ -202,6 +202,13 @@ export const useFontStore = defineStore('fonts', () => {
     referenceFontId.value = learningId
     persist()
   }
+  function recoverFontRoles(learningId: string, referenceId: string): void {
+    if (!getAnyFont(learningId) || !getAnyFont(referenceId)) throw new Error('回退字体不存在')
+    addedFontIds.value = [...new Set([...addedFontIds.value, learningId, referenceId])]
+    currentFontId.value = learningId
+    referenceFontId.value = referenceId
+    persist()
+  }
 
   // 保留原有调用名称，避免已有页面或外部调用失效。
   const selectFont = selectLearningFont
@@ -254,6 +261,7 @@ export const useFontStore = defineStore('fonts', () => {
     selectLearningFont,
     selectReferenceFont,
     swapFonts,
+    recoverFontRoles,
     isAdded,
     addCustomFont,
     removeCustomFont,

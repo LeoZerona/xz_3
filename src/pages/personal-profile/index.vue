@@ -8,6 +8,7 @@ import { formatProfileLocation } from '../../profile/profileModel'
 import { useProfileStore } from '../../stores/profile'
 import { useThemeStore } from '../../stores/theme'
 import ProfileEditSheets from './components/ProfileEditSheets.vue'
+import {useAvatar} from '../../profile/avatar'
 
 type EditableField = 'nickname' | 'gender' | 'birth'
 
@@ -24,6 +25,7 @@ interface ProfileEditSheetsExpose {
 }
 
 const profileStore = useProfileStore()
+const {avatarStyle,placeholderStyle}=useAvatar()
 const { profile } = storeToRefs(profileStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const editSheets = ref<ProfileEditSheetsExpose | null>(null)
@@ -63,11 +65,11 @@ function openLocationPicker() {
 }
 
 function handleAvatarEdit() {
-  uni.showToast({ title: '头像上传功能开发中', icon: 'none' })
+  uni.navigateTo({url:'/pages/avatar-edit/index',fail:()=>uni.showToast({title:'头像编辑暂时无法打开',icon:'none'})})
 }
 
 function showIpExplanation() {
-  uni.showToast({ title: 'IP 属地根据网络信息展示', icon: 'none' })
+  uni.showToast({ title: '离线模式没有查询网络IP属地，不根据个人资料推断', icon: 'none' })
 }
 onBackPress((event) => {
   if (event.from === 'navigateBack') return false
@@ -91,7 +93,7 @@ onBackPress((event) => {
       <section class="profile-section">
         <div class="profile-row avatar-row" role="button" tabindex="0" aria-label="编辑头像" @click="handleAvatarEdit" @keydown.enter="handleAvatarEdit" @keydown.space.prevent="handleAvatarEdit">
           <span class="row-label">头像</span>
-          <span class="profile-avatar" aria-hidden="true"><span class="avatar-head" /><span class="avatar-body" /></span>
+          <span class="profile-avatar" :style="avatarStyle" aria-hidden="true"><span class="avatar-head" :style="placeholderStyle" /><span class="avatar-body" :style="placeholderStyle" /></span>
           <span class="row-arrow" aria-hidden="true">›</span>
         </div>
 
@@ -120,7 +122,7 @@ onBackPress((event) => {
         </div>
         <div class="profile-row ip-row">
           <span class="row-label">IP属地</span>
-          <span class="row-value">福建</span>
+          <span class="row-value">离线未获取</span>
           <div class="info-button" role="button" tabindex="0" aria-label="IP 属地说明" @click="showIpExplanation" @keydown.enter="showIpExplanation" @keydown.space.prevent="showIpExplanation"><span aria-hidden="true">i</span></div>
         </div>
       </section>

@@ -1,0 +1,9 @@
+<script setup lang="ts">
+import {ref} from 'vue'
+import FeaturePage from '../../components/FeaturePage.vue'
+import {readResourceStatus} from '../../profile/resources'
+import {openFeature,useFeatureAction,useFeatureTask} from '../../features/useFeatureTask'
+const resources=ref<Awaited<ReturnType<typeof readResourceStatus>>>();const {actionError,perform}=useFeatureAction();const {loading,error,reload}=useFeatureTask(async()=>{resources.value=await readResourceStatus()})
+function handleOpen(url:string):void{void perform(()=>openFeature(url))}
+</script>
+<template><FeaturePage title="本机资源状态" :loading="loading" :error="error" @retry="reload"><p class="feature-note">以下数量读取自本机数据库和内置资源目录。文件能否成功读取可在详情中检查，字体字形覆盖以字体本身为准。</p><button role="button" class="feature-row" @click="handleOpen('/pages/resource-detail/index?kind=catalog')"><span class="feature-row-copy"><strong>汉字课程</strong><p class="feature-muted">{{ resources?.characters }} 字 · {{ resources?.levels }} 关</p></span><span>检查与恢复 →</span></button><h2 class="feature-section-title">内置字体 · {{ resources?.fonts.length }}</h2><button v-for="font in resources?.fonts" :key="font.id" role="button" class="feature-row" @click="handleOpen(`/pages/resource-detail/index?kind=font&id=${encodeURIComponent(font.id)}`)"><span class="feature-row-copy">{{ font.name }}</span><span>读取检查 →</span></button><div class="feature-row"><span class="feature-row-copy">自定义字体</span><span>{{ resources?.customFonts }} 款</span></div><div class="feature-row"><span class="feature-row-copy">本机全文索引</span><span>{{ resources?.indexedBooks }} 本</span></div><button role="button" class="feature-row" @click="handleOpen('/pages/offline-resources/index')"><span class="feature-row-copy">H5 离线启动资源</span><span>准备与检查 →</span></button><button role="button" class="feature-link" @click="handleOpen('/pages/plan/index?section=fonts')">进入原字体管理 →</button><p v-if="actionError" class="feature-error" role="alert">{{ actionError }}</p></FeaturePage></template>

@@ -103,7 +103,7 @@ import DatabaseStatus from '../../components/DatabaseStatus.vue'
 import { readPlanConfig } from '../../study/planConfig'
 import { saveDailyPlan } from '../../learning/settings'
 
-import { onBackPress } from '@dcloudio/uni-app'
+import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import FontCover from '../../components/FontCover.vue'
@@ -126,6 +126,7 @@ const ROW_HEIGHT = 42
 type Section = 'plan' | 'fonts' | 'catalog'
 
 const activeSection = ref<Section>('plan')
+onLoad(options=>{if(options?.section==='fonts'||options?.section==='catalog')activeSection.value=options.section})
 const totalCharCount = ref(0)
 const planOptions = computed(() => Array.from({ length: 19 }, (_, index) => {
   const count = 10 + index * 5
