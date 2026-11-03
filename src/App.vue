@@ -3,12 +3,16 @@ import { onHide, onLaunch, onShow } from '@dcloudio/uni-app'
 import { flushApplication, prepareApplication } from './database/application'
 import { useThemeStore } from './stores/theme'
 import {startReminderClock,stopReminderClock} from './notifications/platform'
+import {resumeOffline} from './offline/client'
 
 const themeStore = useThemeStore()
 let isAppVisible = true
 
 // App.vue 不承载页面模板，主题样式由各页面根节点绑定。
 onLaunch(() => {
+  // #ifdef H5
+  void resumeOffline().catch((error:unknown)=>console.warn('离线状态检查失败',error))
+  // #endif
   themeStore.initialize()
   void prepareApplication().catch((error: unknown) => console.error('应用数据初始化失败', error))
 })

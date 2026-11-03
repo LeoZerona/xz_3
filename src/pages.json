@@ -22,6 +22,7 @@
     { "path": "pages/feedback-detail/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
     { "path": "pages/about/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
     { "path": "pages/practice-setup/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/offline-resources/index", "style": { "navigationStyle": "custom", "disableScroll": true } },
     { "path": "pages/practice-session/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/practice-result/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/review-center/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
