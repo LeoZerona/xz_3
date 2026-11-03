@@ -13,7 +13,8 @@ export const LEVEL_REVIEW_KEY = 'font-learning-level-review'
 export const DAILY_PREFIX = 'font-learning-daily-progress:'
 export const READING_KEY = 'reading:progress'
 export const BOOKS_KEY = 'reading:customBooks'
-export const USER_TABLES: Table[] = ['settings', 'character_progress', 'character_mode_progress', 'character_actions', 'daily_sessions', 'daily_session_items', 'stage_progress', 'stage_character_progress', 'stage_training', 'stage_training_modes', 'level_review', 'reading_progress']
+export const ADDITIONAL_USER_TABLES: Table[] = ['activity_events']
+export const USER_TABLES: Table[] = ['settings', 'character_progress', 'character_mode_progress', 'character_actions', 'daily_sessions', 'daily_session_items', 'stage_progress', 'stage_character_progress', 'stage_training', 'stage_training_modes', 'level_review', 'reading_progress', ...ADDITIONAL_USER_TABLES]
 export function object(value: unknown): Record<string, unknown> { return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {} }
 function strings(value: unknown): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [] }
 function text(value: unknown): string | null { return typeof value === 'string' ? value : null }

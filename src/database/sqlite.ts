@@ -26,7 +26,7 @@ export function selectSql(table: Table, query: Query = {}): string {
 export function changeSql(change: Change): string {
   if ('deleteId' in change) return `DELETE FROM "${change.table}" WHERE id=${sqlValue(change.deleteId)}`
   const names = columns(change.table)
-  return `INSERT OR REPLACE INTO "${change.table}" (${names.map((name) => field(change.table, name)).join(',')}) VALUES (${names.map((name) => sqlValue(change.row[name] ?? null)).join(',')})`
+  return `INSERT OR ${change.ifAbsent ? 'IGNORE' : 'REPLACE'} INTO "${change.table}" (${names.map((name) => field(change.table, name)).join(',')}) VALUES (${names.map((name) => sqlValue(change.row[name] ?? null)).join(',')})`
 }
 export function schemaSql(): string[] {
   return tables.flatMap((table) => [createTableSql(table), ...indexes(table).map((fields) =>

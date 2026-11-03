@@ -115,7 +115,8 @@ function normalizeRecord(characterId: string, value: unknown): CharacterLearning
   const modes = Object.fromEntries(
     STUDY_MODES.map((mode) => [mode, normalizeModeProgress(sourceModes[mode])]),
   ) as Record<StudyMode, StudyModeProgress>
-  const status = deriveStatus(modes)
+  // 历史正式完成是事实；新增必修题型不应在重载时抹去原完成状态。
+  const status = source.status === 'completed' || normalizeTimestamp(source.completedAt) ? 'completed' : deriveStatus(modes)
   const modeCompletions = STUDY_MODES
     .map((mode) => modes[mode].completedAt)
     .filter((at): at is string => Boolean(at))

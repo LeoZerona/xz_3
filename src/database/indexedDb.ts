@@ -77,7 +77,13 @@ export function openIndexedDb(): Promise<Database> {
               else {
                 const row = Object.fromEntries(columns(change.table).map((name) => [name, change.row[name] ?? null]))
                 if (Object.values(row).some((value) => typeof value === 'number' && !Number.isFinite(value))) throw new Error('数据库数值无效')
-                store.put(row)
+                if (change.ifAbsent) {
+                  const insertion = store.add(row)
+                  insertion.onerror = (event) => {
+                    // 同一事件重发保留首次事实；其他写入错误仍使事务失败。
+                    if (insertion.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
+                  }
+                } else store.put(row)
               }
             } } catch (error) { transaction.abort(); rejectCommit(error); return }
             transaction.oncomplete = () => resolveCommit()

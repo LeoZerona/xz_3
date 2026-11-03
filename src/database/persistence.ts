@@ -81,6 +81,11 @@ function queue(changes: Change[]): void {
   pending.push(changes)
   void flushPersistence().catch(reportPersistenceError)
 }
+/** 新实体复用同一提交队列和失败重试边界，不另开一条无反馈的写入链路。 */
+export function enqueueDatabaseChanges(changes: Change[]): void {
+  if (!initialized) throw new Error('数据库尚未就绪，请稍后重试')
+  if (changes.length) queue(changes)
+}
 export function saveStored(key: string, value: unknown): void {
   if (!initialized) throw new Error('数据库尚未就绪，请稍后重试')
   const next = JSON.parse(JSON.stringify(value)) as unknown

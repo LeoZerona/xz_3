@@ -8,7 +8,7 @@ export interface Query {
   limit?: number
   offset?: number
 }
-export type Change = { table: Table; row: Row } | { table: Table; deleteId: string }
+export type Change = { table: Table; row: Row; ifAbsent?: boolean } | { table: Table; deleteId: string }
 export interface Database {
   query(table: Table, query?: Query): Promise<Row[]>
   commit(changes: Change[]): Promise<void>

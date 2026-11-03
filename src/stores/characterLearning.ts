@@ -49,10 +49,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     .filter((record) => record.slash.active)
     .map((record) => record.characterId))
   const completedIds = computed(() => Object.values(data.value.characters)
-    .filter((r) => {
-      const eff = getEffectiveStudyModes();
-      return eff.length>0 ? eff.every((m)=> Boolean(r.modes[m].completedAt)) : true;
-    })
+    .filter((record) => record.status === 'completed' || Boolean(record.completedAt))
     .map((record) => record.characterId))
 
   function persist(at = new Date().toISOString()) {
@@ -115,7 +112,7 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       record.lastStudiedAt = at
       const effective = getEffectiveStudyModes();
       const isComplete = effective.every((studyMode) => Boolean(record.modes[studyMode].completedAt))
-      record.status = isComplete ? 'completed' : 'learning'
+      record.status = record.completedAt || record.status === 'completed' || isComplete ? 'completed' : 'learning'
       if (isComplete) record.completedAt ??= at
     }, at)
   }
@@ -125,12 +122,8 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
   }
 
   function isCharacterComplete(characterId: string): boolean {
-    const effective = getEffectiveStudyModes();
-    const rec = getRecord(characterId);
-    if (!rec) return false;
-    // completed means all effective modes done
-    if (effective.length === 0) return true;
-    return effective.every((m) => isModeCompleted(rec, m))
+    const record = getRecord(characterId)
+    return Boolean(record && (record.status === 'completed' || record.completedAt))
   }
 
   function nextIncompleteMode(characterId: string): StudyMode | null {

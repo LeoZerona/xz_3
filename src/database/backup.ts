@@ -1,7 +1,7 @@
 import { getDatabase } from './connection'
 import { flushPersistence, initializePersistence, reloadPersistence } from './persistence'
 import { columns, schema, type Row, type Table } from './schema'
-import { object, USER_TABLES } from './records'
+import { ADDITIONAL_USER_TABLES, object, USER_TABLES } from './records'
 import type { Change } from './types'
 
 const BACKUP_TABLES: Table[] = [...USER_TABLES, 'books', 'book_chunks']
@@ -23,7 +23,7 @@ function validateBackup(text: string): Map<Table, Row[]> {
   const result = new Map<Table, Row[]>()
   for (const table of BACKUP_TABLES) {
     // v1 备份没有训练轮次及复习表；恢复后由历史关卡记录补齐。
-    const values = data[table] ?? (['stage_training', 'stage_training_modes', 'level_review'].includes(table) ? [] : undefined)
+    const values = data[table] ?? (['stage_training', 'stage_training_modes', 'level_review'].includes(table) || ADDITIONAL_USER_TABLES.includes(table) ? [] : undefined)
     if (!Array.isArray(values)) throw new Error(`备份缺少数据表：${table}`)
     const ids = new Set<string>()
     const rows: Row[] = []

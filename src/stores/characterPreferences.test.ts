@@ -1,5 +1,5 @@
 import { setupTestDatabase } from '../database/testSupport'
-import { flushPersistence, initializePersistence, readStored, resetPersistenceForTests } from '../database/persistence'
+import { flushPersistence, initializePersistence, readStored, resetPersistenceForTests, saveStored } from '../database/persistence'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import {
@@ -10,6 +10,24 @@ import {
 
 describe('character preferences store', () => {
   afterEach(() => { vi.unstubAllGlobals() })
+
+  it('增加必修题型并重载数据后，首次正式完成仍然保留', async () => {
+    await setupTestDatabase()
+    setActivePinia(createPinia())
+    saveStored('font-learning-plan', { dailyCount: 15, modes: ['seal-to-reference-choice'] })
+    const store = useCharacterLearningStore()
+    store.recordModeAttempt('char-0001', 'seal-to-reference-choice', true, '2026-11-03T09:00:00.000Z')
+    expect(store.isCharacterComplete('char-0001')).toBe(true)
+    saveStored('font-learning-plan', { dailyCount: 15, modes: ['seal-to-reference-choice', 'seal-to-reference-input'] })
+    expect(store.isCharacterComplete('char-0001')).toBe(true)
+    await flushPersistence()
+    resetPersistenceForTests()
+    await initializePersistence()
+    setActivePinia(createPinia())
+    const restored = useCharacterLearningStore()
+    expect(restored.completedIds).toEqual(['char-0001'])
+    expect(restored.getRecord('char-0001')?.completedAt).toBe('2026-11-03T09:00:00.000Z')
+  })
 
   it('migrates legacy favorites and slash state into versioned character records', async () => {
     const storage = new Map<string, unknown>([[LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY, {
