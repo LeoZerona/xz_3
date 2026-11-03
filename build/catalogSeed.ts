@@ -4,9 +4,9 @@ import type { Change } from '../src/database/types'
 import type { StudyCharacterEntry } from '../src/study/types'
 
 type SourceEntry = StudyCharacterEntry & { level?: number; script_forms: StudyCharacterEntry['script_forms'] & { seal?: string }; structure: StudyCharacterEntry['structure'] & { radical_id?: string } }
-export function buildCatalogSeed(daily: SourceEntry[], sources: SourceEntry[][]): Change[] {
+export function buildCatalogSeed(daily: SourceEntry[], sources: SourceEntry[][], higherLevels: SourceEntry[][] = []): Change[] {
   const entries = new Map<string, SourceEntry>()
-  for (const source of sources) for (const entry of source) if (!entries.has(entry.id)) entries.set(entry.id, entry)
+  for (const source of [...sources, ...higherLevels]) for (const entry of source) if (!entries.has(entry.id)) entries.set(entry.id, entry)
   const ordered = [...entries.values()]
   // 日常字单的成员与顺序保持原样；统一字段优先使用原每日字表的内容。
   for (const entry of daily) entries.set(entry.id, entry)
@@ -28,7 +28,7 @@ export function buildCatalogSeed(daily: SourceEntry[], sources: SourceEntry[][])
       characters.slice(position * 10, position * 10 + 10).forEach((entry, index) => changes.push({ table: 'level_characters', row: { id: compound(id, entry.id), levelId: id, characterId: entry.id, position: index } }))
     }
   }
-  const legacy = ordered.filter((entry) => !entry.id.startsWith('char-l1-'))
+  const legacy = ordered.filter((entry) => (entry.level ?? 1) === 1 && !entry.id.startsWith('char-l1-'))
   const supplement = ordered.filter((entry) => entry.id.startsWith('char-l1-'))
   // 原末关仅 7 字，继续保留其完整成员，防止旧完成标记误覆盖新增字。
   addStages('level1', legacy)
@@ -37,6 +37,7 @@ export function buildCatalogSeed(daily: SourceEntry[], sources: SourceEntry[][])
   // 部首关卡沿用旧字库，补齐一级字表不改变已有部首关卡的成员。
   for (const entry of legacy) { const key = entry.structure.radical_id ?? 'unknown'; const group = groups.get(key) ?? []; group.push(entry); groups.set(key, group) }
   addStages('radical', [...groups.values()].sort((a, b) => b.length - a.length).slice(0, 30).map((group) => group[0]!))
-  addStages('level2', [], 15); addStages('level3', [], 12)
+  addStages('level2', ordered.filter(entry => entry.level === 2), higherLevels.length ? 0 : 15)
+  addStages('level3', ordered.filter(entry => entry.level === 3), higherLevels.length ? 0 : 12)
   return changes
 }

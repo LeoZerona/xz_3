@@ -150,7 +150,7 @@ function handleChoiceAnswer(character: string) {
         <label class="input-label" :class="{ 'is-error': hasWrongAnswer, 'is-correct': isCorrectAnimating }">
           <text class="sr-only">输入识别结果</text>
           <input class="answer-input" type="text" v-model="localInputAnswer"
-            style="font-family: inherit;" maxlength="1" confirm-type="done" :disabled="Boolean(isCorrectAnimating)"
+            style="font-family: inherit;" maxlength="2" confirm-type="done" :disabled="Boolean(isCorrectAnimating)"
             placeholder="请输入一个字" placeholder-style="font-size: 13px; color: var(--color-text-muted);"
             @confirm="handlePrimaryAction">
         </label>

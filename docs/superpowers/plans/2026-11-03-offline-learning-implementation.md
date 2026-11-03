@@ -1,6 +1,6 @@
 # Offline Learning Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. 用户已明确由主代理编写、测试、提交，并于 2026-11-03 授权开始执行；不再逐任务请求确认。
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking. 用户已明确由主代理编写、测试、提交，并于 2026-11-03 授权开始执行；不再逐任务请求确认。
 
 **Goal:** 完成设计中的离线个人学习闭环与缺失页面，同时保持所有已有页面 UI 和可用流程。
 
@@ -62,11 +62,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** Produces 上述 ActivityEvent、recordActivity/readActivities/enqueueDatabaseChanges，以及 `summarizeActivities(events, legacy): LearningSummary`、`createActivityClock(options): ActivityClock`。旧 completedAt/明确 completed 状态永久保留，显式重置操作例外。
 
-- [ ] 写失败测试：重复事件 ID 只出现一次；专项正确不变正式完成；启用更多模式后已学仍保留；新表升级保留已有 settings；旧备份缺少新表可恢复；午夜前后各计 10 秒；后台/超过 120 秒空闲不累计。
-- [ ] Run `pnpm test -- src/learning src/database/backup.test.ts src/stores/characterPreferences.test.ts`，确认新合同未实现导致失败。
-- [ ] 新表采用新增列之外的独立表，升级从 v2 建新表，避免改变现有列。持久化队列和备份白名单纳入新表，正式完成依赖稳定事实而非全局题型重算。
-- [ ] Run 同上及 `pnpm type-check`；预期相关测试全通过，现有 NUL/Node22 失败另核查 Node24 运行时，保留断言。
-- [ ] 提交 `feat: 增加学习事件与稳定的完成记录`。
+- [x] 写失败测试：重复事件 ID 只出现一次；专项正确不变正式完成；启用更多模式后已学仍保留；新表升级保留已有 settings；旧备份缺少新表可恢复；午夜前后各计 10 秒；后台/超过 120 秒空闲不累计。
+- [x] Run `pnpm test -- src/learning src/database/backup.test.ts src/stores/characterPreferences.test.ts`，确认新合同未实现导致失败。
+- [x] 新表采用新增列之外的独立表，升级从 v2 建新表，避免改变现有列。持久化队列和备份白名单纳入新表，正式完成依赖稳定事实而非全局题型重算。
+- [x] Run 同上及 `pnpm type-check`；预期相关测试全通过，现有 NUL/Node22 失败另核查 Node24 运行时，保留断言。
+- [x] 提交 `feat: 增加学习事件与稳定的完成记录`。
 
 ## Task 2: 修复既有统计、计时与固定日期，冻结 UI
 
@@ -74,11 +74,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** Consumes task 1；Produces 每日/关卡/复习事件及真实时长；`estimatePlan(remaining: number, dailyCount: number, from: Date): PlanEstimate`；原 UI 只替换动态值和事件绑定。
 
-- [ ] 写失败测试：复习一次首页增加一次；学习计时前台有效、后台停止；累计已学非固定 0；完成日期按剩余/每日量变化；日期数据不会把昨天字单复制到今天。
-- [ ] Run `pnpm exec playwright test e2e/learning-foundation.spec.ts --workers=1` 观察失败。
-- [ ] 在既有处理函数记录事件并挂生命周期计时；首页与个人中心读同一统计源；原模板层级和所有样式不动；固定 ID/IP 改真实/未获取文本。
-- [ ] Run 相关单元测试、上述 E2E、type-check 和 H5 构建；按相同字体/主题/数据状态核对既有截图。
-- [ ] 提交 `fix: 接通学习统计计时并修复计划日期`。
+- [x] 写失败测试：复习一次首页增加一次；学习计时前台有效、后台停止；累计已学非固定 0；完成日期按剩余/每日量变化；日期数据不会把昨天字单复制到今天。
+- [x] Run `pnpm exec playwright test e2e/learning-foundation.spec.ts --workers=1` 观察失败。
+- [x] 在既有处理函数记录事件并挂生命周期计时；首页与个人中心读同一统计源；原模板层级和所有样式不动；固定 ID/IP 改真实/未获取文本。
+- [x] Run 相关单元测试、上述 E2E、type-check 和 H5 构建；按相同字体/主题/数据状态核对既有截图。
+- [x] 提交 `fix: 接通学习统计计时并修复计划日期`。
 
 ## Task 3: 收藏、字单和斩字管理完整流程
 
@@ -86,11 +86,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `listCollections(): Promise<Collection[]>`、`saveCollection(input: CollectionInput): Promise<string>`、`setCollectionMembers(id: string, characterIds: string[]): Promise<void>`、`deleteCollection(id: string): Promise<void>`；只收字库内单字，同字唯一；名字 trim 后 1–30 字。
 
-- [ ] 写失败测试：空名拒绝；添加“未末未”保留两字；未知 ID 拒绝；删字单保留收藏和学习记录；备份恢复字单成员顺序不变。
-- [ ] Run `pnpm test -- src/collections` 观察失败。
-- [ ] 实现字单表、分页数据访问和 4 个页面：三类列表、搜索/排序/筛选、批量操作、编辑/导入预览；原“我的收藏”菜单仅接路由。
-- [ ] Run 单测、`e2e/collections.spec.ts`、type-check、H5/App 构建；验证 320/390/430px、深浅主题。
-- [ ] 提交 `feat: 完善收藏字单与斩字管理`。
+- [x] 写失败测试：空名拒绝；添加“未末未”保留两字；未知 ID 拒绝；删字单保留收藏和学习记录；备份恢复字单成员顺序不变。
+- [x] Run `pnpm test -- src/collections` 观察失败。
+- [x] 实现字单表、分页数据访问和 4 个页面：三类列表、搜索/排序/筛选、批量操作、编辑/导入预览；原“我的收藏”菜单仅接路由。
+- [x] Run 单测、`e2e/collections.spec.ts`、type-check、H5/App 构建；验证 320/390/430px、深浅主题。
+- [x] 提交 `feat: 完善收藏字单与斩字管理`。
 
 ## Task 4: 可恢复的独立专项会话
 
@@ -98,11 +98,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `createPractice(input: PracticeInput): Promise<string>`、`readPractice(id: string): Promise<PracticeSession>`、`answerPractice(id: string, questionId: string, value: string): Promise<PracticeSession>`；固定题单/题型，连续提交幂等，未学不变正式已学/排期。
 
-- [ ] 写失败测试：退出继续题单不变；同一题重复提交一次记录；错误后未完成题保留；完成写结果；不变 character_progress/level_review。
-- [ ] Run `pnpm test -- src/practice`，确认未实现失败。
-- [ ] 实现配置→复用题卡答题→结果，支持字单/收藏/错题来源、空范围、继续与重新练习；独立数据入备份。
-- [ ] Run 单测、专项 E2E、type-check、构建；检查既有题卡样式无改动。
-- [ ] 提交 `feat: 增加独立专项练习与结果报告`。
+- [x] 写失败测试：退出继续题单不变；同一题重复提交一次记录；错误后未完成题保留；完成写结果；不变 character_progress/level_review。
+- [x] Run `pnpm test -- src/practice`，确认未实现失败。
+- [x] 实现配置→复用题卡答题→结果，支持字单/收藏/错题来源、空范围、继续与重新练习；独立数据入备份。
+- [x] Run 单测、专项 E2E、type-check、构建；检查既有题卡样式无改动。
+- [x] 提交 `feat: 增加独立专项练习与结果报告`。
 
 ## Task 5: 复习中心与错题本
 
@@ -110,11 +110,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `listMistakes(filter: MistakeFilter): Promise<MistakeItem[]>`、`listDueReviews(source?: 'daily' | 'level'): Promise<ReviewItem[]>`；每字唯一排期，来源单独保存；原关卡页只筛 level 来源。
 
-- [ ] 写失败测试：日常/关卡同字不重置已有排期；一次正式回答推进一次；连续两次正确巩固同模式错题；历史累计无伪造时间；切回旧关卡范围仍不出现仅日常字。
-- [ ] Run 相关 Vitest 与 `e2e/level-review.spec.ts` 确认新增合同失败。
-- [ ] 新总览/错题列表/详情接专项；原复习三个范围/游标/UI/导航保持。
-- [ ] Run 新旧复习相关测试及构建。
-- [ ] 提交 `feat: 增加复习中心与可追溯错题本`。
+- [x] 写失败测试：日常/关卡同字不重置已有排期；一次正式回答推进一次；连续两次正确巩固同模式错题；历史累计无伪造时间；切回旧关卡范围仍不出现仅日常字。
+- [x] Run 相关 Vitest 与 `e2e/level-review.spec.ts` 确认新增合同失败。
+- [x] 新总览/错题列表/详情接专项；原复习三个范围/游标/UI/导航保持。
+- [x] Run 新旧复习相关测试及构建。
+- [x] 提交 `feat: 增加复习中心与可追溯错题本`。
 
 ## Task 6: 学习记录、日历、识字测评和学习设置
 
@@ -122,11 +122,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `readLearningHistory(range): Promise<LearningHistory>`；`startAssessment(input): Promise<string>`/`answerAssessment(...)`；`readLearningSettings(): LearningSettings`/`saveLearningSettings(input): Promise<void>`。新用户默认一级，老用户保留 daily 204；计划改动次日生效，已有会话保留题型快照。
 
-- [ ] 写失败测试：日历按日期显示事件；空日期无假记录；正式已学按字去重；专项/测评分开；测评固定 30 字或实际可用较小值，不改正式数据；新设置不替换当日任务。
-- [ ] Run 相关 Vitest 确认失败。
-- [ ] 实现总览→月历→当日→会话、7/30 日回顾与课程覆盖；测评说明→复用题卡→样本报告/历史；新增设置承接课程与目标，旧计划 UI 不加控件。
-- [ ] Run 新 E2E、type-check、构建并检查月末/跨年/深色/空数据。
-- [ ] 提交 `feat: 完善学习记录日历测评与设置`。
+- [x] 写失败测试：日历按日期显示事件；空日期无假记录；正式已学按字去重；专项/测评分开；测评固定 30 字或实际可用较小值，不改正式数据；新设置不替换当日任务。
+- [x] Run 相关 Vitest 确认失败。
+- [x] 实现总览→月历→当日→会话、7/30 日回顾与课程覆盖；测评说明→复用题卡→样本报告/历史；新增设置承接课程与目标，旧计划 UI 不加控件。
+- [x] Run 新 E2E、type-check、构建并检查月末/跨年/深色/空数据。
+- [x] 提交 `feat: 完善学习记录日历测评与设置`。
 
 ## Task 7: 我的图书、书签与摘录笔记
 
@@ -134,11 +134,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `listLibrary(filter): Promise<BookSummary[]>`、`saveAnnotation(input): Promise<string>`、`listAnnotations(bookId): Promise<Annotation[]>`、`deleteBookWithRelations(id): Promise<void>`。锚点=bookId/正文指纹/UTF-16偏移/原文片段。
 
-- [ ] 写失败测试：重排版定位同偏移；书签/摘录编辑持久化；删书同时删关联/索引但不删学习；正文变化的失效锚点有明确状态。
-- [ ] Run `pnpm test -- src/library` 观察失败。
-- [ ] 新管理页提供状态筛选/排序/重命名/详情；书签与工作台经新模块操作，原阅读器不加菜单/新手势。
-- [ ] Run 图书 E2E、阅读位置/逐字揭示回归、构建。
-- [ ] 提交 `feat: 增加图书管理书签与摘录笔记`。
+- [x] 写失败测试：重排版定位同偏移；书签/摘录编辑持久化；删书同时删关联/索引但不删学习；正文变化的失效锚点有明确状态。
+- [x] Run `pnpm test -- src/library` 观察失败。
+- [x] 新管理页提供状态筛选/排序/重命名/详情；书签与工作台经新模块操作，原阅读器不加菜单/新手势。
+- [x] Run 图书 E2E、阅读位置/逐字揭示回归、构建。
+- [x] 提交 `feat: 增加图书管理书签与摘录笔记`。
 
 ## Task 8: 导入中心和本地全文检索
 
@@ -146,11 +146,11 @@ enqueueDatabaseChanges(changes: Change[]): void
 
 **Interfaces:** `importDocument(input: DocumentInput): Promise<ImportResult>`、`searchContent(query, mode, options): Promise<SearchResult>`。原单字 50 条分页保持，词语来自去重 character_words，句/文章来自本地正文。
 
-- [ ] 写失败测试：重复正文指纹提示；解析失败/取消无半本书；词语不拼接单字释义；跨 chunk 原句可查；旧请求不覆盖新结果；原文命中偏移有效。
-- [ ] Run 相关 Vitest 观察失败。
-- [ ] 新导入状态/结果页，单独保存和查询索引；新结果支持上下文/原文跳转，不重画已有单字搜索。
-- [ ] Run 搜索/导入 E2E、PDF 回归、构建。
-- [ ] 提交 `feat: 完成本地资料导入与多类型检索`。
+- [x] 写失败测试：重复正文指纹提示；解析失败/取消无半本书；词语不拼接单字释义；跨 chunk 原句可查；旧请求不覆盖新结果；原文命中偏移有效。
+- [x] Run 相关 Vitest 观察失败。
+- [x] 新导入状态/结果页，单独保存和查询索引；新结果支持上下文/原文跳转，不重画已有单字搜索。
+- [x] Run 搜索/导入 E2E、PDF 回归、构建。
+- [x] 提交 `feat: 完成本地资料导入与多类型检索`。
 
 ## Task 9: 二三级课程与来源核验
 

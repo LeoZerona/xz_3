@@ -8,10 +8,10 @@ import type { StudyCharacterEntry } from '../src/study/types'
 export function catalogPlugin(): Plugin {
   let isBuild = false
   let generated: Promise<{ version: string; source: string }> | undefined
-  const files = ['src/data/character-table/first-level.json', ...Array.from({ length: 13 }, (_, index) => `src/data/character-table/firstLevel/${index + 1}.json`), 'src/data/character-table/first-level-supplement.json']
+  const files = ['src/data/character-table/first-level.json', ...Array.from({ length: 13 }, (_, index) => `src/data/character-table/firstLevel/${index + 1}.json`), 'src/data/character-table/first-level-supplement.json', 'src/data/character-table/second-level.json', 'src/data/character-table/third-level.json']
   function generate() {
     generated ??= Promise.all(files.map(async (file) => JSON.parse(await readFile(path.resolve(file), 'utf8')) as { chars: StudyCharacterEntry[] })).then(([daily, ...shards]) => {
-      const changes = buildCatalogSeed(daily!.chars, shards.map((source) => source.chars))
+      const changes = buildCatalogSeed(daily!.chars, shards.slice(0,-2).map(source=>source.chars), shards.slice(-2).map(source=>source.chars))
       const version = createHash('sha256').update(JSON.stringify(changes)).digest('hex')
       return { version, source: JSON.stringify({ version, changes }) }
     })
