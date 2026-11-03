@@ -6,7 +6,7 @@ export interface TableSchema {
 }
 
 export const DATABASE_NAME = 'font-learning'
-export const DATABASE_VERSION = 5
+export const DATABASE_VERSION = 6
 export const schema = {
   meta: { columns: { value: 'TEXT' } },
   settings: { columns: { value: 'TEXT' } },
@@ -37,6 +37,8 @@ export const schema = {
   collection_items: { columns: { collectionId: 'TEXT', characterId: 'TEXT', position: 'INTEGER', addedAt: 'TEXT' }, indexes: [['collectionId', 'position'], ['characterId']] },
   practice_sessions: { columns: { name: 'TEXT', source: 'TEXT', sourceId: 'TEXT', modes: 'TEXT', cursor: 'INTEGER', createdAt: 'TEXT', updatedAt: 'TEXT', completedAt: 'TEXT' }, indexes: [['updatedAt']] },
   practice_questions: { columns: { sessionId: 'TEXT', characterId: 'TEXT', mode: 'TEXT', position: 'INTEGER', optionIds: 'TEXT', attempts: 'INTEGER', mistakes: 'INTEGER', firstCorrect: 'INTEGER', completedAt: 'TEXT' }, indexes: [['sessionId', 'position']] },
+  library_books: { columns: { status: 'TEXT', updatedAt: 'TEXT' }, indexes: [['status', 'updatedAt']] },
+  annotations: { columns: { bookId: 'TEXT', kind: 'TEXT', fingerprint: 'TEXT', startOffset: 'INTEGER', endOffset: 'INTEGER', quote: 'TEXT', note: 'TEXT', tags: 'TEXT', createdAt: 'TEXT', updatedAt: 'TEXT' }, indexes: [['bookId', 'startOffset'], ['updatedAt']] },
 } satisfies Record<string, TableSchema>
 
 export type Table = keyof typeof schema

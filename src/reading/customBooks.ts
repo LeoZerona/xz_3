@@ -41,7 +41,8 @@ export async function removeCustomBook(id: string): Promise<void> {
   await initializePersistence()
   const db = await getDatabase()
   const chunks = await db.query('book_chunks', { where: { bookId: id } })
-  const changes: Change[] = [{ table: 'books', deleteId: id }, { table: 'reading_progress', deleteId: id }, ...chunks.map((row): Change => ({ table: 'book_chunks', deleteId: row.id }))]
+  const annotations = await db.query('annotations', { where: { bookId: id } })
+  const changes: Change[] = [{ table: 'books', deleteId: id }, { table: 'reading_progress', deleteId: id }, { table: 'library_books', deleteId: id }, ...chunks.map((row): Change => ({ table: 'book_chunks', deleteId: row.id })), ...annotations.map((row): Change => ({ table: 'annotations', deleteId: row.id }))]
   if (readStored('reading:recentBookId') === id) changes.push({ table: 'settings', deleteId: 'reading:recentBookId' })
   await db.commit(changes)
   forgetBookProgress(id)

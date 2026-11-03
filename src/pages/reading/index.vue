@@ -2,7 +2,7 @@
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { onBackPress, onHide } from '@dcloudio/uni-app'
+import { onBackPress, onHide, onLoad } from '@dcloudio/uni-app'
 import { prepareApplication } from '../../database/application'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
@@ -32,6 +32,15 @@ import FontSizeControl from './components/FontSizeControl.vue'
 import PdfTextBridge from './components/PdfTextBridge.vue'
 import type { PdfTextBridgeApi } from '../../reading/pdfTextBridge'
 import { useActivityClock } from '../../learning/useActivityClock'
+import { renderedOffsetForRaw } from '../../library/annotations'
+
+const requestedBookId = ref('')
+let requestedRawOffset: number | undefined
+onLoad(options => {
+  requestedBookId.value = typeof options?.id === 'string' ? options.id : ''
+  const offset = Number(options?.offset)
+  if (typeof options?.offset === 'string' && Number.isInteger(offset) && offset >= 0) requestedRawOffset = offset
+})
 
 const pdfTextBridgeRef = ref<PdfTextBridgeApi | null>(null)
 function extractPdfText(buffer: ArrayBuffer): Promise<string> {
@@ -698,6 +707,10 @@ async function fetchBook() {
     rawTextRef.value = rawText
     loadedBookId = book.id
     restoreProgress(saved)
+    if (book.id === requestedBookId.value && requestedRawOffset !== undefined) {
+      restoreCharacterOffset(renderedOffsetForRaw(rawText, requestedRawOffset))
+      requestedRawOffset = undefined
+    }
     if (rows.value.length === 0) loadError.value = '该书籍未解析到可显示的文本行'
   } catch (err) {
     if (request !== bookLoadSequence) return
@@ -1002,6 +1015,7 @@ onMounted(async () => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
   refreshRecentProgress() // init
+  if (requestedBookId.value && books.value.some(book => book.id === requestedBookId.value)) handleEnterReader(requestedBookId.value)
   } catch (error) { loadError.value = error instanceof Error ? error.message : '书籍数据加载失败' }
 })
 

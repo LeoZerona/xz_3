@@ -33,7 +33,7 @@ const menuSections = computed<MenuItem[][]>(() => [
   ],
   [
     { label: '我的收藏', icon: 'star-o', url: '/pages/collections/index' },
-    { label: '我的图书', icon: 'orders-o' },
+    { label: '我的图书', icon: 'orders-o', url: '/pages/my-books/index' },
   ],
   [
     { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
