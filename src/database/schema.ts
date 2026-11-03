@@ -6,7 +6,7 @@ export interface TableSchema {
 }
 
 export const DATABASE_NAME = 'font-learning'
-export const DATABASE_VERSION = 4
+export const DATABASE_VERSION = 5
 export const schema = {
   meta: { columns: { value: 'TEXT' } },
   settings: { columns: { value: 'TEXT' } },
@@ -35,6 +35,8 @@ export const schema = {
   activity_events: { columns: { sessionId: 'TEXT', source: 'TEXT', kind: 'TEXT', characterId: 'TEXT', mode: 'TEXT', correct: 'INTEGER', at: 'TEXT', dateKey: 'TEXT', seconds: 'INTEGER', timezoneOffset: 'INTEGER' }, indexes: [['dateKey', 'at'], ['sessionId', 'at'], ['characterId', 'at']] },
   collections: { columns: { name: 'TEXT', description: 'TEXT', createdAt: 'TEXT', updatedAt: 'TEXT' }, indexes: [['updatedAt']] },
   collection_items: { columns: { collectionId: 'TEXT', characterId: 'TEXT', position: 'INTEGER', addedAt: 'TEXT' }, indexes: [['collectionId', 'position'], ['characterId']] },
+  practice_sessions: { columns: { name: 'TEXT', source: 'TEXT', sourceId: 'TEXT', modes: 'TEXT', cursor: 'INTEGER', createdAt: 'TEXT', updatedAt: 'TEXT', completedAt: 'TEXT' }, indexes: [['updatedAt']] },
+  practice_questions: { columns: { sessionId: 'TEXT', characterId: 'TEXT', mode: 'TEXT', position: 'INTEGER', optionIds: 'TEXT', attempts: 'INTEGER', mistakes: 'INTEGER', firstCorrect: 'INTEGER', completedAt: 'TEXT' }, indexes: [['sessionId', 'position']] },
 } satisfies Record<string, TableSchema>
 
 export type Table = keyof typeof schema

@@ -9,7 +9,8 @@ withDefaults(defineProps<{
   multiline?: boolean
   hideLabel?: boolean
   disabled?: boolean
-}>(), { placeholder: '', maxlength: 500, multiline: false, hideLabel: false, disabled: false })
+  type?: 'text' | 'number'
+}>(), { placeholder: '', maxlength: 500, multiline: false, hideLabel: false, disabled: false, type: 'text' })
 const emit = defineEmits<{ (event: 'update:modelValue', value: string): void }>()
 function handleUpdate(value: string | number): void { emit('update:modelValue', String(value)) }
 </script>
@@ -17,7 +18,7 @@ function handleUpdate(value: string | number): void { emit('update:modelValue', 
 <template>
   <div class="feature-text-field" :class="{ 'hide-label': hideLabel }">
     <VantField :model-value="modelValue" :label="label" :placeholder="placeholder" :maxlength="maxlength"
-      :type="multiline ? 'textarea' : 'text'" :rows="multiline ? 4 : undefined" :disabled="disabled" :border="false"
+      :type="multiline ? 'textarea' : type" :rows="multiline ? 4 : undefined" :disabled="disabled" :border="false"
       @update:model-value="handleUpdate" />
   </div>
 </template>

@@ -11,6 +11,9 @@
         }
       }
     },
+    { "path": "pages/practice-setup/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/practice-session/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/practice-result/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/collections/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/collection-detail/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     { "path": "pages/collection-edit/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
