@@ -2,7 +2,7 @@
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 
 import { onBackPress } from '@dcloudio/uni-app'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { LearningFont } from '../../fonts/types'
 import { getDailyCharacters } from '../../database/catalog'
@@ -11,7 +11,9 @@ import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
-import { IDLE_TIMEOUT_MS, readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { useActivityClock } from '../../learning/useActivityClock'
+import { useLearningSummary } from '../../learning/useLearningSummary'
 import { getEffectiveStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
@@ -33,7 +35,7 @@ const learningStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
 const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { themeStyle } = storeToRefs(useThemeStore())
-const { reviewedCount: storedReviewedCount } = storeToRefs(dailyProgressStore)
+const { summary } = useLearningSummary()
 const allCharacters = ref<StudyCharacterEntry[]>([])
 const availableCharacters = computed(() => allCharacters.value.filter((entry) => !learningStore.isExcluded(entry.id)))
 useDatabaseTask(async () => {
@@ -112,7 +114,7 @@ const pendingTasks = remainingTasks
 const currentTask = computed(() => allTasksInterleaved.value[currentTaskIndex.value] ?? null)
 const currentCharacter = computed(() => currentTask.value?.character ?? null)
 const activeMode = computed<StudyMode>(() => currentTask.value?.mode ?? effectiveModes.value[0] ?? STUDY_MODES[0])
-const reviewedCount = computed(() => storedReviewedCount.value)
+const reviewedCount = computed(() => summary.value.today.reviewCount)
 const selectedAnswer = ref<string | null>(null)
 const inputAnswer = ref('')
 const hasAttempted = ref(false)
@@ -149,7 +151,7 @@ const isDayComplete = computed(() => remainingTasks.value.length === 0 && dailyC
 const dailyTarget = computed(() => dailyCharacters.value.length)
 const learnedCount = computed(() => dailyProgressStore.learnedCount)
 const studyProgress = computed(() => Math.min(learnedCount.value, dailyTarget.value))
-const studyMinutes = computed(() => dailyProgressStore.minutes)
+const studyMinutes = computed(() => Math.floor(summary.value.today.studySeconds / 60))
 const choiceOptions = computed(() => buildChoiceOptions(
   availableCharacters.value,
   currentCharacter.value ?? undefined,
@@ -185,16 +187,8 @@ function buildChoiceOptions(
   return [...choices.slice(shift), ...choices.slice(0, shift)]
 }
 
-let lastActiveAt = Date.now()
-let studyTimer: ReturnType<typeof setInterval> | null = null
-
 function touchActive() {
-  lastActiveAt = Date.now()
-}
-
-function isPageVisible(): boolean {
-  if (typeof document === 'undefined') return true
-  return document.visibilityState === 'visible'
+  activityClock.touch()
 }
 
 function handleChoiceAnswer(character: string) {
@@ -364,6 +358,8 @@ function toggleFavorite(){
   try{ uni.showToast({ title: learningStore.isFavorite(ch.id) ? "已收藏" : "已取消收藏", icon: "none" }) }catch{}
 }
 onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer) })
+const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.value) && !isDayComplete.value,
+  () => `daily:${dailyProgressStore.dateKey}`)
 </script>
 
 <template>

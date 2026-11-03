@@ -8,6 +8,8 @@ import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { orderReviewIds } from '../../study/levelReview'
 import type { ReviewFilter } from '../../study/levelReview'
 import type { StudyCharacterEntry } from '../../study/types'
+import { useActivityClock } from '../../learning/useActivityClock'
+import { localDateKey } from '../../learning/activity'
 
 export function useLevelReview() {
   const store = useLevelReviewStore()
@@ -105,5 +107,7 @@ export function useLevelReview() {
     await loadNext(false)
   }
   function retry(): void { void loadNext(true) }
+  useActivityClock('review', () => Boolean(character.value) && !isLoading.value && !loadError.value,
+    () => `review:${localDateKey(new Date())}`)
   return { filter, character, isLoading, loadError, dueCount, totalCount, nextDueLabel, switchFilter, handleAnswer, startEarlyReview, retry }
 }

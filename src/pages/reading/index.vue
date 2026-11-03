@@ -31,6 +31,7 @@ import TableStyleSwitcher from './components/TableStyleSwitcher.vue'
 import FontSizeControl from './components/FontSizeControl.vue'
 import PdfTextBridge from './components/PdfTextBridge.vue'
 import type { PdfTextBridgeApi } from '../../reading/pdfTextBridge'
+import { useActivityClock } from '../../learning/useActivityClock'
 
 const pdfTextBridgeRef = ref<PdfTextBridgeApi | null>(null)
 function extractPdfText(buffer: ArrayBuffer): Promise<string> {
@@ -116,6 +117,8 @@ const readingFontSize = computed(() => prefs.value.readingFontSize)
 const { currentPage, effectiveRowsPerPage, characterOffset, totalPages, pageRows, restoreProgress, restoreCharacterOffset, reflow, setPage } = useReadingPosition(rows, prefs.value.rowsPerPage)
 type ViewMode = 'library' | 'reader'
 const viewMode = ref<ViewMode>('library')
+useActivityClock('reading', () => viewMode.value === 'reader' && !loading.value && !loadError.value,
+  () => `reading:${activeBookId.value}`)
 const deviceBattery = useDeviceBattery(computed(() => viewMode.value === 'reader'))
 const showReaderChrome = ref(false)
 const showReaderCatalog = ref(false)

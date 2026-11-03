@@ -15,11 +15,13 @@ import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import { readPlanDailyCount, REVIEW_TARGET } from '../../study/dailyProgress'
+import { useLearningSummary } from '../../learning/useLearningSummary'
 
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
 const { themeStyle } = storeToRefs(useThemeStore())
 const preferencesStore = useCharacterLearningStore()
 const dailyProgressStore = useDailyProgressStore()
+const { summary } = useLearningSummary()
 const planDailyCount = ref(readPlanDailyCount())
 const characterIds = ref<string[]>([])
 useDatabaseTask(async () => { characterIds.value = await getDailyCharacterIds(); refreshPlan() })
@@ -47,9 +49,9 @@ const dailyTarget = computed(() => {
   const count = Math.max(1, Math.trunc(planDailyCount.value))
   return Math.min(available, count)
 })
-const learnedDisplay = computed(() => `${Math.min(dailyProgressStore.learnedCount, dailyTarget.value)}/${dailyTarget.value}`)
-const reviewedDisplay = computed(() => `${Math.min(dailyProgressStore.reviewedCount, REVIEW_TARGET)}/${REVIEW_TARGET}`)
-const studyMinutesDisplay = computed(() => `${dailyProgressStore.minutes}`)
+const learnedDisplay = computed(() => `${Math.max(dailyProgressStore.learnedCount, summary.value.today.newCount)}/${dailyTarget.value}`)
+const reviewedDisplay = computed(() => `${summary.value.today.reviewCount}/${REVIEW_TARGET}`)
+const studyMinutesDisplay = computed(() => `${Math.floor(summary.value.today.studySeconds / 60)}`)
 
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })

@@ -7,6 +7,7 @@ import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { useProfileStore } from '../../stores/profile'
 import { useThemeStore } from '../../stores/theme'
 import { useLevelLayoutStore } from '../../stores/levelLayout'
+import { useLearningSummary } from '../../learning/useLearningSummary'
 
 type MenuItem = {
   label: string
@@ -16,6 +17,7 @@ type MenuItem = {
 }
 
 const profileStore = useProfileStore()
+const { summary } = useLearningSummary()
 const { profile } = storeToRefs(profileStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const { currentLayout } = storeToRefs(useLevelLayoutStore())
@@ -122,7 +124,7 @@ function openPersonalProfile() {
         <view class="summary-chart" aria-hidden="true">
           <i /><i /><i />
         </view>
-        <text>累计已学 <strong>0</strong>，坚持 <strong>0</strong> 天</text>
+        <text>累计已学 <strong>{{ summary.learnedCount }}</strong>，坚持 <strong>{{ summary.currentStreak }}</strong> 天</text>
       </view>
 
       <view class="menu-area">

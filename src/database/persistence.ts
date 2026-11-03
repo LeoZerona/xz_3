@@ -98,7 +98,7 @@ export function saveStored(key: string, value: unknown): void {
   cache.set(key, next)
   queue(writes)
 }
-export function saveCharacter(record: CharacterLearningRecord, at: string): void {
+export function saveCharacter(record: CharacterLearningRecord, at: string, relatedChanges: Change[] = []): void {
   if (!initialized) throw new Error('数据库尚未就绪，请稍后重试')
   const data = object(cache.get(LEARNING_KEY))
   const characters = object(data.characters)
@@ -111,9 +111,9 @@ export function saveCharacter(record: CharacterLearningRecord, at: string): void
   characters[record.characterId] = next
   cache.set(LEARNING_KEY, { ...data, characters, updatedAt: at })
   changes.push(setting(`${LEARNING_KEY}:meta`, { version: 2, updatedAt: at }))
-  queue(changes)
+  queue([...changes, ...relatedChanges])
 }
-export function saveLevelReviewRecords(records: Record<string, LevelReviewRecord>): void {
+export function saveLevelReviewRecords(records: Record<string, LevelReviewRecord>, relatedChanges: Change[] = []): void {
   if (!initialized) throw new Error('数据库尚未就绪，请稍后重试')
   const previous = object(cache.get(LEVEL_REVIEW_KEY))
   const changes: Change[] = []
@@ -123,7 +123,7 @@ export function saveLevelReviewRecords(records: Record<string, LevelReviewRecord
     changes.push({ table: 'level_review', row: { id, ...next } })
   }
   cache.set(LEVEL_REVIEW_KEY, previous)
-  queue(changes)
+  queue([...changes, ...relatedChanges])
 }
 export function flushPersistence(): Promise<void> {
   if (flushing) return flushing

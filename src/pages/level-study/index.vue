@@ -21,6 +21,7 @@ import type { StudyCharacterEntry } from "../../study/types";
 import { createWrongAttemptQueue, WRONG_ANSWER_FEEDBACK_MS } from "../../study/feedback";
 import StudyPreviewPanel from "../../components/StudyPreviewPanel.vue";
 import StudyQuestionCard from "../study/components/StudyQuestionCard.vue";
+import { useActivityClock } from '../../learning/useActivityClock';
 
 interface StudyQuestion {
   mode: StudyMode;
@@ -175,7 +176,9 @@ const forceDetail = ref(false);
 const isCorrectAnimating = ref(false);
 let pendingCorrectTimer: ReturnType<typeof setTimeout> | null = null;
 const wrongAttemptQueue = createWrongAttemptQueue((attempt) => {
-  learningStore.recordModeAttempt(attempt.characterId, attempt.mode, false, attempt.attemptedAt);
+  learningStore.recordModeAttempt(attempt.characterId, attempt.mode, false, attempt.attemptedAt, {
+    source: 'level', sessionId: `level:${queryStageId.value}:${levelProgressStore.getTrainingCount(queryStageId.value) + 1}`,
+  });
   reviewStore.registerCharacters([attempt.characterId], attempt.attemptedAt);
   if (attempt.shouldResetModes) levelProgressStore.resetCharacterModes(queryStageId.value, attempt.characterId);
 });
@@ -359,7 +362,9 @@ function completeAnswer(character: StudyCharacterEntry) {
   pendingCorrectTimer = setTimeout(() => {
     pendingCorrectTimer = null;
     wrongAttemptQueue.flush();
-    learningStore.recordModeAttempt(character.id, mode, true);
+    learningStore.recordModeAttempt(character.id, mode, true, new Date().toISOString(), {
+      source: 'level', sessionId: `level:${stageId}:${levelProgressStore.getTrainingCount(stageId) + 1}`,
+    });
     reviewStore.registerCharacters([character.id]);
     levelProgressStore.recordModeCompleted(stageId, character.id, mode);
     if (levelProgressStore.isCharacterComplete(stageId, character.id, effectiveModes.value)) {
@@ -481,6 +486,8 @@ onMounted(() => {
 });
 
 onHide(() => wrongAttemptQueue.flush());
+useActivityClock('level', () => !showPreview.value && !isStageComplete.value && Boolean(currentCharacter.value),
+  () => `level:${queryStageId.value}:${levelProgressStore.getTrainingCount(queryStageId.value) + 1}`);
 
 onBeforeUnmount(()=>{
   stageLoadSeq += 1;

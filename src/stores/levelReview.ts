@@ -6,6 +6,7 @@ import { getDatabase } from '../database/connection'
 import { createReviewRecord, LEVEL_REVIEW_KEY, REVIEW_SESSION_KEY, reviewAnswer } from '../study/levelReview'
 import type { LevelReviewRecord, ReviewFilter } from '../study/levelReview'
 import { useLevelProgressStore } from './levelProgress'
+import { activityRevision, activityRow, localDateKey } from '../learning/activity'
 
 interface ReviewSession { filter: ReviewFilter; currentIds: Partial<Record<ReviewFilter, string>>; currentReviewCounts: Partial<Record<ReviewFilter, number>> }
 function readRecords(): Record<string, LevelReviewRecord> {
@@ -69,8 +70,13 @@ export const useLevelReviewStore = defineStore('levelReview', () => {
     const record = records.value[characterId]
     if (!record) return
     const next = reviewAnswer(record, known, at)
-    saveLevelReviewRecords({ [characterId]: next })
+    const date = new Date(at)
+    saveLevelReviewRecords({ [characterId]: next }, [{ table: 'activity_events', ifAbsent: true, row: activityRow({
+      id: `review:${characterId}:${next.reviewCount}`, sessionId: `review:${localDateKey(date)}`, source: 'review', kind: 'answer',
+      characterId, mode: null, correct: known, at, dateKey: localDateKey(date), seconds: 0, timezoneOffset: date.getTimezoneOffset(),
+    }) }])
     records.value[characterId] = next
+    activityRevision.value++
   }
   return { records, session, hydrate, registerCharacters, migrateLearnedCharacters, setCurrent, answer }
 })

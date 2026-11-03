@@ -41,7 +41,7 @@
 
       <view class="schedule">
         <view class="schedule-summary">
-          <text>完成日期：<text class="accent">2026年10月25日</text></text>
+          <text>完成日期：<text class="accent">{{ planEstimate.dateLabel }}</text></text>
           <text>预计每天 {{ estimatedMinutes }} 分钟</text>
         </view>
 
@@ -112,10 +112,13 @@ import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import { getStudyModeLabel, normalizeStudyModes, STUDY_MODES } from '../../study/modes'
 import { REVIEW_TARGET } from '../../study/dailyProgress'
+import { estimatePlan } from '../../learning/plan'
+import { useCharacterLearningStore } from '../../stores/characterLearning'
 import FontCatalog from './components/FontCatalog.vue'
 import FontManager from './components/FontManager.vue'
 
 const { currentFont } = storeToRefs(useFontStore())
+const learningStore = useCharacterLearningStore()
 const { themeStyle } = storeToRefs(useThemeStore())
 
 const STORAGE_KEY = 'font-learning-plan'
@@ -144,11 +147,12 @@ function toggleMode(mode: import('../../study/modes').StudyMode) {
 
 const initialDailyCount = saved?.dailyCount && planOptions.value.some((item) => item.count === saved.dailyCount) ? saved.dailyCount : 15
 const dailyCount = ref(initialDailyCount)
+const planEstimate = computed(() => estimatePlan(totalCharCount.value, dailyCount.value))
 const planWheelRef = ref<HTMLElement | null>(null)
 const initialPlan = computed(() => planOptions.value.find((item) => item.count === dailyCount.value) ?? planOptions.value[1]!)
 const initialPlanIndex = computed(() => Math.max(0, planOptions.value.findIndex((item) => item.count === dailyCount.value)))
 useDatabaseTask(async () => {
-  totalCharCount.value = (await getDailyCharacterIds()).length
+  totalCharCount.value = (await getDailyCharacterIds()).filter((id) => !learningStore.isCharacterComplete(id) && !learningStore.isExcluded(id)).length
   const plan = readStored(STORAGE_KEY) as { dailyCount?: number; modes?: string[] } | undefined
   const restoredDailyCount = plan?.dailyCount && planOptions.value.some((item) => item.count === plan.dailyCount) ? plan.dailyCount : 15
   dailyCount.value = restoredDailyCount

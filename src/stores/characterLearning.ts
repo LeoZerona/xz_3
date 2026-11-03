@@ -10,6 +10,11 @@ import {
 import type { CharacterLearningData, CharacterLearningRecord, SlashAction } from '../study/learningData'
 import { getEffectiveStudyModes, STUDY_MODES } from '../study/modes'
 import type { StudyMode } from '../study/modes'
+import { activityRevision, activityRow, localDateKey } from '../learning/activity'
+import type { ActivityEvent } from '../learning/types'
+import type { Change } from '../database/types'
+
+interface AttemptContext { source: 'daily' | 'level'; sessionId: string }
 
 export const CHARACTER_LEARNING_STORAGE_KEY = 'font-learning-character-data'
 export const LEGACY_CHARACTER_PREFERENCES_STORAGE_KEY = 'font-learning-character-preferences'
@@ -61,13 +66,13 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     return data.value.characters[characterId]
   }
 
-  function updateRecord(characterId: string, update: (record: CharacterLearningRecord) => void, at: string) {
+  function updateRecord(characterId: string, update: (record: CharacterLearningRecord) => void, at: string, relatedChanges: Change[] = []) {
     if (!characterId) return
     const record = cloneRecord(data.value.characters[characterId] ?? createCharacterLearningRecord(characterId))
     update(record)
     data.value.characters = { ...data.value.characters, [characterId]: record }
     data.value.updatedAt = at
-    saveCharacter(record, at)
+    saveCharacter(record, at, relatedChanges)
   }
 
   function isFavorite(characterId: string): boolean {
@@ -100,7 +105,15 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
     setSlashState(characterId, !isExcluded(characterId), at)
   }
 
-  function recordModeAttempt(characterId: string, mode: StudyMode, isCorrect: boolean, at = new Date().toISOString()) {
+  function recordModeAttempt(characterId: string, mode: StudyMode, isCorrect: boolean, at = new Date().toISOString(), context?: AttemptContext) {
+    const date = new Date(at)
+    const source = context?.source ?? 'daily'
+    const sessionId = context?.sessionId ?? `daily:${localDateKey(date)}`
+    const previous = getRecord(characterId)
+    const activity: ActivityEvent = { id: `${sessionId}:${characterId}:${mode}:${(previous?.modes[mode].attempts ?? 0) + 1}`,
+      sessionId, source, kind: 'answer', characterId, mode, correct: isCorrect, at, dateKey: localDateKey(date),
+      seconds: 0, timezoneOffset: date.getTimezoneOffset() }
+    const relatedChanges: Change[] = [{ table: 'activity_events', row: activityRow(activity), ifAbsent: true }]
     updateRecord(characterId, (record) => {
       const progress = record.modes[mode]
       progress.attempts += 1
@@ -114,7 +127,12 @@ export const useCharacterLearningStore = defineStore('characterLearning', () => 
       const isComplete = effective.every((studyMode) => Boolean(record.modes[studyMode].completedAt))
       record.status = record.completedAt || record.status === 'completed' || isComplete ? 'completed' : 'learning'
       if (isComplete) record.completedAt ??= at
-    }, at)
+      if (record.status === 'completed' && previous?.status !== 'completed' && !previous?.completedAt) {
+        relatedChanges.push({ table: 'activity_events', row: activityRow({ ...activity,
+          id: `learned:${characterId}`, kind: 'completed', correct: null }), ifAbsent: true })
+      }
+    }, at, relatedChanges)
+    activityRevision.value++
   }
 
   function isModeComplete(characterId: string, mode: StudyMode): boolean {

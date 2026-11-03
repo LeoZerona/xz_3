@@ -48,10 +48,8 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
 
   function persist() {
     const key = dateKey.value
-    // 跨天时以当前日期为准，避免写到旧 key。
-    const currentKey = todayKey()
-    const targetKey = currentKey !== key ? currentKey : key
-    if (currentKey !== key) dateKey.value = currentKey
+    // 尚未切换会话的旧页面仍保存到所属日期，不能复制昨日字单到今天。
+    const targetKey = key
     try {
       saveStored(progressStorageKey(targetKey), {
         dateKey: targetKey,
@@ -104,6 +102,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
   }
 
   function setCurrentCharacter(characterId: string | null) {
+    if (todayKey() !== dateKey.value) hydrate()
     if (characterId !== null && !assignedIds.value.includes(characterId)) return
     currentCharacterId.value = characterId
     persist()
@@ -118,6 +117,7 @@ export const useDailyProgressStore = defineStore('dailyProgress', () => {
 
   function setStudySeconds(seconds: number) {
     if (!Number.isFinite(seconds) || seconds < 0) return
+    if (todayKey() !== dateKey.value) hydrate()
     studySeconds.value = Math.trunc(seconds)
     persist()
   }
