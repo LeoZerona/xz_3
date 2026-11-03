@@ -34,16 +34,19 @@ export async function addCustomBook(record: CustomBookRecord & { text: string })
   await initializePersistence()
   const db = await getDatabase()
   const previous = await db.query('book_chunks', { where: { bookId: record.id } })
+  const index = await db.query('book_search', { where: { bookId: record.id } })
   const deletions: Change[] = previous.map((row) => ({ table: 'book_chunks', deleteId: row.id }))
-  await db.commit([...deletions, ...bookRows(record)])
+  await db.commit([...deletions, ...index.map((row): Change => ({table:'book_search',deleteId:row.id})), ...bookRows(record)])
 }
 export async function removeCustomBook(id: string): Promise<void> {
   await initializePersistence()
   const db = await getDatabase()
   const chunks = await db.query('book_chunks', { where: { bookId: id } })
   const annotations = await db.query('annotations', { where: { bookId: id } })
+  const index = await db.query('book_search', { where: { bookId: id } })
   const changes: Change[] = [{ table: 'books', deleteId: id }, { table: 'reading_progress', deleteId: id }, { table: 'library_books', deleteId: id }, ...chunks.map((row): Change => ({ table: 'book_chunks', deleteId: row.id })), ...annotations.map((row): Change => ({ table: 'annotations', deleteId: row.id }))]
   if (readStored('reading:recentBookId') === id) changes.push({ table: 'settings', deleteId: 'reading:recentBookId' })
+  changes.push(...index.map((row): Change => ({table:'book_search',deleteId:row.id})))
   await db.commit(changes)
   forgetBookProgress(id)
 }

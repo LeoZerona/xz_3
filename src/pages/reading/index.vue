@@ -33,6 +33,8 @@ import PdfTextBridge from './components/PdfTextBridge.vue'
 import type { PdfTextBridgeApi } from '../../reading/pdfTextBridge'
 import { useActivityClock } from '../../learning/useActivityClock'
 import { renderedOffsetForRaw } from '../../library/annotations'
+import { indexBook } from '../../library/search'
+import { reportPersistenceError } from '../../database/persistence'
 
 const requestedBookId = ref('')
 let requestedRawOffset: number | undefined
@@ -706,6 +708,8 @@ async function fetchBook() {
     totalChars.value = result.totalChars
     rawTextRef.value = rawText
     loadedBookId = book.id
+    // 检索索引可重建；索引失败不阻止正文阅读，错误保留到现有数据库状态反馈。
+    void indexBook(book.id, rawText).catch(reportPersistenceError)
     restoreProgress(saved)
     if (book.id === requestedBookId.value && requestedRawOffset !== undefined) {
       restoreCharacterOffset(renderedOffsetForRaw(rawText, requestedRawOffset))
@@ -793,7 +797,7 @@ function handlePickFile(): void {
     })
     return
   }
-  fileInputRef.value?.click()
+  uni.navigateTo({url:'/pages/book-import/index',fail:()=>uni.showToast({title:'当前环境无法选择文件，请在导入中心粘贴正文',icon:'none'})})
 }
 async function handleUniFilePicked(file: { name: string; path: string }): Promise<void> {
   const fileName = file.name || file.path.split('/').pop() || 'upload.txt'

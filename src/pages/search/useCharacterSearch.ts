@@ -74,7 +74,7 @@ export function useCharacterSearch() {
   }
   async function saveSearch(): Promise<void> {
     const value = trimmedQuery.value
-    if (!value || !isCharacterMode.value) return
+    if (!value) return
     searchHistory.value = [value, ...searchHistory.value.filter((item) => item !== value)].slice(0, MAX_HISTORY_COUNT)
     await persistHistory()
   }

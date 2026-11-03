@@ -53,6 +53,8 @@ export async function restoreBackup(text: string): Promise<void> {
   const previous = await exportBackup()
   const db = await getDatabase()
   const changes: Change[] = [{ table: 'meta', row: { id: 'before-restore-backup', value: previous } }]
+  // 全文索引由正文重建，恢复时必须移除旧索引，避免命中已经不存在的书籍。
+  for (const row of await db.query('book_search')) changes.push({table:'book_search',deleteId:row.id})
   for (const table of BACKUP_TABLES) {
     for (const row of await db.query(table)) changes.push({ table, deleteId: row.id })
     for (const row of incoming.get(table)!) changes.push({ table, row })

@@ -17,7 +17,7 @@ function handleUpdate(value: string | number): void { emit('update:modelValue', 
 
 <template>
   <div class="feature-text-field" :class="{ 'hide-label': hideLabel }">
-    <VantField :model-value="modelValue" :label="label" :placeholder="placeholder" :maxlength="maxlength"
+    <VantField :model-value="modelValue" :label="label" :placeholder="placeholder || (hideLabel ? label : '')" :maxlength="maxlength"
       :type="multiline ? 'textarea' : type" :rows="multiline ? 4 : undefined" :disabled="disabled" :border="false"
       @update:model-value="handleUpdate" />
   </div>

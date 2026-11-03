@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted } from 'vue'
 import { onBackPress } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
@@ -10,11 +10,14 @@ import { useCharacterComparisonStore } from '../../stores/characterComparison'
 import { comparisonAdditionMessage } from '../../comparison/characterComparison'
 import { SEARCH_MODES as modes, useCharacterSearch } from './useCharacterSearch'
 import type { CharacterEntry } from '../../search/characterSearch'
+import ContentSearchPanel from '../../library/ContentSearchPanel.vue'
 
 const { themeStyle } = storeToRefs(useThemeStore())
 const comparisonStore = useCharacterComparisonStore()
 const { selectedIds } = storeToRefs(comparisonStore)
-const { query, activeMode, searchHistory, results, totalResults, isSearching, searchError, missingCharacters, trimmedQuery, isCharacterMode, activeModeLabel, batchCharacters, resultSummary, loadResults, saveSearch, clearHistory } = useCharacterSearch()
+const { query, activeMode, searchHistory, results, totalResults, isSearching, searchError, missingCharacters, trimmedQuery, isCharacterMode, batchCharacters, resultSummary, loadResults, saveSearch, clearHistory } = useCharacterSearch()
+const contentMode = computed(() => activeMode.value === 'character' ? 'word' : activeMode.value)
+function handleContentOpen(url: string): void { void saveSearch(); uni.navigateTo({url,fail:()=>uni.showToast({title:'内容页面打开失败，请重试',icon:'none'})}) }
 
 function goBack(): void {
   if (getCurrentPages().length > 1) uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
@@ -111,10 +114,7 @@ onMounted(async () => {
       </scroll-view>
     </view>
 
-    <view v-if="trimmedQuery && !isCharacterMode" class="empty-state" role="status">
-      <text class="empty-title">{{ activeModeLabel }}模式暂未开放</text>
-      <text class="empty-description">当前仅支持单字模式查询，请切换到单字模式。</text>
-    </view>
+    <ContentSearchPanel v-if="!isCharacterMode" :query="trimmedQuery" :mode="contentMode" @open="handleContentOpen" />
 
     <template v-else-if="trimmedQuery">
       <view class="result-heading" aria-live="polite">{{ resultSummary }}</view>
