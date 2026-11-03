@@ -32,7 +32,7 @@ const menuSections = computed<MenuItem[][]>(() => [
     { label: '我的词汇量', icon: 'chart-trending-o' },
   ],
   [
-    { label: '我的收藏', icon: 'star-o' },
+    { label: '我的收藏', icon: 'star-o', url: '/pages/collections/index' },
     { label: '我的图书', icon: 'orders-o' },
   ],
   [

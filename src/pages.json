@@ -11,6 +11,10 @@
         }
       }
     },
+    { "path": "pages/collections/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/collection-detail/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/collection-edit/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
+    { "path": "pages/collection-members/index", "style": { "navigationStyle": "custom", "disableScroll": true, "app-plus": { "bounce": "none" } } },
     {
       "path": "pages/plan/index",
       "style": {

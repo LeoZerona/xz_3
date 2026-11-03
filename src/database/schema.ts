@@ -6,7 +6,7 @@ export interface TableSchema {
 }
 
 export const DATABASE_NAME = 'font-learning'
-export const DATABASE_VERSION = 3
+export const DATABASE_VERSION = 4
 export const schema = {
   meta: { columns: { value: 'TEXT' } },
   settings: { columns: { value: 'TEXT' } },
@@ -33,6 +33,8 @@ export const schema = {
   book_chunks: { columns: { bookId: 'TEXT', position: 'INTEGER', startOffset: 'INTEGER', text: 'TEXT' }, indexes: [['bookId', 'position']] },
   reading_progress: { columns: { page: 'INTEGER', rowsPerPage: 'INTEGER', characterOffset: 'INTEGER', charsPerLine: 'INTEGER', tableStyleId: 'TEXT', updatedAt: 'TEXT' }, indexes: [['updatedAt']] },
   activity_events: { columns: { sessionId: 'TEXT', source: 'TEXT', kind: 'TEXT', characterId: 'TEXT', mode: 'TEXT', correct: 'INTEGER', at: 'TEXT', dateKey: 'TEXT', seconds: 'INTEGER', timezoneOffset: 'INTEGER' }, indexes: [['dateKey', 'at'], ['sessionId', 'at'], ['characterId', 'at']] },
+  collections: { columns: { name: 'TEXT', description: 'TEXT', createdAt: 'TEXT', updatedAt: 'TEXT' }, indexes: [['updatedAt']] },
+  collection_items: { columns: { collectionId: 'TEXT', characterId: 'TEXT', position: 'INTEGER', addedAt: 'TEXT' }, indexes: [['collectionId', 'position'], ['characterId']] },
 } satisfies Record<string, TableSchema>
 
 export type Table = keyof typeof schema
