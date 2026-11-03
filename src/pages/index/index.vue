@@ -5,6 +5,7 @@ import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+import CharacterSearchButton from '../../components/CharacterSearchButton.vue'
 import FontCover from '../../components/FontCover.vue'
 import { getDailyCharacterIds } from '../../database/catalog'
 import { applicationReady } from '../../database/application'
@@ -54,9 +55,6 @@ function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })
 }
 
-function openSearch() {
-  uni.navigateTo({ url: '/pages/search/index' })
-}
 </script>
 
 <template>
@@ -65,7 +63,7 @@ function openSearch() {
     <view class="topbar">
       <view class="topbar-spacer" aria-hidden="true"></view>
       <view class="topbar-actions">
-        <button class="icon-button" role="button" aria-label="搜索" @click="openSearch"><van-icon name="search" size="24" aria-hidden="true" /></button>
+        <CharacterSearchButton />
         <button class="icon-button" role="button" aria-label="消息提示"><van-icon name="envelop-o" size="24" aria-hidden="true" /></button>
       </view>
     </view>

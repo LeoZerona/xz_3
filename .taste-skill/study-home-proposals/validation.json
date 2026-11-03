@@ -1,0 +1,173 @@
+{
+  "results": [
+    {
+      "concept": "a",
+      "width": 390,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "a",
+      "width": 320,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "a",
+      "width": 768,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "a",
+      "width": 1440,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "a",
+      "state": "empty",
+      "value": 0,
+      "action": "开始学习"
+    },
+    {
+      "concept": "a",
+      "state": "done",
+      "value": 15,
+      "action": "查看今日成果"
+    },
+    {
+      "concept": "a",
+      "interactions": "passed"
+    },
+    {
+      "concept": "b",
+      "width": 390,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "b",
+      "width": 320,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "b",
+      "width": 768,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "b",
+      "width": 1440,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "b",
+      "state": "empty",
+      "value": 0,
+      "action": "开始学习"
+    },
+    {
+      "concept": "b",
+      "state": "done",
+      "value": 15,
+      "action": "查看今日成果"
+    },
+    {
+      "concept": "b",
+      "interactions": "passed"
+    },
+    {
+      "concept": "c",
+      "width": 390,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "c",
+      "width": 320,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 772,
+      "navBottom": 844,
+      "smallControls": []
+    },
+    {
+      "concept": "c",
+      "width": 768,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "c",
+      "width": 1440,
+      "overflow": false,
+      "title": "学习",
+      "fonts": true,
+      "contentBottom": 827,
+      "navBottom": 900,
+      "smallControls": []
+    },
+    {
+      "concept": "c",
+      "state": "empty",
+      "value": 0,
+      "action": "开始学习"
+    },
+    {
+      "concept": "c",
+      "state": "done",
+      "value": 15,
+      "action": "查看今日成果"
+    },
+    {
+      "concept": "c",
+      "interactions": "passed"
+    }
+  ],
+  "sourceUnchanged": true
+}

@@ -1,0 +1,7 @@
+{
+  "src/pages/levels/index.vue": "670b420e874d3904fb21ac7a0cd3816af6967091b6f68f31f11c766d7c644aae",
+  "src/pages/levels/components/LevelCategoryTabs.vue": "ffb41919fbadc2df3633ce131d7114f7a2684fc8089158551f50b84f1921af91",
+  "src/pages/levels/components/LevelOverview.vue": "67587d24aedebcd56a2e2cd725f34d98a4a0f9f00ffe16b852a7528fa62d0e55",
+  "src/pages/levels/components/LevelStageCard.vue": "44643b296f8af057ad64f32b8b5386b93037e8781f41fb36f8df3b37dba7fb71",
+  "e2e/levels-design.spec.ts": "131917981dc0c29f15a6999a30581b9d7043ed1f052a956fb2910cc8abefabfe"
+}

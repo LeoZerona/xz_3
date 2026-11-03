@@ -6,23 +6,27 @@ import { readStored, reportPersistenceError, saveStored } from '../../database/p
 import { useDatabaseTask } from '../../database/useDatabaseTask'
 
 import { onBackPress } from '@dcloudio/uni-app'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../../stores/theme'
+import { useLevelLayoutStore } from '../../stores/levelLayout'
 
 interface SettingItem {
   label: string
   url?: string
+  note?: string
 }
 
 const SENIOR_MODE_STORAGE_KEY = 'morning-pages:senior-mode'
 
-const primaryItems: SettingItem[] = [
+const { currentLayout } = storeToRefs(useLevelLayoutStore())
+const primaryItems = computed<SettingItem[]>(() => [
   { label: '学习提醒' },
   { label: '学习设置' },
-  { label: '显示设置', url: '/pages/theme/index' },
+  { label: '显示设置', url: '/pages/theme/index', note: '主题配色' },
+  { label: '关卡布局', url: '/pages/level-layout/index', note: currentLayout.value.name },
   { label: '隐私设置' },
-]
+])
 
 const informationItems: SettingItem[] = [
   { label: '缓存管理' },
@@ -121,7 +125,7 @@ onBackPress((event) => {
           @click="handleSetting(item)"
         >
           <text class="setting-label">{{ item.label }}</text>
-          <text v-if="item.url" class="setting-note">主题配色</text>
+          <text v-if="item.note" class="setting-note">{{ item.note }}</text>
           <van-icon class="setting-arrow" name="arrow" size="17" aria-hidden="true" />
         </button>
 

@@ -1,175 +1,75 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
+import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+import CharacterSearchButton from '../../components/CharacterSearchButton.vue'
+import { useThemeStore } from '../../stores/theme'
+import { useLevelLayoutStore } from '../../stores/levelLayout'
+import { useLevelStages } from './useLevelStages'
+import LevelCategoryTabs from './components/LevelCategoryTabs.vue'
+import LevelOverview from './components/LevelOverview.vue'
+import LevelStageCard from './components/LevelStageCard.vue'
+import LevelNotebookLayout from './components/LevelNotebookLayout.vue'
+import LevelFlashcardLayout from './components/LevelFlashcardLayout.vue'
+import LevelBoardLayout from './components/LevelBoardLayout.vue'
+import LevelBoardDock from './components/LevelBoardDock.vue'
 
-import { computed, onBeforeUnmount, ref } from "vue";
-import { applicationReady } from '../../database/application';
-import { useDatabaseTask } from '../../database/useDatabaseTask';
-import { onShow } from "@dcloudio/uni-app";
-import { storeToRefs } from "pinia";
-import { useThemeStore } from "../../stores/theme";
-
-import LevelCategoryTabs from './components/LevelCategoryTabs.vue';
-import LevelOverview from './components/LevelOverview.vue';
-import LevelStageCard from './components/LevelStageCard.vue';
-import AppBottomNavigation from "../../components/AppBottomNavigation.vue";
-import { getCategoryStageCount, LEVEL_CATEGORIES, loadLevelStages, type LevelCategory, type LevelStage } from "../../study/levelData";
-import { useLevelProgressStore } from "../../stores/levelProgress";
-import { useCharacterLearningStore } from "../../stores/characterLearning";
-
-const levelProgressStore = useLevelProgressStore();
-const { themeStyle, currentTheme } = storeToRefs(useThemeStore());
-const characterStore = useCharacterLearningStore();
-
-const activeCategory = ref<LevelCategory>("level1");
-const STAGE_BATCH_SIZE = 24;
-const visibleStageCount = ref(STAGE_BATCH_SIZE);
-const isNavigating = ref(false);
-const currentStages = ref<LevelStage[]>([]);
-const isLoadingStages = ref(false);
-const stageLoadError = ref("");
-let stageLoadRequestId = 0;
-
-onShow(() => {
-  isNavigating.value = false;
-  levelProgressStore.hydrate();
-  if (applicationReady.value) void loadCurrentStages(false);
-});
-useDatabaseTask(() => loadCurrentStages(true));
-
-const currentMeta = computed(() => LEVEL_CATEGORIES.find((c) => c.key === activeCategory.value)!);
-
-const completedCount = computed(() => levelProgressStore.completedCountByCategory[activeCategory.value] ?? 0);
-const totalCount = computed(() => getCategoryStageCount(activeCategory.value));
-const hasMoreStages = computed(() => currentStages.value.length < totalCount.value);
-const completedCharacterIds = computed(() => new Set(characterStore.completedIds));
-
-interface StageView {
-  stage: LevelStage;
-  completedChars: number;
-  isDone: boolean;
-  progress: number;
-}
-
-const visibleStages = computed<StageView[]>(() => currentStages.value.map((stage) => {
-    const isDone = levelProgressStore.isStageCompleted(stage.id);
-    if (stage.isPlaceholder) return { stage, completedChars: 0, isDone: false, progress: 0 };
-    const tracked = levelProgressStore.getStageCompletedCount(stage.id);
-    let learned = 0;
-    for (const character of stage.characters) {
-      if (completedCharacterIds.value.has(character.id)) learned += 1;
-    }
-    const completedChars = isDone ? stage.characters.length : Math.max(tracked, learned);
-    const progress = stage.characters.length === 0 ? 0 : Math.min(1, completedChars / stage.characters.length);
-    return { stage, completedChars, isDone, progress };
-  }));
-
-const featuredStage = computed(() => visibleStages.value.find((item) => !item.stage.isPlaceholder && !item.isDone && item.completedChars > 0)
-  ?? visibleStages.value.find((item) => !item.stage.isPlaceholder && !item.isDone)
-  ?? visibleStages.value.find((item) => !item.stage.isPlaceholder));
-const displayStages = computed(() => {
-  const current = featuredStage.value;
-  if (!current) return visibleStages.value;
-  return [current, ...visibleStages.value.filter((item) => item.stage.id !== current.stage.id)];
-});
-const featuredActionLabel = computed(() => {
-  if (featuredStage.value?.isDone) return '复习关卡';
-  return featuredStage.value && featuredStage.value.completedChars > 0 ? '继续学习' : '开始学习';
-});
-function handleFeaturedStart() {
-  const current = featuredStage.value;
-  if (current) handleStageTap(current.stage.id, false);
-}
+const { themeStyle, currentTheme } = storeToRefs(useThemeStore())
+const { currentLayoutId } = storeToRefs(useLevelLayoutStore())
+const { activeCategory, currentMeta, visibleStages, displayStages, featuredStage, completedCount, totalCount, hasMoreStages, isLoadingStages, stageLoadError, lastStudiedStage, lastStudyCategoryLabel, isLocating, scrollTargetId, locationRequest, switchCategory, loadMoreStages, loadCurrentStages, handleStageTap, handleStageSelection, handleLocateLastStage } = useLevelStages()
+const boardStageId = ref<string>()
+const selectedBoardStage = computed(() => visibleStages.value.find((item) => item.stage.id === boardStageId.value) ?? featuredStage.value ?? visibleStages.value[0])
+const isDirectoryLayout = computed(() => currentLayoutId.value === 'cards' || currentLayoutId.value === 'notebook')
 const pageThemeStyle = computed(() => ({
   ...themeStyle.value,
   '--level-action-fill': currentTheme.value.tokens.primaryStrong,
   '--level-accent-ink': currentTheme.value.tokens.primaryStrong,
-}));
-
-onBeforeUnmount(() => { stageLoadRequestId += 1; });
-
-function switchCategory(key: LevelCategory) {
-  if (key === activeCategory.value) return;
-  activeCategory.value = key;
-  visibleStageCount.value = STAGE_BATCH_SIZE;
-  currentStages.value = [];
-  void loadCurrentStages(true);
+}))
+watch(activeCategory, () => { boardStageId.value = undefined })
+watch(locationRequest, () => { boardStageId.value = lastStudiedStage.value?.stageId })
+function handleScrollLower() {
+  if (isDirectoryLayout.value) loadMoreStages()
 }
-
-function loadMoreStages() {
-  if (!hasMoreStages.value || isLoadingStages.value) return;
-  visibleStageCount.value = Math.min(totalCount.value, visibleStageCount.value + STAGE_BATCH_SIZE);
-  void loadCurrentStages(false);
-}
-
-async function loadCurrentStages(reset: boolean) {
-  const category = activeCategory.value;
-  if (reset) visibleStageCount.value = Math.min(STAGE_BATCH_SIZE, getCategoryStageCount(category));
-  const requestId = ++stageLoadRequestId;
-  isLoadingStages.value = true;
-  stageLoadError.value = "";
-  try {
-    const stages = await loadLevelStages(category, visibleStageCount.value);
-    if (requestId !== stageLoadRequestId || category !== activeCategory.value) return;
-    currentStages.value = stages;
-  } catch (error) {
-    if (requestId !== stageLoadRequestId || category !== activeCategory.value) return;
-    stageLoadError.value = error instanceof Error ? error.message : "关卡数据加载失败";
-  } finally {
-    if (requestId === stageLoadRequestId) isLoadingStages.value = false;
-  }
-}
-
-function handleStageTap(stageId: string, isPlaceholder: boolean) {
-  if (isPlaceholder) {
-    uni.showToast({ title: "该关卡敬请期待", icon: "none" });
-    return;
-  }
-  if (isNavigating.value) return;
-  isNavigating.value = true;
-  const cat = activeCategory.value;
-  uni.navigateTo({
-    url: "/pages/level-study/index?category=" + cat + "&stageId=" + stageId,
-    animationType: "slide-in-right",
-    animationDuration: 220,
-    fail: () => {
-      isNavigating.value = false;
-      uni.showToast({ title: "暂时无法进入学习", icon: "none" });
-    },
-  });
-}
-
 function showPlaceholder(label: string) {
-  uni.showToast({ title: label + "功能开发中", icon: "none" });
+  uni.showToast({ title: label + '功能开发中', icon: 'none' })
 }
-
 </script>
 
 <template>
-  <view class="levels-page" :style="pageThemeStyle">
+  <view class="levels-page" :class="'layout-' + currentLayoutId" :data-level-layout="currentLayoutId" :style="pageThemeStyle">
     <DatabaseStatus />
     <view class="levels-layout">
       <view class="levels-header">
         <view class="header-top">
-          <view class="header-copy">
-            <h1 class="header-title">关卡学习</h1>
-            <text class="header-description">每次十个字，慢慢积累。</text>
-          </view>
-          <button
-            v-if="featuredStage"
-            class="overview-start"
-            role="button"
-            tabindex="0"
-            :aria-label="featuredActionLabel + '，' + featuredStage.stage.title"
-            @click="handleFeaturedStart"
-            @keydown.enter="handleFeaturedStart"
-            @keydown.space.prevent="handleFeaturedStart"
-          >{{ featuredActionLabel }}<van-icon name="arrow" size="14" aria-hidden="true" /></button>
+          <LevelCategoryTabs :model-value="activeCategory" :appearance="currentLayoutId" @update:model-value="switchCategory" />
+          <CharacterSearchButton />
         </view>
-        <LevelCategoryTabs :model-value="activeCategory" @update:model-value="switchCategory" />
+        <view v-if="lastStudiedStage" class="last-study-bar">
+          <button
+            class="locate-last-study"
+            role="button"
+            :tabindex="isLocating ? -1 : 0"
+            :aria-label="'回到上次选择的' + lastStudyCategoryLabel + lastStudiedStage.title"
+            :aria-busy="isLocating"
+            :aria-disabled="isLocating"
+            :disabled="isLocating"
+            @click="handleLocateLastStage"
+            @keydown.enter.prevent="handleLocateLastStage"
+            @keydown.space.prevent="handleLocateLastStage"
+          >
+            <view class="last-study-copy">
+              <text class="last-study-label">最近选择</text>
+              <text class="last-study-title">{{ lastStudyCategoryLabel }} · {{ lastStudiedStage.title }}</text>
+            </view>
+            <text class="last-study-action">{{ isLocating ? '定位中…' : '回到该关' }}</text>
+            <van-icon name="arrow" size="14" aria-hidden="true" />
+          </button>
+        </view>
       </view>
 
       <scroll-view
-        :key="activeCategory"
+        :key="activeCategory + currentLayoutId"
         id="level-stage-panel"
         class="levels-scroll"
         role="tabpanel"
@@ -179,11 +79,14 @@ function showPlaceholder(label: string) {
         :bounces="false"
         :enhanced="false"
         :lower-threshold="160"
-        @scrolltolower="loadMoreStages"
+        :scroll-into-view="scrollTargetId"
+        :scroll-with-animation="false"
+        @scrolltolower="handleScrollLower"
       >
         <view class="levels-content">
           <LevelOverview
             :category="currentMeta"
+            :appearance="currentLayoutId"
             :total-count="totalCount"
             :completed-count="completedCount"
           />
@@ -198,7 +101,7 @@ function showPlaceholder(label: string) {
             <text class="stage-load-title">当前分类暂无关卡</text>
             <text>可以先从其他分类开始学习。</text>
           </view>
-          <view class="stage-grid" :aria-busy="isLoadingStages">
+          <view v-if="currentLayoutId === 'cards'" class="stage-grid" :aria-busy="isLoadingStages">
             <LevelStageCard
               v-for="item in displayStages"
               :key="item.stage.id"
@@ -206,10 +109,42 @@ function showPlaceholder(label: string) {
               :completed-chars="item.completedChars"
               :is-done="item.isDone"
               :progress="item.progress"
-              :is-current="item.stage.id === featuredStage?.stage.id"
+              :is-current="item.stage.id === lastStudiedStage?.stageId"
               @stage-select="handleStageTap"
             />
           </view>
+          <LevelNotebookLayout
+            v-else-if="currentLayoutId === 'notebook'"
+            :stages="visibleStages"
+            :featured-stage="featuredStage"
+            :last-studied-stage-id="lastStudiedStage?.stageId"
+            @stage-select="handleStageTap"
+          />
+          <LevelFlashcardLayout
+            v-else-if="currentLayoutId === 'flashcards'"
+            :key="activeCategory + ':' + locationRequest"
+            :stages="visibleStages"
+            :initial-stage-id="featuredStage?.stage.id"
+            :last-studied-stage-id="lastStudiedStage?.stageId"
+            :has-more="hasMoreStages"
+            :is-loading="isLoadingStages || isLocating"
+            :total-count="totalCount"
+            @load-more="loadMoreStages"
+            @stage-select="handleStageTap"
+            @stage-highlight="handleStageSelection"
+          />
+          <LevelBoardLayout
+            v-else
+            :key="activeCategory + ':' + locationRequest"
+            v-model="boardStageId"
+            :initial-stage-id="featuredStage?.stage.id"
+            :last-studied-stage-id="lastStudiedStage?.stageId"
+            :stages="visibleStages"
+            :has-more="hasMoreStages"
+            :is-loading="isLoadingStages || isLocating"
+            @load-more="loadMoreStages"
+            @stage-highlight="handleStageSelection"
+          />
           <view v-if="stageLoadError && visibleStages.length > 0" class="stage-inline-error" role="alert">
             <text>{{ stageLoadError }}</text>
             <button class="stage-retry" role="button" tabindex="0" @click="loadCurrentStages(false)" @keydown.enter="loadCurrentStages(false)" @keydown.space.prevent="loadCurrentStages(false)">重试</button>
@@ -225,12 +160,18 @@ function showPlaceholder(label: string) {
             @keydown.enter="loadMoreStages"
             @keydown.space.prevent="loadMoreStages"
           >
-            {{ isLoadingStages ? '正在加载…' : '继续加载关卡' }}（已显示 {{ visibleStages.length }}/{{ totalCount }}）
+            {{ isLoadingStages ? '正在加载…' : '继续加载关卡' }}（{{ isDirectoryLayout ? '已显示' : '已载入' }} {{ visibleStages.length }}/{{ totalCount }}）
             <van-icon name="arrow-down" size="12" aria-hidden="true" />
           </button>
-          <text v-else-if="visibleStages.length" class="directory-end">已显示全部 {{ totalCount }} 关</text>
+          <text v-else-if="visibleStages.length" class="directory-end">{{ isDirectoryLayout ? '已显示全部' : '已载入全部' }} {{ totalCount }} 关</text>
         </view>
       </scroll-view>
+      <LevelBoardDock
+        v-if="currentLayoutId === 'board' && selectedBoardStage"
+        :item="selectedBoardStage"
+        :is-last-studied="selectedBoardStage.stage.id === lastStudiedStage?.stageId"
+        @stage-select="handleStageTap"
+      />
     </view>
 
     <AppBottomNavigation active-tab="character" @unavailable="showPlaceholder" />
@@ -239,6 +180,7 @@ function showPlaceholder(label: string) {
 
 <style scoped lang="scss">
 .levels-page {
+  --levels-gutter: 32px;
   width: min(100%, 1100px);
   height: 100vh;
   height: 100dvh;
@@ -249,58 +191,42 @@ function showPlaceholder(label: string) {
   background: var(--color-page);
   color: var(--color-text);
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 .levels-layout {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 32px;
+  padding: 0 var(--levels-gutter);
 }
 .levels-header {
   flex: none;
   padding-top: calc(20px + var(--app-top-safe-area));
+  // 间距留在固定头部，目录滚动或定位后也不会贴住分类标签。
+  padding-bottom: 20px;
 }
 .header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
 }
-.header-title {
-  font-size: 26px;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-}
-.header-description {
-  display: block;
-  margin-top: 7px;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-.overview-start {
-  flex: none;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin: 0;
-  padding: 0 20px;
-  border-radius: 999px;
-  background: var(--level-action-fill);
-  color: var(--color-on-primary);
-  font-size: 14px;
-  font-weight: 600;
-}
+.header-top :deep(.category-tabs) { min-width: 0; }
+.last-study-bar { margin-top: 8px; }
+.last-study-copy { display: flex; align-items: center; flex: 1; min-width: 0; gap: 8px; }
+.last-study-label { flex: none; color: var(--color-text-secondary); font-size: 12px; }
+.last-study-title { overflow: hidden; color: var(--color-text); font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.locate-last-study { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 44px; margin: 0; padding: 0; border-radius: 0; background: transparent; color: var(--level-accent-ink); text-align: left; }
+.last-study-action { flex: none; font-size: 12px; }
+.locate-last-study[disabled] .last-study-action { color: var(--color-text-secondary); }
 .levels-scroll {
   flex: 1;
   height: 100%;
   min-height: 0;
 }
 .levels-content {
-  padding: 28px 0 32px;
+  padding: 4px 0 32px;
 }
 .stage-grid {
   display: grid;
@@ -350,7 +276,7 @@ function showPlaceholder(label: string) {
 .load-more-stages[disabled] {
   color: var(--color-text-secondary);
 }
-.overview-start:focus-visible,
+.locate-last-study:focus-visible,
 .stage-retry:focus-visible,
 .load-more-stages:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -377,6 +303,26 @@ function showPlaceholder(label: string) {
 .levels-page :deep(.navigation-content) {
   min-height: 64px;
 }
+.layout-cards {
+  background: var(--color-surface-muted);
+}
+.layout-flashcards {
+  background: var(--color-primary-soft);
+}
+.layout-flashcards :deep(.load-more-stages) {
+  background: var(--color-surface);
+}
+.layout-flashcards :deep(.category-tab),
+.layout-flashcards :deep(.overview-description),
+.layout-flashcards :deep(.overview-caption) {
+  color: var(--color-text);
+}
+.layout-board {
+  background: var(--color-surface-muted);
+}
+.layout-notebook .levels-content {
+  padding-top: 6px;
+}
 @media (min-width: 901px) {
   .levels-page :deep(.bottom-navigation) {
     padding: 0 max(32px, calc((100% - 640px) / 2));
@@ -391,53 +337,25 @@ function showPlaceholder(label: string) {
   }
 }
 @media (max-width: 900px) {
-  .levels-layout {
-    padding: 0 24px;
-  }
+  .levels-page { --levels-gutter: 24px; }
   .stage-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 600px) {
-  .levels-layout {
-    padding: 0 20px;
-  }
+  .levels-page { --levels-gutter: 20px; }
   .levels-header {
     padding-top: calc(14px + var(--app-top-safe-area));
   }
-  .header-title {
-    font-size: 24px;
-  }
-  .header-description {
-    font-size: 12px;
-  }
   .header-top {
-    margin-bottom: 22px;
     gap: 8px;
   }
-  .overview-start {
-    gap: 8px;
-    padding: 0 14px;
-    font-size: 13px;
-  }
-  .levels-content {
-    padding-top: 24px;
-  }
+  .header-top :deep(.category-tabs) { flex: 1; }
   .stage-grid {
     gap: 12px;
   }
 }
 @media (max-width: 360px) {
-  .levels-layout {
-    padding: 0 16px;
-  }
-  .header-description {
-    max-width: 145px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .overview-start {
-    transition: none;
-  }
+  .levels-page { --levels-gutter: 16px; }
 }
 </style>

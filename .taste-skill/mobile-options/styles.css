@@ -1,0 +1,166 @@
+@font-face {
+  font-family: StudyKai;
+  src: local('KaiTi'), url('/fonts/kai.ttf') format('truetype');
+  font-display: swap;
+}
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --primary: #1755e9;
+  --primaryStrong: #1045c6;
+  --primarySoft: #e7edff;
+  --onPrimary: #fff;
+  --page: #fff;
+  --topbar: #fafafa;
+  --surface: #fff;
+  --surfaceMuted: #f7f8fa;
+  --text: #20242d;
+  --textSecondary: #66707e;
+  --border: #edf0f4;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--topbar); color: var(--text); }
+h1, h2, h3, p { margin: 0; }
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: transparent; }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+b { font-weight: inherit; }
+svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.review-header { max-width: 1278px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 32px auto 28px; }
+.review-header h1 { font-size: 26px; font-weight: 650; }
+.review-header p { margin-top: 9px; color: var(--textSecondary); font-size: 14px; }
+.theme-control { display: flex; align-items: center; gap: 10px; white-space: nowrap; color: var(--textSecondary); font-size: 14px; }
+.theme-control select { min-height: 44px; padding: 0 32px 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); }
+.comparison { width: min(100% - 48px, 1278px); display: grid; grid-template-columns: repeat(3, 390px); gap: 54px; margin: 0 auto 32px; }
+.concept-label { padding: 0 2px 18px; }
+.concept-label h2 { font-size: 20px; font-weight: 650; }
+.concept-label p { margin-top: 7px; font-size: 13px; color: var(--textSecondary); }
+.phone { position: relative; display: flex; flex-direction: column; width: 390px; height: 844px; overflow: hidden; background: var(--page); color: var(--text); border-radius: 26px; outline: 1px solid var(--border); font-size: 14px; font-variant-numeric: tabular-nums; }
+.phone-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.phone-scroll::-webkit-scrollbar { display: none; }
+.phone-title { font-size: 25px; font-weight: 650; letter-spacing: -.025em; line-height: 1.3; }
+.course-tabs { display: flex; align-items: center; font-size: 13px; color: var(--textSecondary); }
+.course-tabs span { flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+.course-tabs .selected { color: var(--text); font-weight: 600; }
+.section-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.section-line h2 { font-size: 16px; font-weight: 600; }
+.section-line > span { font-size: 12px; color: var(--textSecondary); }
+.primary-action { min-height: 46px; display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 20px; border-radius: 999px; background: var(--primaryStrong); color: var(--onPrimary); font-size: 14px; font-weight: 600; }
+.text-action { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0; font-size: 14px; font-weight: 600; }
+.icon-control { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 25px; }
+.app-nav { z-index: 3; flex: none; height: 68px; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); background: var(--surface); }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--textSecondary); font-size: 11px; }
+.nav-item.active { color: var(--primaryStrong); }
+
+/* A: an open practice book, followed by a quiet reading list. */
+.a-head { padding: 30px 24px 16px; }
+.a-head p { margin-top: 9px; color: var(--textSecondary); font-size: 14px; }
+.a-tabs { margin: 0 24px; border-bottom: 1px solid var(--border); }
+.a-tabs .selected { position: relative; }
+.a-tabs .selected::after { position: absolute; right: 11px; bottom: -1px; left: 11px; height: 3px; background: var(--text); border-radius: 2px; content: ''; }
+.a-content { padding: 26px 24px 20px; }
+.a-book { margin-top: 16px; padding: 18px 18px 0; background: var(--surfaceMuted); border-radius: 14px; }
+.a-book-top { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 16px; }
+.a-copy-page { min-height: 144px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--surface); }
+.a-copy-page span { font-family: StudyKai, 'KaiTi', serif; font-size: 92px; line-height: 1; }
+.a-book-details { padding-top: 2px; }
+.a-book-details h3 { font-size: 16px; font-weight: 600; }
+.a-book-details p { margin-top: 5px; font-size: 12px; color: var(--textSecondary); }
+.a-nine { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px 6px; margin-top: 14px; }
+.a-nine span { text-align: center; font-family: StudyKai, 'KaiTi', serif; font-size: 23px; line-height: 1.15; }
+.a-book-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 60px; }
+.a-book-foot > span { font-size: 12px; color: var(--textSecondary); }
+.a-book-foot .text-action { color: var(--primaryStrong); }
+.a-next-heading { margin: 28px 0 8px; }
+.a-lesson { width: 100%; min-height: 83px; display: grid; grid-template-columns: 46px minmax(0, 1fr) 16px; align-items: center; gap: 14px; padding: 12px 0; text-align: left; border-bottom: 1px solid var(--border); }
+.a-lesson-glyph { font-family: StudyKai, 'KaiTi', serif; font-size: 37px; text-align: center; }
+.a-lesson-copy { min-width: 0; }
+.a-lesson-meta { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; }
+.a-lesson-meta span { font-size: 12px; color: var(--textSecondary); }
+.a-lesson-preview { display: flex; justify-content: space-between; margin-top: 9px; font-family: StudyKai, 'KaiTi', serif; font-size: 17px; }
+.a-lesson > svg { width: 15px; height: 15px; color: var(--textSecondary); }
+
+/* B: one lesson at a time; the card stack is the navigation object. */
+.phone-b { background: var(--primarySoft); }
+.b-head { padding: 30px 24px 16px; }
+.b-head p { margin-top: 8px; color: var(--text); font-size: 14px; }
+.b-tabs { margin: 0 24px; gap: 4px; }
+.b-tabs span { min-height: 38px; border-radius: 999px; }
+.b-tabs .selected { background: var(--surface); }
+.b-scope { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 22px 28px 0; font-size: 12px; }
+.deck-stage { position: relative; height: 351px; margin: 15px 28px 0; padding-top: 14px; }
+.deck-back { position: absolute; top: 14px; right: 11px; left: 11px; height: 306px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.deck-back-two { transform: rotate(6deg); }
+.deck-back-one { transform: rotate(-5deg); }
+.flash-card { position: relative; z-index: 1; min-height: 313px; margin: 0 9px; padding: 24px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); }
+.flash-card-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.flash-card-header h2 { font-size: 19px; font-weight: 650; }
+.flash-card-header span { color: var(--textSecondary); font-size: 12px; }
+.flash-glyphs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 13px 4px; margin: 30px 0; }
+.flash-glyphs span { font-size: 33px; text-align: center; line-height: 1.35; }
+.flash-card .primary-action { width: 100%; margin-top: 2px; }
+.b-stepper { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: -4px; font-size: 14px; }
+.b-stepper .icon-control { background: var(--surface); }
+.b-jump { margin: 22px 24px 20px; }
+.b-jump .section-line > span { color: var(--text); }
+.b-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.b-pick { min-height: 44px; border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; }
+.b-pick.active { background: var(--primaryStrong); color: var(--onPrimary); }
+
+/* C: a compact board, followed by a preview of the selected lesson. */
+.phone-c { background: var(--surfaceMuted); }
+.c-head { padding: 30px 20px 14px; }
+.c-head p { margin-top: 8px; color: var(--textSecondary); font-size: 14px; }
+.c-tabs { margin: 0 20px; gap: 4px; }
+.c-tabs span { min-height: 40px; border-radius: 10px; }
+.c-tabs .selected { background: var(--surface); }
+.c-scope { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 22px 20px 14px; }
+.c-scope h2 { font-size: 18px; font-weight: 650; }
+.c-scope p { margin-top: 5px; font-size: 12px; color: var(--textSecondary); }
+.c-pages { display: flex; align-items: center; gap: 0; font-size: 12px; }
+.c-pages .icon-control { width: 44px; height: 44px; }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 0 20px 16px; }
+.board-tile { min-width: 0; height: 103px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 2px; padding: 10px 6px 8px; border: 2px solid transparent; border-radius: 17px; background: var(--surface); color: var(--text); }
+.board-number { font-size: 12px; color: var(--textSecondary); }
+.board-glyph { font-size: 35px; line-height: 1.2; }
+.board-progress { font-size: 12px; color: var(--textSecondary); }
+.board-tile.active { background: var(--primaryStrong); color: var(--onPrimary); }
+.board-tile.active .board-number, .board-tile.active .board-progress { color: var(--onPrimary); }
+.c-dock { z-index: 2; flex: none; min-height: 96px; display: grid; grid-template-columns: minmax(0, 1fr) 48px; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface); }
+.dock-title { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 600; }
+.dock-title span { font-size: 12px; font-weight: 400; color: var(--textSecondary); }
+.dock-glyphs { display: flex; justify-content: space-between; margin-top: 10px; font-size: 18px; }
+.c-dock .primary-action { width: 48px; height: 48px; padding: 0; border-radius: 16px; }
+
+dialog { width: min(360px, calc(100vw - 32px)); padding: 22px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); color: var(--text); }
+dialog::backdrop { background: rgb(0 0 0 / 35%); }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dialog-head h2 { font-size: 20px; font-weight: 600; }
+.dialog-subtitle { margin: 4px 0 22px; color: var(--textSecondary); font-size: 13px; }
+.dialog-characters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px 8px; }
+.dialog-character { text-align: center; }
+.dialog-character strong { display: block; font-size: 27px; font-weight: 400; }
+.dialog-character span { display: block; margin-top: 6px; color: var(--textSecondary); font-size: 12px; }
+dialog .primary-action { width: 100%; margin-top: 28px; }
+
+.one-concept { background: var(--page); }
+.one-concept .review-header, .one-concept .concept-label { display: none; }
+.one-concept .comparison { width: 100%; display: block; margin: 0; }
+.one-concept .concept:not(.chosen) { display: none; }
+.one-concept .phone { width: 100%; height: 100dvh; border-radius: 0; outline: 0; }
+@media (max-width: 1330px) {
+  body:not(.one-concept) .review-header { margin-right: 24px; margin-left: 24px; }
+  body:not(.one-concept) .comparison { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  body:not(.one-concept) .phone { width: 100%; }
+}
+@media (max-width: 1000px) {
+  body:not(.one-concept) .review-header { flex-direction: column; align-items: flex-start; }
+  body:not(.one-concept) .comparison { width: 390px; grid-template-columns: 390px; gap: 32px; }
+}
+@media (max-width: 420px) {
+  body:not(.one-concept) .comparison { width: calc(100% - 24px); grid-template-columns: minmax(0, 1fr); }
+  .a-head, .b-head { padding-top: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

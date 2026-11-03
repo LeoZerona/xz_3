@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>关卡学习 · 三种手机布局</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="review-header">
+    <div>
+      <h1>先选布局，再决定细节。</h1>
+      <p>三种方案使用同一份真实字表与零进度。仅为布局预览，不写入学习记录。</p>
+    </div>
+    <label class="theme-control">预览用户配色<select id="theme-select" aria-label="预览用户配色"></select></label>
+  </header>
+  <main class="comparison">
+    <section class="concept" data-concept="a">
+      <header class="concept-label"><h2>A · 手帐字帖</h2><p>纸页与目录，安静地逐关学习</p></header>
+      <div class="phone phone-a" aria-label="A 手帐字帖手机布局">
+        <div class="phone-scroll">
+          <header class="a-head"><h1 class="phone-title">关卡学习</h1><p>一关十字，慢慢记住。</p></header>
+          <div class="a-tabs course-tabs" aria-label="字表分类"><span>偏旁部首</span><span class="selected">一级汉字</span><span>二级汉字</span><span>三级汉字</span></div>
+          <div class="a-content">
+            <div class="section-line"><h2>这一关，从「一」开始</h2><span>10 个字</span></div>
+            <article class="a-book" id="a-book"></article>
+            <div class="section-line a-next-heading"><h2>接下来学什么</h2><span>共 <b data-total></b> 关</span></div>
+            <div class="a-list" id="a-list"></div>
+          </div>
+        </div>
+        <div class="app-nav" data-app-nav></div>
+      </div>
+    </section>
+    <section class="concept" data-concept="b">
+      <header class="concept-label"><h2>B · 口袋闪卡</h2><p>一次看一关，像翻一叠卡片</p></header>
+      <div class="phone phone-b" aria-label="B 口袋闪卡手机布局">
+        <div class="phone-scroll">
+          <header class="b-head"><h1 class="phone-title">关卡学习</h1><p>先专注眼前这十个字。</p></header>
+          <div class="b-tabs course-tabs" aria-label="字表分类"><span>部首</span><span class="selected">一级汉字</span><span>二级</span><span>三级</span></div>
+          <div class="b-scope"><span>一级汉字</span><span>已完成 0 / <b data-total></b> 关</span></div>
+          <div class="deck-stage">
+            <div class="deck-back deck-back-two" aria-hidden="true"></div>
+            <div class="deck-back deck-back-one" aria-hidden="true"></div>
+            <article class="flash-card" id="flash-card"></article>
+          </div>
+          <div class="b-stepper"><button id="b-prev" class="icon-control" aria-label="上一关">‹</button><span id="b-position"></span><button id="b-next" class="icon-control" aria-label="下一关">›</button></div>
+          <div class="b-jump"><div class="section-line"><h2>想换一关？</h2><span>自由选择</span></div><div class="b-picks" id="b-picks"></div></div>
+        </div>
+        <div class="app-nav" data-app-nav></div>
+      </div>
+    </section>
+    <section class="concept" data-concept="c">
+      <header class="concept-label"><h2>C · 闯关棋盘</h2><p>一眼看见更多关卡，点字选关</p></header>
+      <div class="phone phone-c" aria-label="C 闯关棋盘手机布局">
+        <div class="phone-scroll">
+          <header class="c-head"><h1 class="phone-title">关卡学习</h1><p>点一个字，开启一关。</p></header>
+          <div class="c-tabs course-tabs" aria-label="字表分类"><span>偏旁部首</span><span class="selected">一级汉字</span><span>二级汉字</span><span>三级汉字</span></div>
+          <div class="c-scope"><div><h2>一级汉字</h2><p>已完成 0 / <b data-total></b> 关</p></div><div class="c-pages"><button id="c-prev" class="icon-control" aria-label="上一组关卡">‹</button><span id="c-range"></span><button id="c-next" class="icon-control" aria-label="下一组关卡">›</button></div></div>
+          <div class="board" id="board"></div>
+        </div>
+        <div class="c-dock" id="c-dock"></div>
+        <div class="app-nav" data-app-nav></div>
+      </div>
+    </section>
+  </main>
+  <dialog id="lesson-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-head"><h2 id="dialog-title"></h2><button id="dialog-close" class="icon-control" aria-label="关闭关卡预览">×</button></div>
+    <p class="dialog-subtitle">本关汉字</p><div id="dialog-characters" class="dialog-characters"></div>
+    <button id="dialog-return" class="primary-action">返回布局</button>
+  </dialog>
+  <script type="module" src="preview.js"></script>
+</body>
+</html>

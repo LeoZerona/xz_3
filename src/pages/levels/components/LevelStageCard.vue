@@ -16,19 +16,21 @@ const emit = defineEmits<{
 const previewCharacters = computed(() => props.stage.characters.slice(0, 10))
 const statusLabel = computed(() => {
   if (props.stage.isPlaceholder) return '待上线'
+  if (props.isCurrent) return props.isDone ? '上次选择 · 已完成' : '上次选择'
   if (props.isDone) return '已完成'
   if (props.completedChars > 0) return '进行中'
-  return props.isCurrent ? '从这里开始' : ''
+  return ''
 })
 const actionLabel = computed(() => {
   if (props.stage.isPlaceholder) return '敬请期待'
   if (props.isDone) return '复习关卡'
+  if (props.isCurrent) return '继续学习'
   return props.completedChars > 0 ? '继续学习' : '开始学习'
 })
 const progressLabel = computed(() => props.stage.isPlaceholder
   ? '字表准备中'
   : props.completedChars + ' / ' + props.stage.characters.length + ' 字')
-const accessibleLabel = computed(() => props.stage.title + '，' + progressLabel.value + '，' + actionLabel.value)
+const accessibleLabel = computed(() => props.stage.title + '，' + progressLabel.value + (props.isCurrent ? '，上次选择' : '') + '，' + actionLabel.value)
 
 function handleSelect() {
   emit('stage-select', props.stage.id, props.stage.isPlaceholder)
@@ -37,11 +39,13 @@ function handleSelect() {
 
 <template>
   <view
+    :id="'stage-' + stage.id"
     class="stage-card"
     :class="{ 'is-current': isCurrent, 'is-done': isDone, 'is-placeholder': stage.isPlaceholder }"
     role="button"
     tabindex="0"
     :aria-label="accessibleLabel"
+    :aria-current="isCurrent ? 'step' : undefined"
     @click="handleSelect"
     @keydown.enter="handleSelect"
     @keydown.space.prevent="handleSelect"
@@ -76,12 +80,13 @@ function handleSelect() {
   position: relative;
   min-width: 0;
   padding: 20px;
-  border-radius: 20px;
-  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   font-variant-numeric: tabular-nums;
-  transition: transform 140ms ease;
+  transition: transform 140ms ease, border-color 140ms ease;
 }
 .stage-card-header,
 .stage-footer {
@@ -90,6 +95,7 @@ function handleSelect() {
   justify-content: space-between;
   gap: 8px;
 }
+.stage-card-header { color: var(--level-accent-ink); }
 .stage-title {
   font-size: 15px;
   font-weight: 650;
@@ -118,8 +124,11 @@ function handleSelect() {
   font-size: 12px;
 }
 .stage-footer {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
   color: var(--color-text-secondary);
 }
+.stage-footer :deep(.van-icon) { color: var(--level-accent-ink); }
 .stage-progress-text {
   font-size: 13px;
   white-space: nowrap;
@@ -143,18 +152,24 @@ function handleSelect() {
   background: var(--color-primary);
 }
 .is-current {
+  border-color: var(--color-primary);
   background: var(--color-primary-soft);
 }
-.is-current .stage-footer,
+.is-current .stage-card-header,
+.is-current .stage-title,
+.is-current .stage-footer :deep(.van-icon),
 .is-current .stage-status {
+  color: var(--level-accent-ink);
+}
+.is-current .stage-footer {
   color: var(--color-text);
 }
-.is-current .stage-title {
-  color: var(--color-text);
-}
+.is-current .stage-status { font-weight: 600; }
 .is-placeholder {
   color: var(--color-text-secondary);
 }
+.is-placeholder .stage-card-header,
+.is-placeholder .stage-footer :deep(.van-icon) { color: var(--color-text-secondary); }
 .stage-card:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 3px;
@@ -162,6 +177,7 @@ function handleSelect() {
 @media (hover: hover) {
   .stage-card:hover {
     transform: translateY(-3px);
+    border-color: var(--color-primary);
   }
 }
 @media (max-width: 600px) {

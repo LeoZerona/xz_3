@@ -1,0 +1,624 @@
+{
+ "url": "http://127.0.0.1:18624/?only=a",
+ "at": "2026-11-01T04:36:53.408Z",
+ "allow": [
+  "headline-lines"
+ ],
+ "viewports": [
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.39
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 844,
+     "screens": 1,
+     "words": 134,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 11,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "关卡学习",
+     "words": 1,
+     "chars": 4,
+     "lines": 1,
+     "size": 25,
+     "vw": 6.4,
+     "font": "-apple-system",
+     "weight": 650,
+     "tracking": -0.02,
+     "leading": 1.3,
+     "top": 26,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "关卡学习",
+     "words": 1,
+     "lines": 1,
+     "size": 25,
+     "font": "-apple-system"
+    },
+    "headings": [
+     {
+      "text": "关卡学习",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 25,
+      "vw": 6.4,
+      "font": "-apple-system",
+      "weight": 650,
+      "tracking": -0.025,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 26,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "一",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 92,
+      "vw": 23.6,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.3,
+      "top": 229,
+      "tag": "div",
+      "kind": "heading"
+     },
+     {
+      "text": "乙 二 十 丁 厂 七 卜 八 人",
+      "words": 9,
+      "chars": 17,
+      "lines": 3,
+      "size": 23,
+      "vw": 5.9,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "right",
+      "widthRatio": 0.45,
+      "top": 287,
+      "tag": "div",
+      "kind": "heading"
+     },
+     {
+      "text": "入",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 517,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "又",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 600,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "寸",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 683,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "千",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 766,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "丸",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 849,
+      "tag": "span",
+      "kind": "heading"
+     },
+     {
+      "text": "已",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 37,
+      "vw": 9.5,
+      "font": "StudyKai",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": true,
+      "align": "center",
+      "position": "left",
+      "widthRatio": 0.12,
+      "top": 932,
+      "tag": "span",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 3,
+     "over2Lines": 1,
+     "statements": 0,
+     "centered": 7,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.68,
+       "mono": false
+      },
+      {
+       "family": "StudyKai",
+       "share": 0.32,
+       "mono": true
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      11,
+      12,
+      13,
+      14,
+      16,
+      17,
+      23,
+      25,
+      37,
+      92
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 92,
+      "vw": 23.6,
+      "font": "StudyKai",
+      "text": "一"
+     },
+     "monoShare": 0.32,
+     "monoProseShare": 0.32,
+     "monoFamilies": [
+      "StudyKai"
+     ],
+     "monoSamples": [
+      "一",
+      "乙",
+      "二",
+      "十",
+      "丁",
+      "厂"
+     ],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.08,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "这一关，从「一」开始",
+      "above": "一",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 16,
+      "top": 174
+     },
+     {
+      "text": "接下来学什么",
+      "above": "入",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 16,
+      "top": 468
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#ffffff",
+     "bodyBgHsl": {
+      "h": 0,
+      "s": 0,
+      "l": 1
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#ffffff",
+       "top": 0,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#20242d",
+       "share": 0.56
+      },
+      {
+       "color": "#66707e",
+       "share": 0.4
+      },
+      {
+       "color": "#1045c6",
+       "share": 0.04
+      }
+     ],
+     "button": null,
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 0,
+     "inHero": 0,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": []
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 8,
+     "hairlineSamples": [
+      "div.a-tabs.course-tabs 342px",
+      "button.a-lesson 342px",
+      "button.a-lesson 342px",
+      "button.a-lesson 342px",
+      "button.a-lesson 342px"
+     ],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 14,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 103,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "studykai"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 844,
+    "margins": {
+     "left": 24,
+     "right": 24
+    },
+    "sections": [
+     {
+      "sel": "article#a-book.a-book",
+      "tag": "article",
+      "top": 211,
+      "height": 229,
+      "words": 11,
+      "media": 0,
+      "middle": 83,
+      "heading": {
+       "text": "关卡 01",
+       "size": 16,
+       "tag": "h3"
+      },
+      "left": 42,
+      "right": 42,
+      "textLeft": 42,
+      "textRight": 72,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div#a-list.a-list",
+      "tag": "div",
+      "top": 497,
+      "height": 498,
+      "words": 20,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 24,
+      "right": 24,
+      "textLeft": 84,
+      "textRight": 54,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "关卡学习",
+      "size": 25,
+      "top": 26,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 24,
+      "n": 3
+     },
+     {
+      "x": 174,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 4,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#ffffff",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 24,
+     "right": 24
+    },
+    "hero": {
+     "text": "关卡学习",
+     "words": 1,
+     "chars": 4,
+     "lines": 1,
+     "size": 25,
+     "vw": 6.4,
+     "font": "-apple-system",
+     "weight": 650,
+     "tracking": -0.02,
+     "leading": 1.3,
+     "top": 26,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 1,
+     "radii": [
+      [
+       14,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 1,
+     "kpiMax": 12
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.44,
+     "tiny": 0,
+     "tinySamples": [],
+     "sizes": [
+      11,
+      12,
+      13,
+      14,
+      16,
+      25
+     ]
+    },
+    "title": {
+     "text": "关卡学习",
+     "size": 25,
+     "top": 26
+    },
+    "colourShare": 0.001
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [],
+ "images": [
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\mobile-options\\inspect\\a\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\mobile-options\\inspect\\a\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

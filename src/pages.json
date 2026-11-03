@@ -67,6 +67,15 @@
       }
     },
     {
+      "path": "pages/character-compare/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "字形比较",
+        "disableScroll": false,
+        "app-plus": { "bounce": "none" }
+      }
+    },
+    {
       "path": "pages/theme/index",
       "style": {
         "navigationStyle": "custom",
@@ -86,6 +95,15 @@
         "app-plus": {
           "bounce": "none"
         }
+      }
+    },
+    {
+      "path": "pages/level-layout/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "关卡布局",
+        "disableScroll": false,
+        "app-plus": { "bounce": "none" }
       }
     },
     {

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
 import { useProfileStore } from '../../stores/profile'
 import { useThemeStore } from '../../stores/theme'
+import { useLevelLayoutStore } from '../../stores/levelLayout'
 
 type MenuItem = {
   label: string
@@ -17,10 +18,11 @@ type MenuItem = {
 const profileStore = useProfileStore()
 const { profile } = storeToRefs(profileStore)
 const { themeStyle } = storeToRefs(useThemeStore())
+const { currentLayout } = storeToRefs(useLevelLayoutStore())
 
 onMounted(() => { void profileStore.initialize() })
 
-const menuSections: MenuItem[][] = [
+const menuSections = computed<MenuItem[][]>(() => [
   [
     { label: '我的日历', icon: 'calendar-o' },
     { label: '我的学习', icon: 'play-circle-o' },
@@ -32,6 +34,7 @@ const menuSections: MenuItem[][] = [
   ],
   [
     { label: '主题配色', icon: 'brush-o', url: '/pages/theme/index', note: '跟随全局' },
+    { label: '关卡布局', icon: 'apps-o', url: '/pages/level-layout/index', note: currentLayout.value.name },
     { label: '学习提醒', icon: 'clock-o' },
     { label: '数据与隐私', icon: 'shield-o' },
   ],
@@ -39,7 +42,7 @@ const menuSections: MenuItem[][] = [
     { label: '帮助与反馈', icon: 'question-o' },
     { label: '关于我们', icon: 'info-o' },
   ],
-]
+])
 
 function showPlaceholder(label: string) {
   uni.showToast({ title: `${label}功能开发中`, icon: 'none' })

@@ -2,8 +2,9 @@
 import { nextTick } from 'vue'
 import { LEVEL_CATEGORIES } from '../../../study/levelData'
 import type { LevelCategory } from '../../../study/levelData'
+import type { LevelLayoutId } from '../../../study/levelLayouts'
 
-const props = defineProps<{ modelValue: LevelCategory }>()
+const props = withDefaults(defineProps<{ modelValue: LevelCategory; appearance?: LevelLayoutId }>(), { appearance: 'cards' })
 const emit = defineEmits<{
   (event: 'update:modelValue', value: LevelCategory): void
 }>()
@@ -29,7 +30,7 @@ async function handleKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <view class="category-tabs" role="tablist" aria-label="关卡分类">
+  <view class="category-tabs" :class="'tabs-' + appearance" role="tablist" aria-label="关卡分类">
     <view
       v-for="tab in LEVEL_CATEGORIES"
       :id="`category-${tab.key}`"
@@ -80,6 +81,38 @@ async function handleKeydown(event: KeyboardEvent) {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+.tabs-cards {
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--color-page);
+}
+.tabs-cards .category-tab {
+  border-radius: 12px;
+}
+.tabs-cards .category-tab.is-active {
+  background: var(--level-action-fill);
+  color: var(--color-on-primary);
+}
+.tabs-notebook {
+  border-bottom: 1px solid var(--color-border);
+}
+.tabs-notebook .category-tab.is-active {
+  position: relative;
+  background: transparent;
+}
+.tabs-notebook .category-tab.is-active::after {
+  position: absolute;
+  right: 10px;
+  bottom: -1px;
+  left: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-text);
+  content: '';
+}
+.tabs-flashcards .category-tab { border-radius: 999px; }
+.tabs-flashcards .category-tab.is-active,
+.tabs-board .category-tab.is-active { background: var(--color-surface); }
 @media (max-width: 600px) {
   .category-tabs {
     width: 100%;
@@ -88,8 +121,12 @@ async function handleKeydown(event: KeyboardEvent) {
   .category-tab {
     flex: 1;
     min-width: 0;
-    padding: 0 8px;
+    padding: 0 2px;
     font-size: 13px;
   }
+}
+@media (max-width: 360px) {
+  .category-tabs { gap: 2px; }
+  .category-tab { font-size: 12px; }
 }
 </style>

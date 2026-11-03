@@ -6,6 +6,7 @@ import { onBackPress, onHide } from '@dcloudio/uni-app'
 import { prepareApplication } from '../../database/application'
 import { storeToRefs } from 'pinia'
 import AppBottomNavigation from '../../components/AppBottomNavigation.vue'
+import CharacterSearchButton from '../../components/CharacterSearchButton.vue'
 import { getBooksCatalog } from '../../reading/booksCatalog'
 import { addCustomBook, createCustomRecord, readCustomBooks, removeCustomBook } from '../../reading/customBooks'
 import type { CustomBookRecord } from '../../reading/customBooks'
@@ -549,7 +550,8 @@ function handleReaderMenuToggle(): void {
 
 function handleReaderTap(): void {
   if (Date.now() < suppressReaderTapUntil) return
-  if (canRevealInFullscreen.value) handleRevealNextReference()
+  // 分页重新测量期间仍保持“揭示文字”的意图，避免一次轻点意外打开菜单。
+  if (prefs.value.hideReferenceText && !areFullscreenControlsConcealed.value) handleRevealNextReference()
   else handleReaderMenuToggle()
 }
 
@@ -1073,7 +1075,7 @@ function handleKeydown(e: KeyboardEvent) {
       <view class="library-header">
         <view class="library-header-top">
           <text class="library-title">阅读书库</text>
-          <text class="library-count">{{ books.length }} 本</text>
+          <view class="library-header-actions"><text class="library-count">{{ books.length }} 本</text><CharacterSearchButton /></view>
         </view>
         <text class="library-sub">选择书籍开始对照阅读，支持内置与本地上传</text>
       </view>
@@ -1237,6 +1239,7 @@ function handleKeydown(e: KeyboardEvent) {
           </view>
         </view>
         <view class="top-overlay-actions">
+          <CharacterSearchButton />
           <view class="top-icon-btn" role="button" tabindex="0" aria-label="目录" @click="handleCatalogToggle" @keydown.enter="handleCatalogToggle" @keydown.space.prevent="handleCatalogToggle"><text class="top-icon-text">≡</text></view>
           <view class="top-icon-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="top-icon-text">⇄</text></view>
           <view class="top-icon-btn top-icon-btn--more" role="button" tabindex="0" aria-label="更多设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings"><text class="top-icon-text">⋯</text></view>
@@ -1254,25 +1257,29 @@ function handleKeydown(e: KeyboardEvent) {
         @click="handleReaderTap"
       >
         <view class="reader-content-inner">
-          <view
-            v-if="activeBook?.fileName"
-            class="reader-file-heading"
-            role="button"
-            tabindex="0"
-            aria-label="打开阅读菜单"
-            :aria-expanded="showReaderChrome"
-            title="阅读菜单"
-            @touchstart.stop
-            @touchmove.stop
-            @touchend.stop
-            @touchcancel.stop
-            @click.stop="handleReaderMenuToggle"
-            @keydown.enter.stop.prevent="handleReaderMenuToggle"
-            @keydown.space.stop.prevent
-            @keyup.space.stop.prevent="handleReaderMenuToggle"
-          >
-            <text class="reader-file-name">{{ activeBook.fileName }}</text>
-            <text class="reader-menu-indicator" aria-hidden="true">☰</text>
+          <view class="reader-file-toolbar">
+            <view
+              v-if="activeBook?.fileName"
+              class="reader-file-heading"
+              role="button"
+              tabindex="0"
+              aria-label="打开阅读菜单"
+              :aria-expanded="showReaderChrome"
+              title="阅读菜单"
+              @touchstart.stop
+              @touchmove.stop
+              @touchend.stop
+              @touchcancel.stop
+              @click.stop="handleReaderMenuToggle"
+              @keydown.enter.stop.prevent="handleReaderMenuToggle"
+              @keydown.space.stop.prevent
+              @keyup.space.stop.prevent="handleReaderMenuToggle"
+            >
+              <text class="reader-file-name">{{ activeBook.fileName }}</text>
+              <text class="reader-menu-indicator" aria-hidden="true">☰</text>
+            </view>
+            <text v-else class="reader-file-name">{{ activeBook?.name ?? '对照阅读' }}</text>
+            <CharacterSearchButton v-if="!showReaderChrome" />
           </view>
 
           <view id="reading-page-stage" class="reading-page-stage" :class="{ 'is-ready': isPaginationReady }">
@@ -1465,6 +1472,7 @@ function handleKeydown(e: KeyboardEvent) {
   border-bottom: 1px solid var(--color-border);
 }
 .library-header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.library-header-actions { display: flex; align-items: center; gap: 8px; }
 .library-title { font-size: 17px; font-weight: 800; color: var(--color-text); letter-spacing: 0.02em; }
 .library-count { font-size: 11px; color: var(--color-text-muted); background: var(--color-surface-muted); border: 1px solid var(--color-border); padding: 3px 10px; border-radius: 999px; }
 .library-sub { margin-top: 6px; font-size: 11px; color: var(--color-text-muted); }
@@ -1751,6 +1759,16 @@ function handleKeydown(e: KeyboardEvent) {
 .upload-icon { font-size: 16px; font-weight: 800; color: #fff; line-height: 1; }
 .upload-text { font-size: 13px; font-weight: 800; color: #fff; }
 .upload-hint { font-size: 10px; color: var(--color-text-muted); text-align: center; }
+@media (max-height: 600px) and (max-width: 560px) {
+  .library-header { padding-bottom: 10px; }
+  .library-sub, .library-tip, .upload-hint { display: none; }
+  .library-body { gap: 6px; padding: 8px 12px; }
+  .library-tab-wrap { gap: 6px; }
+  .recent-entry-card { gap: 8px; padding: 8px 10px; }
+  .recent-entry-head, .recent-entry-meta { display: none; }
+  .recent-entry-icon { width: 32px; height: 32px; }
+  .library-upload-bar { gap: 0; padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+}
 .reader-view-wrap {
   flex: 1;
   min-height: 0;
@@ -2120,7 +2138,8 @@ function handleKeydown(e: KeyboardEvent) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.reader-file-heading { flex: none; display: flex; align-items: center; gap: 8px; height: 20px; }
+.reader-file-toolbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 44px; }
+.reader-file-heading { min-width: 0; flex: 1; display: flex; align-items: center; gap: 8px; height: 44px; }
 .reader-file-heading:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .reader-menu-indicator { flex: none; color: var(--color-text-secondary); font-size: 14px; }
 .reading-status-bar.is-concealed { visibility: hidden; }

@@ -1,0 +1,1493 @@
+{
+ "url": "http://127.0.0.1:18573/#/pages/index/index",
+ "at": "2026-11-01T05:12:02.096Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.11
+   ],
+   "motion": {
+    "elements": 2,
+    "css": 1,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 844,
+     "screens": 1,
+     "words": 22,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 0,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 6.2,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 11.3,
+      "font": "builtin-1sva34g",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.16,
+      "top": 104,
+      "tag": "uni-view",
+      "kind": "heading"
+     },
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 11.3,
+      "font": "builtin-q5yuss",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.16,
+      "top": 206,
+      "tag": "uni-view",
+      "kind": "heading"
+     },
+     {
+      "text": "0/0",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "-apple-system",
+      "weight": 700,
+      "tracking": -0.03,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.29,
+      "top": 415,
+      "tag": "uni-text",
+      "kind": "heading"
+     },
+     {
+      "text": "0/20",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "-apple-system",
+      "weight": 700,
+      "tracking": -0.03,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.29,
+      "top": 415,
+      "tag": "uni-text",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 4,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "builtin-1sva34g",
+       "share": 0.01,
+       "mono": false
+      },
+      {
+       "family": "builtin-q5yuss",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24,
+      44
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 44,
+      "vw": 11.3,
+      "font": "builtin-1sva34g",
+      "text": "方"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.02,
+     "smallText": 2
+    },
+    "eyebrows": [
+     {
+      "text": "已新学",
+      "above": "0/0",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 392
+     },
+     {
+      "text": "已复习",
+      "above": "0/20",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 392
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#ffffff",
+     "bodyBgHsl": {
+      "h": 0,
+      "s": 0,
+      "l": 1
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#ffffff",
+       "top": 0,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#20242d",
+       "share": 0.46
+      },
+      {
+       "color": "#66707e",
+       "share": 0.34
+      },
+      {
+       "color": "#9aa3af",
+       "share": 0.09
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.06
+      },
+      {
+       "color": "#1755e9",
+       "share": 0.06
+      }
+     ],
+     "button": {
+      "bg": "#1755e9",
+      "hsl": {
+       "h": 222,
+       "s": 0.83,
+       "l": 0.5
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "关卡学习",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "对照阅读",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 9,
+     "height": 58,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "开始学习",
+      "复习"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "uni-view.font-cover.tone-green → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.font-cover.tone-blue → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.bottom-navigation → rgba(32, 36, 45, 0.05) 0px -4px 16px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "uni-view.font-row 358px",
+      "uni-view.font-row 358px",
+      "uni-view.bottom-navigation 390px"
+     ],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 57,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "vant-icon",
+     "builtin-q5yuss",
+     "builtin-1sva34g"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 844,
+    "margins": {
+     "left": 16,
+     "right": 0
+    },
+    "sections": [
+     {
+      "sel": "uni-view.font-list",
+      "tag": "uni-view",
+      "top": 88,
+      "height": 212,
+      "words": 4,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 98,
+      "right": 124,
+      "textLeft": 98,
+      "textRight": 124,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "uni-view.plan",
+      "tag": "uni-view",
+      "top": 300,
+      "height": 258,
+      "words": 11,
+      "media": 0,
+      "middle": 12,
+      "heading": {
+       "text": "0/0",
+       "size": 24,
+       "tag": "span"
+      },
+      "left": 16,
+      "right": 16,
+      "textLeft": 16,
+      "textRight": 28,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [
+     {
+      "top": 532,
+      "height": 256
+     }
+    ],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#ffffff",
+    "sidebar": null,
+    "topbar": {
+     "h": 88
+    },
+    "canvas": {
+     "left": 16,
+     "right": 28
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 6.2,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 0,
+     "firstScreen": 0,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 1,
+    "panels": {
+     "count": 0,
+     "radii": [],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.56,
+     "tiny": 7,
+     "tinySamples": [
+      "系统内置的本地字体资源。 10px",
+      "系统内置的本地字体资源。 10px",
+      "已新学 10px",
+      "已复习 10px"
+     ],
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.06
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 0,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1024,
+     "screens": 1,
+     "words": 22,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 0,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 5.7,
+      "font": "builtin-1sva34g",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.08,
+      "top": 104,
+      "tag": "uni-view",
+      "kind": "heading"
+     },
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 5.7,
+      "font": "builtin-q5yuss",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.08,
+      "top": 206,
+      "tag": "uni-view",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 2,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "builtin-1sva34g",
+       "share": 0.01,
+       "mono": false
+      },
+      {
+       "family": "builtin-q5yuss",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24,
+      44
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 44,
+      "vw": 5.7,
+      "font": "builtin-1sva34g",
+      "text": "方"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.02,
+     "smallText": 2
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#ffffff",
+     "bodyBgHsl": {
+      "h": 0,
+      "s": 0,
+      "l": 1
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#ffffff",
+       "top": 0,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#20242d",
+       "share": 0.46
+      },
+      {
+       "color": "#66707e",
+       "share": 0.34
+      },
+      {
+       "color": "#9aa3af",
+       "share": 0.09
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.06
+      },
+      {
+       "color": "#1755e9",
+       "share": 0.06
+      }
+     ],
+     "button": {
+      "bg": "#1755e9",
+      "hsl": {
+       "h": 222,
+       "s": 0.83,
+       "l": 0.5
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "关卡学习",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "对照阅读",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 9,
+     "height": 58,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "开始学习",
+      "复习"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "uni-view.font-cover.tone-green → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.font-cover.tone-blue → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.bottom-navigation → rgba(32, 36, 45, 0.05) 0px -4px 16px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "uni-view.font-row 528px",
+      "uni-view.font-row 528px",
+      "uni-view.bottom-navigation 560px"
+     ],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 57,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "vant-icon",
+     "builtin-q5yuss",
+     "builtin-1sva34g"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1024,
+    "margins": {
+     "left": 120,
+     "right": 104
+    },
+    "sections": [
+     {
+      "sel": "uni-view.font-list",
+      "tag": "uni-view",
+      "top": 88,
+      "height": 212,
+      "words": 4,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 202,
+      "right": 398,
+      "textLeft": 202,
+      "textRight": 398,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "uni-view.plan",
+      "tag": "uni-view",
+      "top": 300,
+      "height": 258,
+      "words": 11,
+      "media": 0,
+      "middle": 12,
+      "heading": {
+       "text": "0/0",
+       "size": 24,
+       "tag": "span"
+      },
+      "left": 120,
+      "right": 120,
+      "textLeft": 120,
+      "textRight": 132,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [
+     {
+      "top": 532,
+      "height": 436
+     }
+    ],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#ffffff",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 120,
+     "right": 132
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 0,
+     "firstScreen": 0,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 1,
+    "panels": {
+     "count": 0,
+     "radii": [],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.56,
+     "tiny": 7,
+     "tinySamples": [
+      "系统内置的本地字体资源。 10px",
+      "系统内置的本地字体资源。 10px",
+      "已新学 10px",
+      "已复习 10px"
+     ],
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.03
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 0,
+    "transitions": 1,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 22,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 0,
+     "sections": 0,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 3.1,
+      "font": "builtin-1sva34g",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.04,
+      "top": 104,
+      "tag": "uni-view",
+      "kind": "heading"
+     },
+     {
+      "text": "方",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 44,
+      "vw": 3.1,
+      "font": "builtin-q5yuss",
+      "weight": 400,
+      "tracking": 0,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.04,
+      "top": 206,
+      "tag": "uni-view",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 2,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "-apple-system",
+       "share": 0.98,
+       "mono": false
+      },
+      {
+       "family": "builtin-1sva34g",
+       "share": 0.01,
+       "mono": false
+      },
+      {
+       "family": "builtin-q5yuss",
+       "share": 0.01,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24,
+      44
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 44,
+      "vw": 3.1,
+      "font": "builtin-1sva34g",
+      "text": "方"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0,
+     "centerShare": 0.02,
+     "smallText": 2
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#ffffff",
+     "bodyBgHsl": {
+      "h": 0,
+      "s": 0,
+      "l": 1
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#ffffff",
+       "top": 0,
+       "hsl": {
+        "h": 0,
+        "s": 0,
+        "l": 1
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#20242d",
+       "share": 0.46
+      },
+      {
+       "color": "#66707e",
+       "share": 0.34
+      },
+      {
+       "color": "#9aa3af",
+       "share": 0.09
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.06
+      },
+      {
+       "color": "#1755e9",
+       "share": 0.06
+      }
+     ],
+     "button": {
+      "bg": "#1755e9",
+      "hsl": {
+       "h": 222,
+       "s": 0.83,
+       "l": 0.5
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "关卡学习",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      },
+      {
+       "text": "对照阅读",
+       "ratio": 2.6,
+       "need": 4.5,
+       "size": 7,
+       "fg": "#9aa3af",
+       "bg": "#ffffff"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 2,
+     "inHero": 2,
+     "radius": 9,
+     "height": 58,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "开始学习",
+      "复习"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "uni-view.font-cover.tone-green → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.font-cover.tone-blue → rgba(255, 255, 255, 0.32) 4px 0px 0px 0px inset, rgba(0, 0, 0, 0.086) 0px 2px 4p",
+      "uni-view.bottom-navigation → rgba(32, 36, 45, 0.05) 0px -4px 16px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "uni-view.font-row 528px",
+      "uni-view.font-row 528px",
+      "uni-view.bottom-navigation 560px"
+     ],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 57,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "vant-icon",
+     "builtin-q5yuss",
+     "builtin-1sva34g"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 456,
+     "right": 440
+    },
+    "sections": [],
+    "gaps": [
+     {
+      "top": 532,
+      "height": 312
+     }
+    ],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.33,
+    "voidBox": {
+     "x": 0,
+     "y": 540,
+     "w": 1440,
+     "h": 300
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#ffffff",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 456,
+     "right": 468
+    },
+    "hero": {
+     "text": "0/0",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "-apple-system",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.2,
+     "top": 415,
+     "tag": "uni-text",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 0,
+     "firstScreen": 0,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 1,
+    "panels": {
+     "count": 0,
+     "radii": [],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.56,
+     "tiny": 7,
+     "tinySamples": [
+      "系统内置的本地字体资源。 10px",
+      "系统内置的本地字体资源。 10px",
+      "已新学 10px",
+      "已复习 10px"
+     ],
+     "sizes": [
+      7,
+      10,
+      12,
+      14,
+      15,
+      17,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "contrast",
+   "width": 390,
+   "message": "Low-contrast text: \"关卡学习\" 2.6:1 needs 4.5:1; \"对照阅读\" 2.6:1 needs 4.5:1",
+   "fix": "Darken or lighten the text colour.",
+   "alsoAt": [
+    768,
+    1440
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "dev-server",
+   "width": 390,
+   "message": "This page is served by a development server (Vite, webpack or Next in dev mode).",
+   "fix": "Run the last gate on the production build too (vite build && vite preview, next build && next start, or the built index.html): minifiers and bundlers change the CSS a visitor receives.",
+   "alsoAt": [
+    768,
+    1440
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 390,
+   "message": "7 text blocks under 11px: 系统内置的本地字体资源。 10px, 系统内置的本地字体资源。 10px, 已新学 10px, 已复习 10px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    1440
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 390,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    1440
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "covered-text",
+   "width": 390,
+   "message": "Large text lies under another element at some scroll position: \"0/0\" (screen 1, 100% hidden); \"0/20\" (screen 1, 100% hidden)",
+   "fix": "Nothing may sit on top of a headline or statement. Move the picture, shorten the pinned run, or raise the text above it (z-index) and give it a ground.",
+   "alsoAt": [
+    768,
+    1440
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "blank-gap",
+   "width": 768,
+   "message": "A 436px stretch at 532px holds nothing.",
+   "fix": "Check that it is a deliberate rest (once per page at most); otherwise close it to the normal section gap."
+  },
+  {
+   "level": "WARN",
+   "id": "hero-void",
+   "width": 1440,
+   "message": "33% of the first screen is one empty block (1440×300px at 0,540).",
+   "fix": "Place the void on purpose or fill it: move the picture, the film or one fact into it, grow the headline to meet it, or shrink the screen to its content. A void reads as placed only when something closes it on the far side and it is the screen's one rest."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\mobile-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\tablet-fold.jpg",
+   "pages": [
+    "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\desktop-fold.jpg",
+   "pages": [
+    "C:\\Users\\22640\\Documents\\ChatGPT\\xz_3\\.taste-skill\\study-home-proposals\\before\\desktop-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

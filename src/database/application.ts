@@ -7,6 +7,9 @@ import { useLevelProgressStore } from '../stores/levelProgress'
 import { useFontStore } from '../stores/fonts'
 import { useThemeStore } from '../stores/theme'
 import { useProfileStore } from '../stores/profile'
+import { useLevelLayoutStore } from '../stores/levelLayout'
+import { useCharacterComparisonStore } from '../stores/characterComparison'
+import { useLevelActivityStore } from '../stores/levelActivity'
 
 export const applicationReady = ref(false)
 export const applicationError = ref('')
@@ -23,6 +26,9 @@ export function prepareApplication(): Promise<void> {
     useFontStore().initialize()
     useProfileStore().hydrate()
     useThemeStore().initialize()
+    useLevelLayoutStore().hydrate()
+    await useCharacterComparisonStore().hydrate()
+    await useLevelActivityStore().hydrate()
     applicationReady.value = true
   })().catch((error: unknown) => {
     applicationError.value = error instanceof Error ? error.message : String(error)

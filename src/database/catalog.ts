@@ -13,6 +13,7 @@ let initialization: Promise<void> | undefined
 let dailyCharacters: Promise<StudyCharacterEntry[]> | undefined
 let dailyIds: Promise<string[]> | undefined
 let searchEntries: Promise<CharacterEntry[]> | undefined
+let allSearchEntries: Promise<CharacterEntry[]> | undefined
 const CONTENT_TABLES: Table[] = ['characters', 'character_details', 'character_words', 'character_sets', 'levels', 'level_characters']
 async function loadText(url: string): Promise<string> { return decodeUtf8(new Uint8Array(await loadAssetBuffer(url))) }
 export function initializeCatalog(): Promise<void> {
@@ -80,11 +81,18 @@ export function getDailyCharacterIds(): Promise<string[]> {
   })().catch((error: unknown) => { dailyIds = undefined; throw error })
   return dailyIds
 }
-export async function searchCatalog(query: string, limit = 50, offset = 0): Promise<{ entries: CharacterEntry[]; total: number }> {
+export async function searchCatalog(query: string, limit = 50, offset = 0, scope: 'daily' | 'all' = 'daily'): Promise<{ entries: CharacterEntry[]; total: number }> {
   await initializeCatalog()
   if (!query.trim()) return { entries: [], total: 0 }
-  searchEntries ??= loadSearchEntries().catch((error: unknown) => { searchEntries = undefined; throw error })
-  const matches = searchCharacters(await searchEntries, query)
+  let entries: CharacterEntry[]
+  if (scope === 'all') {
+    allSearchEntries ??= loadAllSearchEntries().catch((error: unknown) => { allSearchEntries = undefined; throw error })
+    entries = await allSearchEntries
+  } else {
+    searchEntries ??= loadSearchEntries().catch((error: unknown) => { searchEntries = undefined; throw error })
+    entries = await searchEntries
+  }
+  const matches = searchCharacters(entries, query)
   return { entries: matches.slice(offset, offset + limit), total: matches.length }
 }
 async function loadSearchEntries(): Promise<CharacterEntry[]> {
@@ -97,4 +105,30 @@ async function loadSearchEntries(): Promise<CharacterEntry[]> {
   const byId = new Map(characters.map((row) => [row.id, row]))
   return ids.flatMap((id) => { const row = byId.get(id); return row ? [summary(row, wordsById.get(row.id))] : [] })
 }
-export function resetCatalogForTests(): void { initialization = undefined; dailyCharacters = undefined; dailyIds = undefined; searchEntries = undefined; categoryCounts.value = {} }
+async function loadAllSearchEntries(): Promise<CharacterEntry[]> {
+  const db = await getDatabase()
+  const [rows, words] = await Promise.all([db.query('characters', { orderBy: 'position' }), db.query('character_words', { orderBy: 'position' })])
+  const wordsById = new Map<string, string[]>()
+  for (const word of words) {
+    const id = String(word.characterId)
+    const list = wordsById.get(id) ?? []
+    list.push(String(word.word))
+    wordsById.set(id, list)
+  }
+  return rows.map((row) => summary(row, wordsById.get(row.id)))
+}
+
+export async function findCharactersByText(texts: readonly string[]): Promise<{ entries: StudyCharacterEntry[]; missing: string[] }> {
+  await initializeCatalog()
+  if (!texts.length) return { entries: [], missing: [] }
+  const db = await getDatabase()
+  const [simplified, traditional] = await Promise.all([
+    db.query('characters', { whereIn: { simplified: [...texts] }, orderBy: 'position' }),
+    db.query('characters', { whereIn: { traditional: [...texts] }, orderBy: 'position' }),
+  ])
+  const rows = texts.map((text) => simplified.find((row) => row.simplified === text) ?? traditional.find((row) => row.traditional === text))
+  const entries = await getCharacters(rows.flatMap((row) => row ? [row.id] : []))
+  const missing = texts.filter((_, index) => !rows[index])
+  return { entries, missing }
+}
+export function resetCatalogForTests(): void { initialization = undefined; dailyCharacters = undefined; dailyIds = undefined; searchEntries = undefined; allSearchEntries = undefined; categoryCounts.value = {} }

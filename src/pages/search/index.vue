@@ -1,125 +1,49 @@
 <script setup lang="ts">
-import DatabaseStatus from '../../components/DatabaseStatus.vue'
-
+import { nextTick, onMounted } from 'vue'
 import { onBackPress } from '@dcloudio/uni-app'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import DatabaseStatus from '../../components/DatabaseStatus.vue'
+import CharacterComparisonTray from '../../components/CharacterComparisonTray.vue'
+import CharacterSearchResults from './components/CharacterSearchResults.vue'
 import { useThemeStore } from '../../stores/theme'
-import { searchCatalog } from '../../database/catalog'
-import { applicationReady } from '../../database/application'
+import { useCharacterComparisonStore } from '../../stores/characterComparison'
+import { comparisonAdditionMessage } from '../../comparison/characterComparison'
+import { SEARCH_MODES as modes, useCharacterSearch } from './useCharacterSearch'
 import type { CharacterEntry } from '../../search/characterSearch'
-import { readLocal, writeLocal } from '../../utils/storage'
 
-type SearchMode = 'character' | 'word' | 'sentence' | 'article'
-
-type SearchModeOption = {
-  id: SearchMode
-  label: string
-}
-
-const SEARCH_HISTORY_KEY = 'font-learning-search-history'
-const MAX_HISTORY_COUNT = 20
-const modes: SearchModeOption[] = [
-  { id: 'character', label: '单字' },
-  { id: 'word', label: '词语' },
-  { id: 'sentence', label: '句子' },
-  { id: 'article', label: '文章' },
-]
-
-const query = ref('')
 const { themeStyle } = storeToRefs(useThemeStore())
-const activeMode = ref<SearchMode>('character')
-const searchHistory = ref<string[]>([])
+const comparisonStore = useCharacterComparisonStore()
+const { selectedIds } = storeToRefs(comparisonStore)
+const { query, activeMode, searchHistory, results, totalResults, isSearching, searchError, missingCharacters, trimmedQuery, isCharacterMode, activeModeLabel, batchCharacters, resultSummary, loadResults, saveSearch, clearHistory } = useCharacterSearch()
 
-const trimmedQuery = computed(() => query.value.trim())
-const isCharacterMode = computed(() => activeMode.value === 'character')
-const results = ref<CharacterEntry[]>([])
-const totalResults = ref(0)
-const isSearching = ref(false)
-const searchError = ref('')
-let searchRequest = 0
-async function loadResults(append = false) {
-  const request = ++searchRequest
-  if (!applicationReady.value || !isCharacterMode.value || !trimmedQuery.value) { results.value = []; totalResults.value = 0; isSearching.value = false; return }
-  isSearching.value = true
-  searchError.value = ''
-  try {
-    const result = await searchCatalog(trimmedQuery.value, 50, append ? results.value.length : 0)
-    if (request !== searchRequest) return
-    results.value = append ? [...results.value, ...result.entries] : result.entries
-    totalResults.value = result.total
-  } catch (error) { if (request === searchRequest) searchError.value = error instanceof Error ? error.message : '搜索失败，请重试' }
-  finally { if (request === searchRequest) isSearching.value = false }
+function goBack(): void {
+  if (getCurrentPages().length > 1) uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
+  else uni.reLaunch({ url: '/pages/index/index' })
 }
-watch([trimmedQuery, isCharacterMode, applicationReady], () => { void loadResults() })
-onBeforeUnmount(() => { searchRequest++ })
-const resultSummary = computed(() => searchError.value || (isSearching.value ? '正在搜索…' : `找到 ${totalResults.value} 个单字`))
-const activeModeLabel = computed(() => modes.find((mode) => mode.id === activeMode.value)?.label ?? '')
-
-function goBack() {
-  if (getCurrentPages().length > 1) {
-    uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
-    return
-  }
-  uni.reLaunch({ url: '/pages/index/index' })
-}
-
 onBackPress((event) => {
   if (event.from === 'navigateBack') return false
   goBack()
   return true
 })
-
-function clearQuery() {
-  query.value = ''
-}
-
-function selectMode(mode: SearchMode) {
-  activeMode.value = mode
-}
-
-function useHistoryItem(value: string) {
-  query.value = value
-}
-
-async function saveSearch() {
-  const value = trimmedQuery.value
-  if (!value || !isCharacterMode.value) return
-  searchHistory.value = [value, ...searchHistory.value.filter((item) => item !== value)].slice(0, MAX_HISTORY_COUNT)
-  await persistHistory()
-}
-
-async function clearHistory() {
-  searchHistory.value = []
-  await persistHistory()
-}
-
-async function persistHistory() {
-  try {
-    await writeLocal(SEARCH_HISTORY_KEY, searchHistory.value)
-  } catch (error) {
-    console.warn('搜索记录保存失败', error)
-    uni.showToast({ title: '搜索记录保存失败', icon: 'none' })
-  }
-}
-
-function handleResultClick(entry: CharacterEntry) {
+function handleResultClick(entry: CharacterEntry): void {
   void saveSearch()
-  uni.navigateTo({
-    url: `/pages/character-detail/index?id=${encodeURIComponent(entry.id)}`,
-    fail: (error) => {
-      console.error('文字详情打开失败', error)
-      uni.showToast({ title: '文字详情打开失败', icon: 'none' })
-    },
-  })
+  uni.navigateTo({ url: '/pages/character-detail/index?id=' + encodeURIComponent(entry.id), fail: () => uni.showToast({ title: '文字详情打开失败', icon: 'none' }) })
 }
-
+function handleComparisonAdd(entry: CharacterEntry): void {
+  const result = comparisonStore.addCharacters([entry])
+  uni.showToast({ title: comparisonAdditionMessage(result), icon: 'none' })
+}
+function handleBatchAdd(): void {
+  if (isSearching.value) return
+  const result = comparisonStore.addCharacters(results.value)
+  uni.showToast({ title: comparisonAdditionMessage(result, missingCharacters.value), icon: 'none' })
+  void saveSearch()
+}
 onMounted(async () => {
-  searchHistory.value = (await readLocal<string[]>(SEARCH_HISTORY_KEY)) ?? []
+  // #ifdef H5
   await nextTick()
-  if (typeof document !== 'undefined') {
-    document.querySelector<HTMLInputElement>('.search-input input')?.setAttribute('aria-label', '搜索汉字或拼音')
-  }
+  document.querySelector<HTMLInputElement>('.search-page .search-input input')?.setAttribute('aria-label', '搜索汉字或拼音')
+  // #endif
 })
 </script>
 
@@ -141,11 +65,11 @@ onMounted(async () => {
             @confirm="saveSearch"
           >
         </label>
-        <button v-if="query" class="clear-button" role="button" aria-label="清空搜索" @click="clearQuery">
+        <button v-if="query" class="clear-button" role="button" tabindex="0" aria-label="清空搜索" @click="query = ''" @keydown.enter.prevent="query = ''" @keydown.space.prevent="query = ''">
           <van-icon name="clear" size="17" aria-hidden="true" />
         </button>
       </view>
-      <button class="cancel-button" role="button" aria-label="取消搜索" @click="goBack">取消</button>
+      <button class="cancel-button" role="button" tabindex="0" aria-label="取消搜索" @click="goBack" @keydown.enter.prevent="goBack" @keydown.space.prevent="goBack">取消</button>
     </view>
 
     <view class="mode-tabs" role="tablist" aria-label="搜索范围">
@@ -155,15 +79,20 @@ onMounted(async () => {
         class="mode-tab"
         :class="{ 'is-active': activeMode === mode.id }"
         role="tab"
+        tabindex="0"
         :aria-selected="activeMode === mode.id"
-        @click="selectMode(mode.id)"
+        @click="activeMode = mode.id"
+        @keydown.enter.prevent="activeMode = mode.id"
+        @keydown.space.prevent="activeMode = mode.id"
       >{{ mode.label }}模式</button>
     </view>
+
+    <CharacterComparisonTray />
 
     <view v-if="searchHistory.length && !trimmedQuery" class="history-section">
       <view class="section-heading">
         <text class="section-title">搜索记录</text>
-        <button class="text-button" role="button" aria-label="清空搜索记录" @click="clearHistory">清空</button>
+        <button class="text-button" role="button" tabindex="0" aria-label="清空搜索记录" @click="clearHistory" @keydown.enter.prevent="clearHistory" @keydown.space.prevent="clearHistory">清空</button>
       </view>
       <scroll-view class="history-scroll" scroll-x :show-scrollbar="false">
         <view class="history-track">
@@ -172,8 +101,11 @@ onMounted(async () => {
             :key="item"
             class="history-chip"
             role="button"
+            tabindex="0"
             :aria-label="`搜索 ${item}`"
-            @click="useHistoryItem(item)"
+            @click="query = item"
+            @keydown.enter.prevent="query = item"
+            @keydown.space.prevent="query = item"
           >{{ item }}</button>
         </view>
       </scroll-view>
@@ -186,41 +118,29 @@ onMounted(async () => {
 
     <template v-else-if="trimmedQuery">
       <view class="result-heading" aria-live="polite">{{ resultSummary }}</view>
-      <scroll-view v-if="results.length" class="result-scroll" scroll-y :show-scrollbar="false">
-        <div
-          v-for="entry in results"
-          :key="entry.id"
-          class="result-item"
-          role="button"
-          tabindex="0"
-          :aria-label="`${entry.script_forms.simplified}，${entry.phonetics.pinyin}，${entry.semantics.definition}`"
-          @click="handleResultClick(entry)"
-          @keydown.enter="handleResultClick(entry)"
-          @keydown.space.prevent="handleResultClick(entry)"
-        >
-          <text class="result-character">{{ entry.script_forms.simplified }}</text>
-          <view class="result-content">
-            <view class="result-title-row">
-              <text class="result-title">{{ entry.script_forms.simplified }}</text>
-              <text class="result-pinyin">{{ entry.phonetics.pinyin }}</text>
-            </view>
-            <text class="result-definition">{{ entry.semantics.definition }}</text>
-            <text class="result-meta">{{ entry.structure.total_strokes }}画 · {{ entry.structure.layout }} · {{ entry.semantics.words.join('、') }}</text>
-          </view>
-          <van-icon name="arrow" size="15" class="result-arrow" aria-hidden="true" />
-        </div>
-        <button v-if="results.length < totalResults" role="button" aria-label="加载更多搜索结果" :disabled="isSearching" @click="loadResults(true)">加载更多</button>
-      </scroll-view>
-      <view v-else class="empty-state" role="status">
+      <text v-if="missingCharacters.length" class="search-notice" role="status">字库暂未收录：{{ missingCharacters.join('、') }}</text>
+      <button v-if="batchCharacters.length" class="batch-add-button" role="button" :tabindex="isSearching || !results.length ? -1 : 0" aria-label="将搜索文字加入比较" :disabled="isSearching || !results.length" @click="handleBatchAdd" @keydown.enter.prevent="handleBatchAdd" @keydown.space.prevent="handleBatchAdd">将这些字加入比较</button>
+      <button v-if="searchError" class="batch-add-button" role="button" tabindex="0" @click="loadResults()" @keydown.enter.prevent="loadResults()" @keydown.space.prevent="loadResults()">重试搜索</button>
+      <CharacterSearchResults
+        v-if="results.length"
+        :entries="results"
+        :selected-ids="selectedIds"
+        :has-more="results.length < totalResults"
+        :is-searching="isSearching"
+        @character-open="handleResultClick"
+        @comparison-add="handleComparisonAdd"
+        @load-more="loadResults(true)"
+      />
+      <view v-else-if="!isSearching && !searchError" class="empty-state" role="status">
         <text class="empty-title">没有找到相关单字</text>
-        <text class="empty-description">试试输入单个汉字，或不带声调的拼音。</text>
+        <text class="empty-description">试试其他汉字，或不带声调的拼音。</text>
       </view>
     </template>
 
     <view v-else-if="!searchHistory.length" class="empty-state empty-initial">
       <van-icon name="search" size="34" color="var(--color-text-muted)" aria-hidden="true" />
       <text class="empty-title">搜索想学习的汉字</text>
-      <text class="empty-description">支持汉字与拼音模糊搜索，例如“一”或“shi”。</text>
+      <text class="empty-description">支持汉字、拼音或多个汉字，例如“未末”或“shi”。</text>
     </view>
   </view>
 </template>
@@ -233,37 +153,31 @@ onMounted(async () => {
 .search-input { min-width: 0; height: 100%; flex: 1; color: var(--color-text); font-size: 13px; }
 .search-input::placeholder { color: var(--color-text-muted); }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-.clear-button, .cancel-button, .mode-tab, .text-button, .history-chip, .result-item { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; line-height: normal; }
-.clear-button::after, .cancel-button::after, .mode-tab::after, .text-button::after, .history-chip::after, .result-item::after { border: 0; }
-.clear-button { width: 28px; height: 32px; display: grid; place-items: center; color: var(--color-text-muted); }
-.cancel-button { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 1; }
+.clear-button, .cancel-button, .mode-tab, .text-button, .history-chip { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; line-height: normal; }
+.clear-button::after, .cancel-button::after, .mode-tab::after, .text-button::after, .history-chip::after { border: 0; }
+.clear-button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; color: var(--color-text-secondary); }
+.cancel-button { width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 1; }
 .mode-tabs { padding: 7px 16px 10px; display: flex; align-items: center; justify-content: space-around; border-bottom: 1px solid var(--color-border); background: var(--color-topbar); }
-.mode-tab { position: relative; min-width: 58px; height: 38px; color: var(--color-text-secondary); font-size: 11px; white-space: nowrap; }
+.mode-tab { position: relative; min-width: 58px; min-height: 44px; color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
 .mode-tab.is-active { color: var(--color-primary); font-weight: 600; }
 .mode-tab.is-active::before { content: ''; position: absolute; right: 16px; bottom: 1px; left: 16px; height: 2px; border-radius: 2px; background: currentColor; }
 .history-section { padding: 20px 0 16px; }
 .section-heading { padding: 0 16px 12px; display: flex; align-items: center; justify-content: space-between; }
 .section-title { font-size: 13px; font-weight: 700; }
-.text-button { min-width: 42px; height: 32px; color: var(--color-text-muted); font-size: 10px; }
+.text-button { min-width: 44px; min-height: 44px; color: var(--color-text-secondary); font-size: 12px; }
 .history-scroll { width: 100%; white-space: nowrap; }
 .history-track { width: max-content; padding: 0 16px 6px; display: flex; gap: 9px; }
-.history-chip { min-width: 54px; height: 34px; padding: 0 14px; border-radius: 17px; background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 11px; }
-.result-heading { height: 40px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 10px; }
-.result-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
-.result-item { width: calc(100% - 28px); min-height: 92px; margin: 0 14px; padding: 13px 2px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--color-border); text-align: left; }
-.result-character { width: 52px; flex: 0 0 52px; color: var(--color-primary-strong); font-size: 33px; font-weight: 600; text-align: center; }
-.result-content { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.result-title-row { display: flex; align-items: baseline; gap: 8px; }
-.result-title { font-size: 15px; font-weight: 700; }
-.result-pinyin { color: var(--color-text-muted); font-size: 11px; }
-.result-definition, .result-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.result-definition { color: var(--color-text-secondary); font-size: 11px; }
-.result-meta { color: var(--color-text-muted); font-size: 9px; }
-.result-arrow { flex: 0 0 auto; color: var(--color-text-muted); }
+.history-chip { min-width: 54px; min-height: 44px; padding: 0 14px; border-radius: 17px; background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 12px; }
+.result-heading { flex: none; min-height: 40px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px; }
 .empty-state { min-height: 0; padding: 42px 24px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
 .empty-initial { justify-content: flex-start; padding-top: 20vh; }
 .empty-title { font-size: 14px; font-weight: 600; }
 .empty-description { max-width: 300px; color: var(--color-text-muted); font-size: 11px; line-height: 1.6; }
-@media (max-width: 360px) { .search-header { padding-right: 10px; padding-left: 10px; } .mode-tabs { padding-right: 8px; padding-left: 8px; } .mode-tab { min-width: 54px; font-size: 10px; } .result-character { width: 45px; flex-basis: 45px; font-size: 29px; } }
+.search-notice { padding: 8px 16px; color: var(--color-text-secondary); font-size: 12px; }
+.batch-add-button { flex: none; display: grid; place-items: center; min-height: 44px; margin: 4px 16px 8px; padding: 0 12px; border-radius: 12px; background: var(--color-primary-soft); color: var(--color-primary-strong); font-size: 13px; }
+.batch-add-button[disabled] { opacity: .5; }
+.batch-add-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+@media (max-width: 360px) { .search-header { padding-right: 10px; padding-left: 10px; } .mode-tabs { padding-right: 8px; padding-left: 8px; } .mode-tab { min-width: 54px; } }
 @media (prefers-reduced-motion: reduce) { .search-page * { scroll-behavior: auto; } }
 </style>

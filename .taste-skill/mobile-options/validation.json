@@ -1,0 +1,127 @@
+{
+  "businessSourceUnchanged": true,
+  "screenshots": 15,
+  "themeSwitch": true,
+  "flashNavigation": true,
+  "boardSelection": true,
+  "lessonPreview": true,
+  "results": [
+    {
+      "theme": "ocean-blue",
+      "overflow": false,
+      "phones": [
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ]
+    },
+    {
+      "theme": "jade-green",
+      "overflow": false,
+      "phones": [
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ]
+    },
+    {
+      "theme": "ink-night",
+      "overflow": false,
+      "phones": [
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        },
+        {
+          "width": 390,
+          "height": 844
+        }
+      ]
+    },
+    {
+      "concept": "a",
+      "theme": "ocean-blue",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "a",
+      "theme": "jade-green",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "a",
+      "theme": "ink-night",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "b",
+      "theme": "ocean-blue",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "b",
+      "theme": "jade-green",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "b",
+      "theme": "ink-night",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "c",
+      "theme": "ocean-blue",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "c",
+      "theme": "jade-green",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    },
+    {
+      "concept": "c",
+      "theme": "ink-night",
+      "overflow": false,
+      "nav": true,
+      "errors": 0
+    }
+  ]
+}

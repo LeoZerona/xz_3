@@ -1,4 +1,4 @@
-import { DATABASE_VERSION, columns, createTableSql, indexName, indexes, tables, type Cell, type Row, type Table } from './schema'
+import { DATABASE_NAME, DATABASE_VERSION, columns, createTableSql, indexName, indexes, tables, type Cell, type Row, type Table } from './schema'
 import type { Change, Database, Query } from './types'
 
 export function sqlValue(value: Cell): string {
@@ -35,15 +35,33 @@ export function schemaSql(): string[] {
 
 export async function openSqlite(): Promise<Database> {
   if (!plus.sqlite) throw new Error('当前 App 未包含 SQLite 模块，请在 HBuilderX 配置 SQLite 并重新打包运行基座')
-  const name = 'font-learning'
+  const name = DATABASE_NAME
+  const path = '_doc/font-learning.db'
+  const isOpen = () => plus.sqlite.isOpenDatabase({ name, path })
   const failure = (value: unknown) => new Error(`SQLite 操作失败：${value instanceof Error ? value.message : typeof value === 'object' && value !== null && 'message' in value ? String(value.message) : String(value)}`)
-  await new Promise<void>((resolve, reject) => plus.sqlite.openDatabase({ name, path: '_doc/font-learning.db', success: () => resolve(), fail: (error: unknown) => reject(failure(error)) }))
+  // HBuilderX 重载会重置 JS 连接缓存，原生连接可能仍打开，按名称和路径确认后复用。
+  if (!isOpen()) {
+    try {
+      await new Promise<void>((resolve, reject) => plus.sqlite.openDatabase({ name, path, success: () => resolve(), fail: (error: unknown) => reject(failure(error)) }))
+    } catch (error) {
+      // 检查与打开之间连接可能已就绪；只有原生确认目标连接已打开才继续。
+      if (!isOpen()) throw error
+    }
+  }
   const execute = (sql: string[]) => new Promise<void>((resolve, reject) => plus.sqlite.executeSql({ name, sql, success: () => resolve(), fail: (error: unknown) => reject(failure(error)) }))
   try {
     const version = await new Promise<number>((resolve, reject) => plus.sqlite.selectSql({ name, sql: 'PRAGMA user_version', success: (rows: unknown) => resolve(Array.isArray(rows) ? Number((rows[0] as { user_version?: unknown } | undefined)?.user_version ?? 0) : 0), fail: (error: unknown) => reject(failure(error)) }))
     if (version > DATABASE_VERSION) throw new Error('数据库来自更新版本的应用，请升级应用后重试')
     await execute(['BEGIN IMMEDIATE', ...schemaSql(), `PRAGMA user_version=${DATABASE_VERSION}`, 'COMMIT'])
-  } catch (error) { plus.sqlite.closeDatabase({ name }); throw error }
+  } catch (error) {
+    // 关闭也是异步操作；先等清理完成，避免立即重试时复用正在关闭的连接。
+    await new Promise<void>((resolve) => plus.sqlite.closeDatabase({
+      name,
+      success: () => resolve(),
+      fail: (closeError: unknown) => { console.error('SQLite 初始化失败后关闭连接失败', closeError); resolve() },
+    }))
+    throw error
+  }
   let chain = Promise.resolve()
   return {
     query(table, query) {

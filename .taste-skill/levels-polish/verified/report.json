@@ -1,0 +1,97 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "theme": "default",
+    "spacing": {
+      "tabToScroll": 24,
+      "overflow": false
+    },
+    "errors": [],
+    "findings": [
+      {
+        "level": "WARN",
+        "id": "small-title",
+        "width": 320,
+        "message": "The h1 is 18px (\"一级汉字\").",
+        "fix": "Set the title at display size, or make the large text of the first screen the h1."
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "default",
+    "spacing": {
+      "tabToScroll": 24,
+      "overflow": false
+    },
+    "errors": [],
+    "findings": [
+      {
+        "level": "WARN",
+        "id": "small-title",
+        "width": 390,
+        "message": "The h1 is 18px (\"一级汉字\").",
+        "fix": "Set the title at display size, or make the large text of the first screen the h1."
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "theme": "default",
+    "spacing": {
+      "tabToScroll": 24,
+      "overflow": false
+    },
+    "errors": [],
+    "findings": [
+      {
+        "level": "WARN",
+        "id": "small-title",
+        "width": 768,
+        "message": "The h1 is 18px (\"一级汉字\").",
+        "fix": "Set the title at display size, or make the large text of the first screen the h1."
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "theme": "default",
+    "spacing": {
+      "tabToScroll": 24,
+      "overflow": false
+    },
+    "errors": [],
+    "findings": [
+      {
+        "level": "WARN",
+        "id": "small-title",
+        "width": 1440,
+        "message": "The h1 is 18px (\"一级汉字\").",
+        "fix": "Set the title at display size, or make the large text of the first screen the h1."
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "theme": "墨夜",
+    "spacing": {
+      "tabToScroll": 24,
+      "overflow": false
+    },
+    "errors": [],
+    "findings": [
+      {
+        "level": "WARN",
+        "id": "small-title",
+        "width": 390,
+        "message": "The h1 is 18px (\"一级汉字\").",
+        "fix": "Set the title at display size, or make the large text of the first screen the h1."
+      }
+    ]
+  }
+]

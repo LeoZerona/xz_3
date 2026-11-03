@@ -12,6 +12,7 @@ import { useCharacterLearningStore } from "../../stores/characterLearning";
 import { useFontStore } from "../../stores/fonts";
 import { useThemeStore } from "../../stores/theme";
 import { useLevelProgressStore } from "../../stores/levelProgress";
+import { useLevelActivityStore } from '../../stores/levelActivity';
 import { getStage, loadStage, STAGES_BY_CATEGORY, type LevelCategory, type LevelStage } from "../../study/levelData";
 import { getEffectiveStudyModes, STUDY_MODES } from "../../study/modes";
 import type { StudyMode } from "../../study/modes";
@@ -34,6 +35,7 @@ interface StudyQuestion {
 const fontStore = useFontStore();
 const learningStore = useCharacterLearningStore();
 const levelProgressStore = useLevelProgressStore();
+const levelActivityStore = useLevelActivityStore();
 const { currentFont, referenceFont } = storeToRefs(fontStore);
 const { themeStyle } = storeToRefs(useThemeStore());
 
@@ -71,6 +73,7 @@ async function refreshStage() {
   const cached = getStage(cat, sid);
   if (cached) {
     loadedStage.value = cached;
+    levelActivityStore.recordSelection(cached);
     stageLoadError.value = "";
     isStageLoading.value = false;
     return;
@@ -82,6 +85,7 @@ async function refreshStage() {
     if (seq !== stageLoadSeq) return;
     if (fetched) {
       loadedStage.value = fetched;
+      levelActivityStore.recordSelection(fetched);
     } else {
       loadedStage.value = null;
       stageLoadError.value = "未找到对应关卡";
@@ -472,7 +476,7 @@ onBeforeUnmount(()=>{
     <DatabaseStatus />
     <view v-if="isStageLoading" class="top-progress-bar" aria-hidden="true" />
     <view class="study-topbar">
-      <button class="topbar-button" aria-label="返回" @click="handleBack">
+      <button class="topbar-button" role="button" tabindex="0" aria-label="返回" @click="handleBack" @keydown.enter.prevent="handleBack" @keydown.space.prevent="handleBack">
         <text class="back-icon" aria-hidden="true">‹</text>
       </button>
       <view style="text-align:center;min-width:0">

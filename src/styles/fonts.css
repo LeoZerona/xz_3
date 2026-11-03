@@ -21,3 +21,10 @@
   font-family: "builtin-z98q3a";
   src: url("../static/fronts/汉仪楷体繁.ttf") format("truetype");
 }
+
+/* 字帖布局优先系统楷体；无楷体的设备用现有简体宋体，保留简体字形。 */
+@font-face {
+  font-family: "LevelNotebook";
+  src: local("KaiTi"), local("楷体"), url("../static/fronts/方正特雅宋简体.TTF") format("truetype");
+  font-display: swap;
+}
