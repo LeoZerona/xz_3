@@ -67,6 +67,7 @@ test('refresh restores the exact page and both directions remain adjacent', asyn
   await turnPages(page, 12)
   const saved = await visiblePosition(page)
   await page.reload()
+  await expect(page.locator('.recent-entry-title')).toHaveText('甲书进度测试')
   await page.getByRole('button', { name: '最近阅读入口，点击继续阅读' }).click()
   await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
   expect(await visiblePosition(page)).toEqual(saved)

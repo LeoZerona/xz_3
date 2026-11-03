@@ -2,24 +2,22 @@
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 import {reportPersistenceError} from '../../database/persistence'
 
-import { onBackPress } from '@dcloudio/uni-app'
+import { onBackPress,onShow } from '@dcloudio/uni-app'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { LearningFont } from '../../fonts/types'
-import { getDailyCharacters } from '../../database/catalog'
 import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { useDailyProgressStore } from '../../stores/dailyProgress'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
-import { readPlanDailyCount } from '../../study/dailyProgress'
 import { useActivityClock } from '../../learning/useActivityClock'
 import { useLearningSummary } from '../../learning/useLearningSummary'
 import { getEffectiveStudyModes, STUDY_MODES } from '../../study/modes'
 import type { StudyMode } from '../../study/modes'
 import type { StudyCharacterEntry } from '../../study/types'
 import StudyQuestionCard from './components/StudyQuestionCard.vue'
-import { readDailySessionModes, readLearningSettings } from '../../learning/settings'
+import {synchronizeDailySession} from '../../learning/dailySession'
 import { localDateKey } from '../../learning/activity'
 
 interface StudyQuestion {
@@ -40,24 +38,25 @@ const { currentFont, referenceFont } = storeToRefs(fontStore)
 const { themeStyle } = storeToRefs(useThemeStore())
 const { summary } = useLearningSummary()
 const allCharacters = ref<StudyCharacterEntry[]>([])
+const availableCharacters = computed(() => allCharacters.value.filter(entry=>!learningStore.isExcluded(entry.id)))
 const sessionModes = ref<StudyMode[]>(getEffectiveStudyModes())
 const reviewTarget = ref(20)
-const availableCharacters = computed(() => allCharacters.value.filter((entry) => !learningStore.isExcluded(entry.id)))
-useDatabaseTask(async () => {
-  sessionModes.value = readDailySessionModes()
-  reviewTarget.value = readLearningSettings().reviewTarget
-  allCharacters.value = await getDailyCharacters()
-  dailyProgressStore.hydrate()
-  dailyProgressStore.reconcileLearned(learningStore.completedIds)
-  const candidateIds = availableCharacters.value
-    .filter((entry) => !learningStore.isCharacterComplete(entry.id))
-    .map((entry) => entry.id)
-  dailyProgressStore.ensureSession(candidateIds, readPlanDailyCount())
-  for (const characterId of dailyProgressStore.assignedIds) {
-    if (learningStore.isCharacterComplete(characterId)) dailyProgressStore.addLearned(characterId)
-  }
+const activeDateKey=ref('')
+let dayRefresh:Promise<void>|undefined
+let isPageActive=true
+async function loadDailySession():Promise<void>{
+  const session=await synchronizeDailySession();if(!isPageActive)return
+  if(activeDateKey.value&&activeDateKey.value!==session.dateKey)wrongCountMap.clear()
+  allCharacters.value=session.characters;sessionModes.value=session.modes;reviewTarget.value=session.reviewTarget;activeDateKey.value=session.dateKey
   currentTaskIndex.value = findFirstIncompleteIndex()
-})
+}
+useDatabaseTask(loadDailySession)
+function refreshDayIfNeeded():boolean{
+  if(!dayRefresh&&activeDateKey.value===localDateKey(new Date()))return false
+  if(!dayRefresh){resetQuestionState();dayRefresh=loadDailySession().then(()=>{if(isPageActive)uni.showToast({title:'已切换到今日学习',icon:'none'})}).catch(reportPersistenceError).finally(()=>{dayRefresh=undefined})}
+  return true
+}
+onShow(()=>{if(activeDateKey.value)refreshDayIfNeeded()})
 const characterById = computed(() => new Map(allCharacters.value.map((entry) => [entry.id, entry])))
 const dailyCharacters = computed(() => dailyProgressStore.assignedIds.flatMap((id) => {
   const entry = characterById.value.get(id)
@@ -197,8 +196,13 @@ function buildChoiceOptions(
 function touchActive() {
   activityClock.touch()
 }
+function recordDailyAttempt(characterId:string,correct:boolean):void{
+  const at=new Date()
+  try{learningStore.recordModeAttempt(characterId,activeMode.value,correct,at.toISOString(),{source:'daily',sessionId:'daily:'+localDateKey(at),modes:[...sessionModes.value]});if(correct&&learningStore.isCharacterComplete(characterId))dailyProgressStore.addLearned(characterId)}catch(error){reportPersistenceError(error)}
+}
 
 function handleChoiceAnswer(character: string) {
+  if(refreshDayIfNeeded()||isCorrectAnimating.value)return
   const current = currentCharacter.value
   if (hasAnswered.value) return
   if (!current) return
@@ -209,12 +213,11 @@ function handleChoiceAnswer(character: string) {
   const isAnswerCorrect = character === current.script_forms.simplified
   if (isAnswerCorrect) {
     isCorrectAnimating.value = true
+    recordDailyAttempt(current.id,true)
     if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(current.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
-      if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
     }, 400)
     return
   }
@@ -235,12 +238,14 @@ function handleChoiceAnswer(character: string) {
 }
 
 function handleInputAnswer(value: string) {
+  if(refreshDayIfNeeded())return
   touchActive()
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join('')
   hasAttempted.value = false
 }
 
 function submitInputAnswer(value: string) {
+  if(refreshDayIfNeeded()||isCorrectAnimating.value)return
   inputAnswer.value = Array.from(value.trim()).slice(0, 1).join("")
   if (!inputAnswer.value) return
   if (hasAnswered.value) return
@@ -255,12 +260,11 @@ function submitInputAnswer(value: string) {
   else if (inputAnswer.value === expected.traditional) isAnswerCorrect = true
   if (isAnswerCorrect) {
     isCorrectAnimating.value = true
+    recordDailyAttempt(curChar.id,true)
     if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
-      if (learningStore.isCharacterComplete(curChar.id)) dailyProgressStore.addLearned(curChar.id)
     }, 400)
     return
   }
@@ -301,6 +305,7 @@ function advanceToNextIncomplete() {
 }
 
 function handleNext() {
+  if(refreshDayIfNeeded())return
   const current = currentCharacter.value
   if (!hasAnswered.value) return
   if (!current) return
@@ -355,7 +360,7 @@ function toggleFavorite(){
   learningStore.toggleFavorite(ch.id)
   try{ uni.showToast({ title: learningStore.isFavorite(ch.id) ? "已收藏" : "已取消收藏", icon: "none" }) }catch(error){reportPersistenceError(error)}
 }
-onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer) })
+onBeforeUnmount(() => { isPageActive=false;if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer) })
 const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.value) && !isDayComplete.value,
   () => `daily:${dailyProgressStore.dateKey}`)
 </script>

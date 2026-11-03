@@ -63,15 +63,19 @@ export async function openSqlite(): Promise<Database> {
     throw error
   }
   let chain = Promise.resolve()
+  function serialize<T>(work:()=>Promise<T>):Promise<T>{const operation=chain.then(work);chain=operation.then(()=>undefined,()=>undefined);return operation}
+  const select=(table:Table,query?:Query)=>new Promise<Row[]>((resolve,reject)=>plus.sqlite.selectSql({name,sql:selectSql(table,query),success:(rows:unknown)=>{if(!Array.isArray(rows)){reject(new Error('SQLite 查询结果无效'));return}resolve(rows as Row[])},fail:(error:unknown)=>reject(failure(error))}))
   return {
+    snapshot(requestedTables){return serialize(async()=>{
+      await execute(['BEGIN'])
+      try{const result=new Map<Table,Row[]>();for(const table of requestedTables)result.set(table,await select(table));await execute(['COMMIT']);return result}
+      catch(error){try{await execute(['ROLLBACK'])}catch(rollbackError){console.error('SQLite 快照回滚失败',rollbackError)}throw error}
+    })},
     query(table, query) {
-      return chain.then(() => new Promise<Row[]>((resolve, reject) => plus.sqlite.selectSql({ name, sql: selectSql(table, query), success: (rows: unknown) => {
-        if (!Array.isArray(rows)) { reject(new Error('SQLite 查询结果无效')); return }
-        resolve(rows as Row[])
-      }, fail: (error: unknown) => reject(failure(error)) })))
+      return serialize(()=>select(table,query))
     },
     commit(changes) {
-      const operation = chain.then(async () => {
+      return serialize(async () => {
         await execute(['BEGIN IMMEDIATE'])
         try {
           for (let start = 0; start < changes.length; start += 200) await execute(changes.slice(start, start + 200).map(changeSql))
@@ -81,8 +85,6 @@ export async function openSqlite(): Promise<Database> {
           throw error
         }
       })
-      chain = operation.catch(() => { /* 单次失败交给调用方，连接队列仍可接受重试。 */ })
-      return operation
     },
     close() { plus.sqlite.closeDatabase({ name, fail: (error: unknown) => console.error('SQLite 关闭失败', error) }) },
   }

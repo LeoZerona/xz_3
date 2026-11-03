@@ -24,7 +24,7 @@ test('默认保留当前卡片，从“我”菜单选布局并自动保存，�
   await page.getByRole('button', { name: '关卡布局', exact: true }).click()
   await expect(page.getByRole('radio', { name: '经典卡片', exact: true })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByRole('radio')).toHaveCount(4)
-  await page.screenshot({ path: '.taste-skill/layout-settings/after/chooser-390.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('chooser-390.png'), fullPage: true })
   await page.getByRole('radio', { name: '口袋闪卡' }).click()
   await page.getByRole('button', { name: '返回', exact: true }).click()
   await expect(page.getByRole('button', { name: '关卡布局', exact: true })).toContainText('口袋闪卡')
@@ -72,7 +72,7 @@ for (const width of [320, 390, 1440]) {
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
       await expect(page.getByRole('navigation', { name: '主导航' })).toBeInViewport()
-      await page.screenshot({ path: `.taste-skill/layout-settings/after/${id}-${width}.png` })
+      await page.screenshot({ path: test.info().outputPath(`${id}-${width}.png`) })
       const action = id === 'notebook' ? '.notebook-start' : id === 'flashcards' ? '.flash-start' : '.dock-start'
       await page.locator(action).click()
       await expect(page).toHaveURL(new RegExp('stageId=' + stageId))
@@ -123,7 +123,7 @@ test('新布局跟随五套主题，App 无全局 DOM 配色时页面绑定仍�
       const button = page.locator(id === 'notebook' ? '.notebook-start' : id === 'flashcards' ? '.flash-start' : '.dock-start')
       await expect(button).toHaveCSS('--level-action-fill', theme.tokens.primaryStrong)
       if (theme.id === 'jade-green' || theme.id === 'ink-night') {
-        await page.screenshot({ path: `.taste-skill/layout-settings/after/${id}-${theme.id}.png` })
+        await page.screenshot({ path: test.info().outputPath(`${id}-${theme.id}.png`) })
       }
     }
   }

@@ -43,5 +43,5 @@ test('全部一级字可以离线学习，最后一关已补齐', async ({ page 
   await page.context().setOffline(true)
   await page.getByRole('button', { name: '开始学习', exact: true }).click()
   await expect(page.locator('.prompt-character')).toBeVisible()
-  expect(await databaseRows(page, 'characters')).toHaveLength(3500)
+  const characters=await databaseRows(page,'characters');expect(characters).toHaveLength(8105);expect(characters.filter(row=>row.level===1)).toHaveLength(3500)
 })

@@ -14,6 +14,11 @@ import {saveAnnotation,listAnnotations} from '../library/annotations'
 import {saveReminder,listReminders,refreshLocalMessages,listMessages} from '../notifications/repository'
 import {recordActivity,readActivities} from '../learning/activity'
 beforeEach(async()=>{await setupTestDatabase()})
+it('无当前题的活动专项及未完成题目的完成会话在覆盖前拒绝',async()=>{
+  saveStored('font-learning-theme','jade-green');const original=await exportBackup();const at=new Date().toISOString()
+  for(const completedAt of [null,at]){const backup=JSON.parse(original) as Backup;backup.data.practice_sessions=[{id:'bad',name:'坏会话',source:'custom',sourceId:null,modes:'["seal-to-reference-choice"]',cursor:1,createdAt:at,updatedAt:at,completedAt}];backup.data.practice_questions=[{id:'q',sessionId:'bad',characterId:'a',mode:'seal-to-reference-choice',position:0,optionIds:'["a"]',attempts:0,mistakes:0,firstCorrect:null,completedAt:null}];await expect(restoreBackup(JSON.stringify(backup))).rejects.toThrow('专项')}
+  expect(readStored('font-learning-theme')).toBe('jade-green')
+})
 it('没有浏览器TextEncoder时仍可预览备份',async()=>{
   const backup=await exportBackup();vi.stubGlobal('TextEncoder',undefined)
   try{expect((await previewBackup(backup)).bytes).toBeGreaterThan(0)}finally{vi.unstubAllGlobals()}

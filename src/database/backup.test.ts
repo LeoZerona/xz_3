@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { setupTestDatabase } from './testSupport'
-import { exportBackup, restoreBackup } from './backup'
+import { exportBackup, restoreBackup,validateBackup } from './backup'
 import { flushPersistence, readStored, saveStored } from './persistence'
 import { addCustomBook, readCustomBookText } from '../reading/customBooks'
 
 describe('备份恢复', () => {
+  it('导出使用一致性快照，跨表读取期间的其他写入不会生成悬空成员',async()=>{
+    const db=await setupTestDatabase();const query=db.query.bind(db);let injected=false
+    db.query=async(table,options)=>{const rows=await query(table,options);if(table==='collections'&&!injected){injected=true;await db.commit([{table:'collections',row:{id:'race',name:'并发字单',description:'',createdAt:'2026-11-03',updatedAt:'2026-11-03'}},{table:'collection_items',row:{id:'race:a',collectionId:'race',characterId:'a',position:0,addedAt:'2026-11-03'}}])}return rows}
+    // 若导出暴露逐表读取的间隙，上述写入会让主表与成员来自不同时间点。
+    const backup=await exportBackup();expect(()=>validateBackup(backup)).not.toThrow()
+  })
   it('兼容尚未包含训练与复习表的旧备份', async () => {
     const db = await setupTestDatabase()
     saveStored('font-learning-theme', 'jade-green')

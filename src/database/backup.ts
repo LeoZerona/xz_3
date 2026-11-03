@@ -11,8 +11,9 @@ export async function exportBackup(): Promise<string> {
   await initializePersistence()
   await flushPersistence()
   const db = await getDatabase()
+  const snapshot=await db.snapshot(BACKUP_TABLES)
   const data: Record<string, Row[]> = {}
-  for (const table of BACKUP_TABLES) data[table] = await db.query(table)
+  for (const table of BACKUP_TABLES) data[table] = snapshot.get(table)!
   const backup: Backup = { format: 'font-learning-backup', version: 1, createdAt: new Date().toISOString(), data }
   return JSON.stringify(backup)
 }

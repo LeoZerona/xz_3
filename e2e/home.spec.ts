@@ -50,7 +50,7 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await expect(page.getByText('对照阅读')).toBeVisible()
   await expect(page.getByText('我', { exact: true })).toBeVisible()
   await expect(page.getByText('今天要做的事')).toHaveCount(0)
-  await page.screenshot({ path: 'artifacts/home-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('home-mobile.png'), fullPage: true })
 
   await page.getByRole('button', { name: '修改' }).click()
   await expect(page.getByText('修改计划', { exact: true })).toBeVisible()
@@ -80,7 +80,7 @@ test('手机首页只显示指定的学习内容', async ({ page }) => {
   await expect(firstMode).toHaveAttribute('aria-checked','true')
   await expect(secondMode).toHaveAttribute('aria-checked','true')
   await expect(thirdMode).toHaveAttribute('aria-checked','true')
-  await page.screenshot({ path: 'artifacts/plan-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('plan-mobile.png'), fullPage: true })
   await page.getByRole('button', { name: '保存计划' }).click()
   await expect(page.getByText('今日计划')).toBeVisible()
   expect(pageErrors).toEqual([])
@@ -104,7 +104,7 @@ test('预览页顶部操作使用靠左返回按钮和圆角矩形图标按钮',
   expect(coverToggleButtonBox?.width ?? 0).toBeGreaterThan(coverToggleButtonBox?.height ?? Number.POSITIVE_INFINITY)
   await expect(page.getByRole('button', { name: '交换遮盖字体' })).toHaveCSS('border-radius', '8px')
   await expect(page.getByRole('button', { name: '取消全部遮盖' })).toHaveCSS('border-radius', '8px')
-  await page.screenshot({ path: 'artifacts/study-preview-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('study-preview-mobile.png'), fullPage: true })
 })
 
 test('开始学习前可预览、揭示和交换字体并进入文字详情', async ({ page }) => {
@@ -136,7 +136,7 @@ test('开始学习前可预览、揭示和交换字体并进入文字详情', as
   await expect(page.getByRole('button', { name: '全部遮盖' })).toBeVisible()
   await page.getByRole('button', { name: '全部遮盖' }).click()
   await expect(firstCharacterRow.getByRole('button', { name: '显示一的方正特雅宋简体字形' })).toBeVisible()
-  await page.screenshot({ path: 'artifacts/study-preview-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('study-preview-mobile.png'), fullPage: true })
 
   await firstCharacterRow.getByRole('button', { name: '查看一的文字详情' }).click()
   await expect(page.getByText('文字详情', { exact: true })).toHaveCount(0)
@@ -158,7 +158,7 @@ test('开始学习前可预览、揭示和交换字体并进入文字详情', as
   await expect(page.locator('.search-input input')).toBeVisible()
   await page.getByRole('button', { name: '取消搜索' }).click()
   await expect(page.getByText('数词，最小的正整数')).toBeVisible()
-  await page.screenshot({ path: 'artifacts/character-detail-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('character-detail-mobile.png'), fullPage: true })
   await page.getByRole('button', { name: '返回' }).click()
   await expect(page.getByText('今日文字预览', { exact: true })).toHaveCount(0)
 
@@ -177,7 +177,7 @@ test('开始学习前可预览、揭示和交换字体并进入文字详情', as
     page.locator('.prompt-card').boundingBox(),
   ])
   expect((promptCardBox?.y ?? 0) - ((progressCardBox?.y ?? 0) + (progressCardBox?.height ?? 0))).toBeGreaterThanOrEqual(28)
-  await page.screenshot({ path: 'artifacts/study-memory-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('study-memory-mobile.png'), fullPage: true })
 
   await page.getByRole('button', { name: '选择文字乙' }).click()
   const wrongOption = page.locator('.character-option.is-wrong')
@@ -214,7 +214,7 @@ test('开始学习前可预览、揭示和交换字体并进入文字详情', as
   await expect(page.getByText(/请用.*输入答案/)).toHaveCount(0)
   for(const glyph of ['乙','二','十']){await expect(page.locator('.prompt-character')).toHaveText(glyph);await page.getByRole('button',{name:`选择文字${glyph}`,exact:true}).click();await page.getByRole('button',{name:'进入下一题',exact:true}).click()}
   await expect(page.locator('.answer-input input')).toBeVisible()
-  await page.screenshot({ path: 'artifacts/study-input-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('study-input-mobile.png'), fullPage: true })
   const answerInput = page.locator('.answer-input input')
   await answerInput.fill('十')
   await page.getByRole('button', { name: '确认输入答案' }).click()
@@ -227,7 +227,7 @@ test('开始学习前可预览、揭示和交换字体并进入文字详情', as
   await expect(page.getByRole('button', { name: '确认输入答案' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: '进入下一题' })).toBeVisible()
   await expect(page.getByLabel('今日学习进度')).toHaveCount(0)
-  await page.screenshot({ path: 'artifacts/study-character-result-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('study-character-result-mobile.png'), fullPage: true })
   expect(pageErrors).toEqual([])
 })
 
@@ -248,7 +248,7 @@ test('搜索支持汉字和拼音匹配、进入文字详情并切换搜索模�
   await expect(page.locator('.result-item')).not.toHaveCount(0)
   await expect(page.locator('.result-pinyin').filter({ hasText: 'shí' }).first()).toBeVisible()
   await expect(page.locator('.result-scroll')).toBeVisible()
-  await page.screenshot({ path: 'artifacts/search-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('search-mobile.png'), fullPage: true })
   await page.getByRole('button', { name: /^十，shí/ }).click()
   await expect(page.getByText('文字详情', { exact: true })).toHaveCount(0)
   await expect(page.getByText('数词，九加一的和')).toBeVisible()
@@ -302,7 +302,7 @@ test('字体管理可浏览、添加并切换字体', async ({ page }) => {
   expect(await page.getByRole('button', { name: '添加字体' }).evaluate((element) => element.getBoundingClientRect().width)).toBe(saveButtonWidth)
   await expect(page.locator('.library-scroll')).toHaveCSS('overflow-y', 'auto')
   await expect(page.getByText('徽章', { exact: true })).toHaveCount(0)
-  await page.screenshot({ path: 'artifacts/fonts-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('fonts-mobile.png'), fullPage: true })
 
   await page.getByRole('button', { name: '添加字体' }).click()
   await expect(page.getByText('选择字体', { exact: true })).toHaveCount(0)
@@ -317,7 +317,7 @@ test('字体管理可浏览、添加并切换字体', async ({ page }) => {
   await expect(regularScript.locator('.cover-sample')).toHaveText('汉')
   await regularScript.click()
   await expect(page.getByRole('button', { name: '汉仪楷体繁已添加' })).toBeVisible()
-  await page.screenshot({ path: 'artifacts/font-catalog-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('font-catalog-mobile.png'), fullPage: true })
   await page.getByRole('button', { name: '返回' }).click()
   await expect(page.getByRole('button', { name: '将汉仪楷体繁设为学习字体' })).toBeVisible()
 
@@ -373,7 +373,7 @@ test('可切换多套主题并在刷新后保留选择', async ({ page }) => {
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'spring-festival')
   await expect(page.getByRole('radio', { name: /新春红/ })).toHaveAttribute('aria-checked', 'true')
-  await page.screenshot({ path: 'artifacts/theme-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('theme-mobile.png'), fullPage: true })
   expect(pageErrors).toEqual([])
 })
 
@@ -405,7 +405,7 @@ test('我的页面按区块展示菜单并支持滚动', async ({ page }) => {
     })
   ))
   expect(hasStackedNavigationContent).toBe(true)
-  await page.screenshot({ path: 'artifacts/profile-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('profile-mobile.png'), fullPage: true })
 })
 
 test('个人设置齿轮打开设置页并沿用主题配色', async ({ page }) => {
@@ -433,7 +433,7 @@ test('个人设置齿轮打开设置页并沿用主题配色', async ({ page }) 
   await expect(page.getByText('设置', { exact: true })).toHaveCount(0)
   await expect(page.locator('.settings-page')).toHaveCSS('color', 'rgb(32, 52, 46)')
 
-  await page.screenshot({ path: 'artifacts/settings-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('settings-mobile.png'), fullPage: true })
   expect(pageErrors).toEqual([])
 })
 
@@ -495,6 +495,6 @@ test('个人资料可编辑并在刷新后保留', async ({ page }) => {
   await expect(page.locator('.personal-profile-page')).toHaveCSS('color', 'rgb(241, 244, 250)')
   await expect(page.locator('.personal-profile-page')).toHaveCSS('background-color', 'rgb(27, 33, 44)')
 
-  await page.screenshot({ path: 'artifacts/personal-profile-mobile.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('personal-profile-mobile.png'), fullPage: true })
   expect(pageErrors).toEqual([])
 })

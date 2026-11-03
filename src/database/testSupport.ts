@@ -18,6 +18,11 @@ export function createTestDatabase(): Database & { native: SqliteConnection; fai
   for (const sql of schemaSql()) native.exec(sql)
   const db = {
     native, failNextCommit: false,
+    async snapshot(requestedTables){
+      native.exec('BEGIN')
+      try{const result=new Map(requestedTables.map(table=>[table,native.prepare(selectSql(table)).all() as Row[]]));native.exec('COMMIT');return result}
+      catch(error){native.exec('ROLLBACK');throw error}
+    },
     async query(table, query) { return native.prepare(selectSql(table, query)).all() as Row[] },
     async commit(changes) {
       if (db.failNextCommit) { db.failNextCommit = false; throw new Error('模拟磁盘写入失败') }

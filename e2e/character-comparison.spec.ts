@@ -29,7 +29,7 @@ for (const width of [320, 390, 1440]) {
       await page.getByRole('button', { name: '取消搜索', exact: true }).click()
       await expect(page.locator(route === 'index' ? '.home' : route === 'levels' ? '.levels-page' : '.reading-page')).toBeVisible()
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-      await page.screenshot({ path: `.taste-skill/character-search/after/${route}-${width}.png` })
+      await page.screenshot({ path: test.info().outputPath(`${route}-${width}.png`) })
     }
   })
 }
@@ -88,7 +88,7 @@ test('搜索结果可跨查询逐字加入，整组加入去重，并对齐显�
   await expect(page.locator('.comparison-definition')).toHaveCount(3)
   const columns = await page.locator('.matrix-font-row').evaluateAll((rows) => rows.map((row) => [...row.children].map((cell) => Math.round(cell.getBoundingClientRect().x))))
   expect(columns[0]).toEqual(columns[1])
-  await page.screenshot({ path: '.taste-skill/character-search/after/comparison-390.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('comparison-390.png'), fullPage: true })
   await page.getByRole('button', { name: '查看己的文字详情', exact: true }).click()
   await expect(page.getByText('基本释义', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '返回', exact: true }).click()
@@ -134,7 +134,7 @@ for (const width of [320, 390, 1440]) {
     await page.getByRole('button', { name: '查看土的文字详情', exact: true }).scrollIntoViewIfNeeded()
     await expect(page.getByRole('button', { name: '查看土的文字详情', exact: true })).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.screenshot({ path: `.taste-skill/character-search/after/six-characters-${width}.png` })
+    await page.screenshot({ path: test.info().outputPath(`six-characters-${width}.png`) })
     for (const theme of themes) {
       await page.goto('/#/pages/theme/index')
       await page.getByRole('radio').filter({ hasText: theme.name }).click()
@@ -142,7 +142,7 @@ for (const width of [320, 390, 1440]) {
       await expect(page.locator('.character-compare-page')).toHaveCSS('--color-primary', theme.tokens.primary)
       await expect(page.locator('.comparison-glyph').first()).toHaveCSS('--color-text', theme.tokens.text)
       await expect(page.locator('.compare-selected-character')).toHaveCount(6)
-      if (theme.mode === 'dark') await page.screenshot({ path: `.taste-skill/character-search/after/comparison-night-${width}.png`, fullPage: true })
+      if (theme.mode === 'dark') await page.screenshot({ path: test.info().outputPath(`comparison-night-${width}.png`), fullPage: true })
     }
   })
 }

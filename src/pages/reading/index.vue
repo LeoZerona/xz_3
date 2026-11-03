@@ -357,6 +357,14 @@ function measureReadingPage(): Promise<{ stage: LayoutRect | null; table: Layout
 function getFallbackRowGap(): number {
   return tableStyleId.value === 'manuscript-grid' || tableStyleId.value === 'borderless' ? 10 : 0
 }
+function constrainReaderMenu(menu:LayoutRect|null,rowRects:LayoutRect[]):void{
+  if(menu&&rowRects[0]&&rowRects[0].bottom+8>menu.top){const available=Math.floor(menu.bottom-rowRects[0].bottom-8);if(available>=64)readerMenuMaxHeight.value=available}
+}
+async function measureReaderMenu():Promise<void>{
+  const bookId=activeBookId.value;await nextTick()
+  const {menu,rowRects}=await measureReadingPage()
+  if(viewMode.value==='reader'&&showReaderChrome.value&&bookId===activeBookId.value)constrainReaderMenu(menu,rowRects)
+}
 
 async function recalcVisibleRows(): Promise<void> {
   if (isRecalculating) {
@@ -376,7 +384,7 @@ async function recalcVisibleRows(): Promise<void> {
     if (!isCurrentLayout()) return
     if (!stage || !table || rowRects.length === 0) return
     // 短横屏让菜单在原有滚动容器内缩短，保留首行完整答案；正常视口不改变高度。
-    if(menu&&rowRects[0]!.bottom+8>menu.top){const available=Math.floor(menu.bottom-rowRects[0]!.bottom-8);if(available>=64)readerMenuMaxHeight.value=available}
+    constrainReaderMenu(menu,rowRects)
 
     const rowHeight = Math.max(...rowRects.map((rect) => rect.height))
     const measuredGaps = rowRects.slice(1).map((rect, index) => Math.max(0, rect.top - rowRects[index]!.bottom))
@@ -568,7 +576,8 @@ function handleReaderMenuToggle(): void {
     showReaderCatalog.value = false
     showReaderSettings.value = false
   }
-  void nextTick(()=>scheduleRecalcVisibleRows())
+  // 菜单不改变正文分页；独立测量，避免短暂禁用紧接着的键盘翻页与揭示。
+  if(showReaderChrome.value)void measureReaderMenu().catch((error:unknown)=>console.warn('阅读菜单测量失败',error))
 }
 
 function handleReaderTap(): void {

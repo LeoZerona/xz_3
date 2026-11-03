@@ -7,7 +7,7 @@ import {loadTxtBook} from '../reading/bookLoader'
 import {fingerprintText} from './annotations'
 import type {Change} from '../database/types'
 export type ContentMode='word'|'sentence'|'article'
-export interface ContentHit {id:string;kind:ContentMode;word?:string;characterIds?:string[];bookId?:string;bookName?:string;startOffset?:number;endOffset?:number;snippet:string}
+export interface ContentHit {id:string;kind:ContentMode;word?:string;characterIds?:string[];bookId?:string;bookName?:string;startOffset?:number;endOffset?:number;snippet:string;isTitleMatch?:boolean}
 export interface ContentSearchResult {entries:ContentHit[];total:number}
 export function indexChanges(bookId:string,text:string):Change[]{const fingerprint=fingerprintText(text);const changes:Change[]=[];for(let start=0;start<text.length;start+=4096)changes.push({table:'book_search',row:{id:compound(bookId,start),bookId,startOffset:start,text:text.slice(start,start+4096+100),fingerprint}});return changes}
 export async function indexBook(bookId:string,text:string):Promise<void>{const db=await getDatabase();const previous=await db.query('book_search',{where:{bookId}});if(previous[0]?.fingerprint===fingerprintText(text))return;await db.commit([...previous.map((row):Change=>({table:'book_search',deleteId:row.id})),...indexChanges(bookId,text)])}
@@ -30,8 +30,10 @@ export async function searchContent(query:string,mode:ContentMode,options:{limit
     for(const[word,characterIds]of groups)append({id:word,kind:'word',word,characterIds,snippet:'来自内置组词记录；未提供独立词义。'})
   }else{
     await ensureIndexes(options.includeBuiltin!==false)
-    const books=await db.query('books');const names=new Map([...getBooksCatalog().map(book=>[book.id,book.name] as const),...books.map(row=>[row.id,String(row.name)] as const)])
-    const seen=new Set<string>();for(const row of await db.query('book_search',{orderBy:'startOffset'})){
+    const books=await db.query('books');const builtin=options.includeBuiltin===false?[]:getBooksCatalog();const names=new Map([...builtin.map(book=>[book.id,book.name] as const),...books.map(row=>[row.id,String(row.name)] as const)])
+    const seen=new Set<string>()
+    if(mode==='article')for(const [bookId,name]of names){if(name.normalize('NFC').includes(value)){append({id:bookId,kind:mode,bookId,bookName:name,startOffset:0,endOffset:0,snippet:'标题匹配：'+name,isTitleMatch:true});seen.add(bookId)}}
+    for(const row of await db.query('book_search',{orderBy:'startOffset'})){
       if(!names.has(String(row.bookId))||mode==='article'&&seen.has(String(row.bookId)))continue
       const text=String(row.text);for(let at=text.indexOf(value);at>=0&&at<4096;at=text.indexOf(value,at+Math.max(1,value.length))){const start=Number(row.startOffset)+at;const key=mode==='article'?String(row.bookId):`${row.bookId}:${start}`;append({id:key,kind:mode,bookId:String(row.bookId),bookName:names.get(String(row.bookId)),startOffset:start,endOffset:start+value.length,snippet:text.slice(Math.max(0,at-70),at+value.length+100)});if(mode==='article'){seen.add(key);break}}
     }

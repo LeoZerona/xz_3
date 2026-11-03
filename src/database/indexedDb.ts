@@ -16,6 +16,15 @@ export function openIndexedDb(): Promise<Database> {
       const db = request.result
       db.onversionchange = () => db.close()
       resolve({
+        snapshot(requestedTables){
+          return new Promise<Map<Table,Row[]>>((resolveSnapshot,rejectSnapshot)=>{
+            const transaction=db.transaction(requestedTables,'readonly');const result=new Map<Table,Row[]>()
+            for(const table of requestedTables){const request=transaction.objectStore(table).getAll();request.onsuccess=()=>result.set(table,request.result as Row[])}
+            transaction.oncomplete=()=>resolveSnapshot(result)
+            transaction.onabort=()=>rejectSnapshot(transaction.error)
+            transaction.onerror=()=>rejectSnapshot(transaction.error)
+          })
+        },
         query(table: Table, query: Query = {}) {
           return new Promise<Row[]>((resolveQuery, rejectQuery) => {
             const transaction = db.transaction(table, 'readonly')

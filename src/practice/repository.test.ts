@@ -3,10 +3,19 @@ import { setupTestDatabase } from '../database/testSupport'
 import { getDatabase } from '../database/connection'
 import { readActivities } from '../learning/activity'
 import { advancePractice, answerPractice, createPractice, readPractice } from './repository'
+import {exportBackup,restoreBackup} from '../database/backup'
 
 beforeEach(async () => {
   const db = await setupTestDatabase()
   await db.commit(['未', '末', '木', '本'].map((text, position) => ({ table: 'characters', row: { id: `c${position}`, simplified: text, traditional: text, position } })))
+})
+it('刚答对尚未前进和已完成的会话均可备份恢复',async()=>{
+  const id=await createPractice({name:'恢复练习',source:'custom',characterIds:['c0'],modes:['seal-to-reference-choice'],count:1})
+  const question=(await readPractice(id)).questions[0]!
+  await answerPractice(id,question.id,'c0');await restoreBackup(await exportBackup())
+  expect(await readPractice(id)).toMatchObject({status:'active',cursor:0})
+  await advancePractice(id);await restoreBackup(await exportBackup())
+  expect(await readPractice(id)).toMatchObject({status:'completed',cursor:1})
 })
 it('题单和题型固定，重复提交幂等，练习不改变正式学习及复习', async () => {
   const id = await createPractice({ name: '易混字', source: 'custom', characterIds: ['c0', 'c1'], modes: ['seal-to-reference-choice'], count: 2 })

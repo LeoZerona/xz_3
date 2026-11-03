@@ -1,4 +1,13 @@
 import {expect,test} from '@playwright/test'
+test('仅书名命中的文章可以查看图书并打开正文',async({page})=>{
+  await page.goto('/#/pages/book-import/index')
+  await page.getByLabel('资料文件名').fill('我的旅行日记.txt');await page.getByLabel('资料正文').fill('昨天去了杭州，天气很好。')
+  await page.getByRole('button',{name:'导入到本机书库',exact:true}).click();await expect(page.getByText('已成功导入到本机',{exact:true})).toBeVisible()
+  await page.goto('/#/pages/content-results/index');await page.getByRole('tab',{name:'文章',exact:true}).click();await page.getByLabel('搜索词语或原文').fill('旅行日记')
+  await page.locator('.content-search-hit').filter({hasText:'我的旅行日记'}).click()
+  await expect(page.getByText('我的旅行日记',{exact:true})).toBeVisible()
+  await page.getByRole('button',{name:'继续阅读原文',exact:true}).click();await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+})
 test('粘贴资料导入后全文命中可查看上下文并回原文，重复导入有明确提示',async({page})=>{
   await page.goto('/#/pages/book-import/index')
   await page.getByLabel('资料文件名').fill('诗句检索.txt')

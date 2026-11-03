@@ -36,6 +36,14 @@ function nativeBridge(initiallyOpen = false) {
   return { backing, isOpenDatabase, openDatabase, closeDatabase }
 }
 describe('App SQLite 桥接', () => {
+  it('多表快照与后续提交串行，返回同一事务中的组织与成员',async()=>{
+    nativeBridge();const db=await openSqlite()
+    const snapshot=db.snapshot(['collections','collection_items'])
+    const write=db.commit([{table:'collections',row:{id:'new',name:'新字单'}},{table:'collection_items',row:{id:'member',collectionId:'new',characterId:'a',position:0}}])
+    const before=await snapshot;await write
+    expect(before.get('collections')).toEqual([]);expect(before.get('collection_items')).toEqual([])
+    const after=await db.snapshot(['collections','collection_items']);expect(after.get('collections')).toHaveLength(1);expect(after.get('collection_items')).toMatchObject([{collectionId:'new'}])
+  })
   it('从版本 1 升级时新增训练与复习表并保留原关卡进度', async () => {
     const { backing } = nativeBridge()
     backing.native.exec('DROP TABLE stage_training; DROP TABLE stage_training_modes; DROP TABLE level_review; PRAGMA user_version=1')

@@ -11,6 +11,7 @@ export interface Query {
 export type Change = { table: Table; row: Row; ifAbsent?: boolean } | { table: Table; deleteId: string }
 export interface Database {
   query(table: Table, query?: Query): Promise<Row[]>
+  snapshot(tables:Table[]):Promise<Map<Table,Row[]>>
   commit(changes: Change[]): Promise<void>
   close(): void
 }

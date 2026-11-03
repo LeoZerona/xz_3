@@ -16,7 +16,13 @@ export function validateBackupRelations(data:Map<Table,Row[]>,knownCharacters?:S
   for(const row of rows('collection_items'))requireRelation(collections.has(String(row.collectionId))&&known(row.characterId)&&Number(row.position)>=0,'字单成员')
   for(const row of rows('collections'))requireRelation(typeof row.name==='string'&&[...row.name.trim()].length>0&&[...row.name.trim()].length<=30,'字单名称')
   for(const row of rows('practice_questions'))requireRelation(sessions.has(String(row.sessionId))&&known(row.characterId)&&isStudyMode(row.mode)&&jsonArray(row.optionIds).every(known)&&Number(row.attempts)>=Number(row.mistakes)&&Number(row.mistakes)>=0,'专项题目')
-  for(const row of rows('practice_sessions')){const questions=rows('practice_questions').filter(q=>q.sessionId===row.id);const modes=jsonArray(row.modes);requireRelation(modes.length>0&&modes.every(isStudyMode)&&Number(row.cursor)>=0&&Number(row.cursor)<=questions.length,'专项会话')}
+  for(const row of rows('practice_sessions')){
+    const questions=rows('practice_questions').filter(q=>q.sessionId===row.id).sort((a,b)=>Number(a.position)-Number(b.position));const modes=jsonArray(row.modes);const cursor=Number(row.cursor)
+    requireRelation(questions.length>0&&modes.length>0&&modes.every(isStudyMode)&&new Set(modes).size===modes.length,'专项会话')
+    requireRelation(questions.every((question,index)=>question.position===index&&modes.includes(question.mode)),'专项题序')
+    if(row.completedAt===null)requireRelation(cursor>=0&&cursor<questions.length&&questions.slice(0,cursor).every(question=>question.completedAt!==null),'专项活动游标')
+    else requireRelation(Number.isFinite(Date.parse(String(row.completedAt)))&&cursor===questions.length&&questions.every(question=>question.completedAt!==null),'专项完成状态')
+  }
   for(const row of rows('library_books'))requireRelation(books.has(row.id)&&['unread','reading','finished'].includes(String(row.status)),'图书状态')
   for(const row of rows('annotations'))requireRelation(books.has(String(row.bookId))&&['bookmark','excerpt'].includes(String(row.kind))&&Number(row.startOffset)>=0&&Number(row.endOffset)>=Number(row.startOffset)&&typeof row.note==='string'&&row.note.length<=5000&&jsonArray(row.tags).every(tag=>typeof tag==='string'),'书签摘录')
   const customBooks=ids('books')
