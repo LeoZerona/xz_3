@@ -6,11 +6,21 @@ import type {CSSProperties} from 'vue'
 export const AVATAR_KEY='font-learning-avatar'
 const avatar=ref('')
 export interface AvatarInput {dataUrl:string;sourceBytes:number}
+function imageBinary(encoded:string):string{
+  if(typeof atob==='function')return atob(encoded)
+  // App-vue service JS 不保证提供浏览器 atob；只解码已通过格式检查的小图。
+  const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  const input=encoded.replace(/=+$/,'');if(input.length%4===1)throw new Error('图片编码无效')
+  let binary='',value=0,bits=0
+  for(const char of input){value=(value<<6)|alphabet.indexOf(char);bits+=6;if(bits>=8){bits-=8;binary+=String.fromCharCode((value>>bits)&255);value&=(1<<bits)-1}}
+  return binary
+}
 export function validateAvatar(input:AvatarInput):void{
   if(!Number.isFinite(input.sourceBytes)||input.sourceBytes<0||input.sourceBytes>2*1024*1024)throw new Error('源图片不能超过 2MB')
+  if(input.dataUrl.length>350000)throw new Error('图片压缩后不能超过 256KB')
   const match=/^data:image\/(png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/.exec(input.dataUrl)
   if(!match)throw new Error('图片格式无效，请选择 PNG 或 JPEG')
-  let binary:string;try{binary=atob(match[2]!)}catch{throw new Error('图片编码无效')}
+  let binary:string;try{binary=imageBinary(match[2]!)}catch{throw new Error('图片编码无效')}
   if(binary.length>256*1024||binary.length<24)throw new Error('图片无效或压缩后超过 256KB')
   if(match[1]==='png'){
     if(binary.slice(0,8)!=='\x89PNG\r\n\x1a\n'||binary.slice(12,16)!=='IHDR'||binary.slice(-8,-4)!=='IEND')throw new Error('PNG 图片结构无效')

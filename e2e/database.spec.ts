@@ -5,13 +5,15 @@ async function records(page: Page, table: string): Promise<Array<Record<string, 
   return databaseRows(page, table)
 }
 
-test('数据库保留每日 204 字、完整 3500 字及原关卡顺序', async ({ page }) => {
+test('数据库保留每日 204 字、完整 8105 字及原关卡顺序', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/#/pages/levels/index')
   await expect(page.locator('.database-overlay')).toHaveCount(0, { timeout: 30000 })
   await expect(page.locator('.stage-card')).toHaveCount(24)
-  expect(await records(page, 'characters')).toHaveLength(3500)
+  const characters=await records(page,'characters')
+  expect(characters).toHaveLength(8105)
+  expect([1,2,3].map(level=>characters.filter(row=>row.level===level).length)).toEqual([3500,3000,1605])
   expect(await records(page, 'character_sets')).toHaveLength(204)
   const firstStage = (await records(page, 'level_characters')).filter((row) => row.levelId === 'level1-stage-01').sort((a, b) => Number(a.position) - Number(b.position))
   expect(firstStage.slice(0, 3).map((row) => row.characterId)).toEqual(['char-0001', 'char-0002', 'char-0003'])
@@ -32,6 +34,7 @@ test('旧收藏、斩字、书籍和阅读位置迁移后从数据库恢复', as
     localStorage.setItem('migration-fixture', '1')
   })
   await page.goto('/#/pages/character-detail/index?id=char-0001')
+  await expect(page.getByRole('button',{name:'取消收藏当前文字',exact:true})).toBeVisible({timeout:45000})
   await expect(page.locator('.database-overlay')).toHaveCount(0, { timeout: 30000 })
   const preferences = await records(page, 'character_progress')
   expect(preferences.find((row) => row.id === 'char-0001')).toMatchObject({ favorite: 1 })
@@ -107,8 +110,8 @@ test('每日计划与启用模式保存到数据库，重新打开后恢复', as
   await page.getByRole('button', { name: '保存计划', exact: true }).click()
   await expect.poll(async () => {
     const row = (await records(page, 'settings')).find((entry) => entry.id === 'font-learning-plan')
-    return row ? JSON.parse(String(row.value)) as unknown : null
-  }).toEqual({ dailyCount: 20, modes: ['seal-to-reference-choice', 'reference-to-seal-choice'] })
+    return row ? (JSON.parse(String(row.value)) as {pending:unknown}).pending : null
+  }).toMatchObject({ dailyCount: 20, modes: ['seal-to-reference-choice', 'reference-to-seal-choice'] })
   await page.goto('/#/pages/plan/index')
   await expect(page.locator('.database-overlay')).toHaveCount(0)
   await expect(page.locator('.plan-wheel')).toHaveAttribute('data-selected-count', '20')
@@ -116,6 +119,6 @@ test('每日计划与启用模式保存到数据库，重新打开后恢复', as
   await page.getByRole('button', { name: '保存计划', exact: true }).click()
   await expect.poll(async () => {
     const row = (await records(page, 'settings')).find((entry) => entry.id === 'font-learning-plan')
-    return row ? (JSON.parse(String(row.value)) as { dailyCount: number }).dailyCount : null
+    return row ? (JSON.parse(String(row.value)) as {pending:{dailyCount:number}}).pending.dailyCount : null
   }).toBe(20)
 })

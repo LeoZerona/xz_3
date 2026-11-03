@@ -21,6 +21,7 @@ test('版本 1 的浏览器数据库升级后保留已完成关卡，并补齐�
     }
   }), legacyTables)
   await page.goto('/#/pages/levels/index')
+  await expect(page.locator('.database-overlay')).toHaveCount(0,{timeout:45000})
   await expect(page.locator('#stage-level1-stage-01')).toContainText('已训练 1 次')
   expect((await databaseRows(page, 'stage_progress'))[0]).toMatchObject({ completed: 1 })
   await page.getByRole('button', { name: '关卡复习', exact: true }).click()

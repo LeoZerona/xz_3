@@ -164,8 +164,10 @@ for (const [id, name] of [['board', '闯关棋盘'], ['flashcards', '口袋闪�
     else await expect(page.locator('.flash-card.is-recent h2')).toHaveText('关卡 03')
     await page.getByRole('tab', { name: '二级汉字' }).click()
     await page.locator(id === 'board' ? '.dock-start' : '.flash-start').click()
-    await expect(page.getByText('该关卡敬请期待', { exact: true })).toBeVisible()
-    await expect(page.locator('.last-study-title')).toHaveText('一级汉字 · 关卡 03')
+    await expect(page.getByRole('region',{name:'关卡预览'})).toBeVisible()
+    await expect(page.locator('.character-row')).toHaveCount(10)
+    await page.getByRole('button',{name:'返回',exact:true}).click()
+    await expect(page.locator('.last-study-title')).toHaveText('二级汉字 · 关卡 01')
   })
 }
 

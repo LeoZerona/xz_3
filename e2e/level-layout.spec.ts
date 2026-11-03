@@ -81,7 +81,7 @@ for (const width of [320, 390, 1440]) {
   }
 }
 
-test('四种布局共用已完成进度、进行中关卡，并保留分类与待上线反馈', async ({ page }) => {
+test('四种布局共用已完成进度、进行中关卡，并可切换完整二级课程', async ({ page }) => {
   test.setTimeout(90_000)
   await page.goto('/#/pages/levels/index')
   await expect(page.locator('.stage-card')).toHaveCount(24)
@@ -98,11 +98,8 @@ test('四种布局共用已完成进度、进行中关卡，并保留分类与�
     await page.getByRole('tab', { name: '偏旁部首' }).click()
     await expect(page.locator('.overview-title')).toHaveText('偏旁部首')
     await page.getByRole('tab', { name: '二级汉字' }).click()
-    await expect(page.locator('.overview-pending')).toBeVisible()
-    if (id === 'cards') await page.locator('.stage-card').first().click()
-    else if (id === 'notebook') await page.locator('.notebook-lesson').first().click()
-    else await page.locator(id === 'flashcards' ? '.flash-start' : '.dock-start').click()
-    await expect(page.getByText('该关卡敬请期待', { exact: true })).toBeVisible()
+    await expect(page.locator('.overview-pending')).toHaveCount(0)
+    await expect(page.locator('.overview-caption')).toHaveText('已完成 0 / 300 关')
     await page.getByRole('tab', { name: '一级汉字' }).click()
   }
 })

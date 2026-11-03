@@ -40,7 +40,7 @@ for (const from of ['button', 'backbutton'] as const) {
       })
       await expect(page.getByRole('region', { name: '关卡预览' })).toBeVisible()
       expect(await pageRoutes(page)).toEqual(['pages/levels/index', 'pages/level-study/index'])
-      await page.getByRole('button', { name: '开始学习', exact: true }).click()
+      await page.getByRole('button', { name: /^(开始学习|继续本轮学习)$/ }).click()
       await expect(page.locator('.prompt-character')).toBeVisible()
       await page.evaluate('window.navigationCounts.back = 0')
       if (from === 'button') {

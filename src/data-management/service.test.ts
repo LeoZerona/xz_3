@@ -1,10 +1,23 @@
-import {beforeEach,expect,it} from 'vitest'
+import {beforeEach,expect,it,vi} from 'vitest'
 import {setupTestDatabase} from '../database/testSupport'
 import {exportBackup,restoreBackup} from '../database/backup'
 import {readStored,saveStored,flushPersistence} from '../database/persistence'
 import {addCustomBook,readCustomBookText} from '../reading/customBooks'
 import {clearRebuildableCache,previewBackup,saveFeedback,listFeedback,exportFeedback,restorePreviousSnapshot} from './service'
+import {getDatabase} from '../database/connection'
+import {ADDITIONAL_USER_TABLES} from '../database/records'
+import {createPractice,readPractice} from '../practice/repository'
+import {saveCollection,readCollection} from '../collections/repository'
+import {importDocument,readImportResult} from '../library/importer'
+import {setBookStatus,readLibraryBook} from '../library/repository'
+import {saveAnnotation,listAnnotations} from '../library/annotations'
+import {saveReminder,listReminders,refreshLocalMessages,listMessages} from '../notifications/repository'
+import {recordActivity,readActivities} from '../learning/activity'
 beforeEach(async()=>{await setupTestDatabase()})
+it('没有浏览器TextEncoder时仍可预览备份',async()=>{
+  const backup=await exportBackup();vi.stubGlobal('TextEncoder',undefined)
+  try{expect((await previewBackup(backup)).bytes).toBeGreaterThan(0)}finally{vi.unstubAllGlobals()}
+})
 it('损坏关系、未来版本和危险字体拒绝恢复且不写入快照',async()=>{
   saveStored('font-learning-theme','jade-green');const original=await exportBackup()
   for(const change of [
@@ -33,3 +46,26 @@ it('反馈只保存填写内容，诊断导出不附原文或个人资料',async
   await expect(saveFeedback({category:'问题',body:' ',includeDiagnostics:false})).rejects.toThrow()
 })
 interface Backup {version:number;data:Record<string,Array<Record<string,unknown>>>}
+it('字单、未完成专项、导入笔记、提醒和真实消息在同一备份中往返',async()=>{
+  const db=await getDatabase()
+  await db.commit(['a','b'].map((id,index)=>({table:'characters',row:{id,simplified:index?'末':'未',traditional:index?'末':'未',pinyin:'wei',pinyinSearch:'wei',strokes:5,radical:'木',layout:'独体',definition:'示例',level:1,position:index}})))
+  const collection=await saveCollection({name:'易混字',characterIds:['b','a']})
+  const practice=await createPractice({name:'未完成练习',source:'collection',sourceId:collection,characterIds:['b','a'],modes:['seal-to-reference-choice'],count:2})
+  const imported=await importDocument({fileName:'笔记.txt',text:'未末辨识'})
+  await setBookStatus(imported.bookId,'reading')
+  await saveAnnotation({bookId:imported.bookId,kind:'excerpt',startOffset:0,endOffset:2,text:'未末辨识',note:'注意横画'})
+  await saveReminder({title:'阅读',time:'20:00',weekdays:[1,3],enabled:true,quietStart:'22:00',quietEnd:'07:00',skipCompleted:true})
+  recordActivity({id:'complete-a',sessionId:'daily',source:'daily',kind:'completed',characterId:'a',mode:null,correct:null,at:'2026-11-03T01:00:00Z',dateKey:'2026-11-3',seconds:0,timezoneOffset:0})
+  await refreshLocalMessages(new Date(2026,10,3,12))
+  const original=await readPractice(practice);const backup=await exportBackup()
+  for(const table of ADDITIONAL_USER_TABLES)await db.commit((await db.query(table)).map(row=>({table,deleteId:row.id})))
+  await restoreBackup(backup)
+  expect(await readPractice(practice)).toEqual(original)
+  expect((await readCollection(collection)).characterIds).toEqual(['b','a'])
+  expect((await listAnnotations(imported.bookId))[0]?.note).toBe('注意横画')
+  expect((await readLibraryBook(imported.bookId)).status).toBe('reading')
+  expect(await readImportResult(imported.id)).toEqual(imported)
+  expect((await listReminders())[0]?.title).toBe('阅读')
+  expect(await listMessages()).toHaveLength(1)
+  expect(await readActivities()).toHaveLength(1)
+})

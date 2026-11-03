@@ -9,7 +9,7 @@ const props = defineProps<{
   totalCount: number
   completedCount: number
 }>()
-const isPending = computed(() => props.category.key === 'level2' || props.category.key === 'level3')
+const isPending = computed(() => props.totalCount === 0)
 const completionRatio = computed(() => props.totalCount > 0 ? props.completedCount / props.totalCount : 0)
 </script>
 

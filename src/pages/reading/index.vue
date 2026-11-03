@@ -132,6 +132,7 @@ useActivityClock('reading', () => viewMode.value === 'reader' && !loading.value 
   () => `reading:${activeBookId.value}`)
 const deviceBattery = useDeviceBattery(computed(() => viewMode.value === 'reader'))
 const showReaderChrome = ref(false)
+const readerMenuMaxHeight = ref<number | null>(null)
 const showReaderCatalog = ref(false)
 const showReaderSettings = ref(false)
 const showCatalog = ref(true)
@@ -313,7 +314,7 @@ function toLayoutRect(value: unknown): LayoutRect | null {
   }
 }
 
-function measureReadingPage(): Promise<{ stage: LayoutRect | null; table: LayoutRect | null; rowRects: LayoutRect[] }> {
+function measureReadingPage(): Promise<{ stage: LayoutRect | null; table: LayoutRect | null; menu:LayoutRect|null; rowRects: LayoutRect[] }> {
   if (typeof document !== 'undefined') {
     const stageElement = document.querySelector<HTMLElement>('#reading-page-stage')
     const tableElement = document.querySelector<HTMLElement>('#reading-page-stage .reading-table-wrap')
@@ -321,29 +322,32 @@ function measureReadingPage(): Promise<{ stage: LayoutRect | null; table: Layout
     return Promise.resolve({
       stage: toLayoutRect(stageElement?.getBoundingClientRect()),
       table: toLayoutRect(tableElement?.getBoundingClientRect()),
+      menu:toLayoutRect(document.querySelector<HTMLElement>('.reader-bottom-overlay')?.getBoundingClientRect()),
       rowRects: rowElements.map((element) => toLayoutRect(element.getBoundingClientRect())).filter((rect): rect is LayoutRect => rect !== null),
     })
   }
 
   return new Promise((resolve) => {
     let isSettled = false
-    const finish = (value: { stage: LayoutRect | null; table: LayoutRect | null; rowRects: LayoutRect[] }) => {
+    const finish = (value: { stage: LayoutRect | null; table: LayoutRect | null; menu:LayoutRect|null; rowRects: LayoutRect[] }) => {
       if (isSettled) return
       isSettled = true
       clearTimeout(fallbackTimer)
       resolve(value)
     }
-    const fallbackTimer = setTimeout(() => finish({ stage: null, table: null, rowRects: [] }), 300)
+    const fallbackTimer = setTimeout(() => finish({ stage: null, table: null, menu:null,rowRects: [] }), 300)
     const query = uni.createSelectorQuery()
     query.select('#reading-page-stage').boundingClientRect()
     query.select('#reading-page-stage .reading-table-wrap').boundingClientRect()
     query.selectAll('#reading-page-stage .reading-row').boundingClientRect()
+    query.select('.reader-bottom-overlay').boundingClientRect()
     query.exec((result) => {
       const values = Array.isArray(result) ? result as unknown[] : []
       const rowsResult = Array.isArray(values[2]) ? values[2] : []
       finish({
         stage: toLayoutRect(values[0]),
         table: toLayoutRect(values[1]),
+        menu:toLayoutRect(values[3]),
         rowRects: rowsResult.map(toLayoutRect).filter((rect): rect is LayoutRect => rect !== null),
       })
     })
@@ -368,9 +372,11 @@ async function recalcVisibleRows(): Promise<void> {
   const isCurrentLayout = () => revision === paginationRevision && bookId === activeBookId.value && measuredRows === rows.value && viewMode.value === 'reader' && !loading.value
   try {
     await nextTick()
-    const { stage, table, rowRects } = await measureReadingPage()
+    const { stage, table, menu,rowRects } = await measureReadingPage()
     if (!isCurrentLayout()) return
     if (!stage || !table || rowRects.length === 0) return
+    // 短横屏让菜单在原有滚动容器内缩短，保留首行完整答案；正常视口不改变高度。
+    if(menu&&rowRects[0]!.bottom+8>menu.top){const available=Math.floor(menu.bottom-rowRects[0]!.bottom-8);if(available>=64)readerMenuMaxHeight.value=available}
 
     const rowHeight = Math.max(...rowRects.map((rect) => rect.height))
     const measuredGaps = rowRects.slice(1).map((rect, index) => Math.max(0, rect.top - rowRects[index]!.bottom))
@@ -497,6 +503,7 @@ function handleAutoPageSecondsChange(value: number) {
 }
 
 function handleViewportChange() {
+  readerMenuMaxHeight.value=null
   if (typeof window === 'undefined') return
   const wasMobile = isMobileViewport.value
   isMobileViewport.value = window.innerWidth < 900
@@ -555,11 +562,13 @@ function handleRevealNextReference(): void {
 }
 
 function handleReaderMenuToggle(): void {
+  readerMenuMaxHeight.value=null
   showReaderChrome.value = !showReaderChrome.value
   if (!showReaderChrome.value) {
     showReaderCatalog.value = false
     showReaderSettings.value = false
   }
+  void nextTick(()=>scheduleRecalcVisibleRows())
 }
 
 function handleReaderTap(): void {
@@ -1347,7 +1356,7 @@ function handleKeydown(e: KeyboardEvent) {
         </view>
       </view>
 
-      <view v-if="showReaderChrome" class="reader-bottom-overlay" @click.stop>
+      <view v-if="showReaderChrome" class="reader-bottom-overlay" :style="readerMenuMaxHeight===null?{}:{maxHeight:readerMenuMaxHeight+'px'}" @click.stop>
         <view class="reader-menu-head">
           <text class="reader-menu-title">阅读菜单</text>
           <button class="reader-menu-close" role="button" tabindex="0" aria-label="收起阅读菜单" @click="handleReaderMenuToggle" @keydown.enter.prevent="handleReaderMenuToggle" @keydown.space.prevent @keyup.space.prevent="handleReaderMenuToggle">×</button>

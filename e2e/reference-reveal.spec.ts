@@ -167,5 +167,10 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
     expect(revealedCharacter!.y).toBeGreaterThanOrEqual(topOverlay!.y + topOverlay!.height)
     expect(revealedCharacter!.y + revealedCharacter!.height).toBeLessThanOrEqual(bottomOverlay!.y)
     await page.screenshot({ path: testInfo.outputPath('reference-reveal-night.png') })
+    if(viewport.width===740){
+      await page.setViewportSize({width:390,height:844})
+      await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+      await expect.poll(()=>page.locator('.reader-bottom-overlay').evaluate(element=>element.scrollHeight-element.clientHeight)).toBeLessThanOrEqual(1)
+    }
   })
 }

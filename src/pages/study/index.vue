@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
+import {reportPersistenceError} from '../../database/persistence'
 
 import { onBackPress } from '@dcloudio/uni-app'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -212,7 +213,7 @@ function handleChoiceAnswer(character: string) {
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(current.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
+      try { learningStore.recordModeAttempt(current.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
       if (learningStore.isCharacterComplete(current.id)) dailyProgressStore.addLearned(current.id)
     }, 400)
     return
@@ -220,16 +221,12 @@ function handleChoiceAnswer(character: string) {
   const n = incWrongCount()
   if (n === 1) {
     hintLevel.value = 1
-    try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
+    try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
     return
   }
   hintLevel.value = 1
   forceDetail.value = true
-  try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
-  const firstMode = effectiveModes.value[0]
-  if (activeMode.value !== firstMode) {
-    try { learningStore.resetCharacterModes(current.id) } catch {}
-  }
+  try { learningStore.recordModeAttempt(current.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
   if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
   pendingCorrectTimer = setTimeout(() => {
     hasAnswered.value = true
@@ -262,7 +259,7 @@ function submitInputAnswer(value: string) {
     pendingCorrectTimer = setTimeout(() => {
       hasAnswered.value = true
       isCorrectAnimating.value = false
-      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
+      try { learningStore.recordModeAttempt(curChar.id, activeMode.value, true, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
       if (learningStore.isCharacterComplete(curChar.id)) dailyProgressStore.addLearned(curChar.id)
     }, 400)
     return
@@ -270,16 +267,12 @@ function submitInputAnswer(value: string) {
   const n = incWrongCount()
   if (n === 1) {
     hintLevel.value = 1
-    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
+    try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
     return
   }
   hintLevel.value = 1
   forceDetail.value = true
-  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch {}
-  const firstMode = effectiveModes.value[0]
-  if (activeMode.value !== firstMode) {
-    try { learningStore.resetCharacterModes(curChar.id) } catch {}
-  }
+  try { learningStore.recordModeAttempt(curChar.id, activeMode.value, false, new Date().toISOString(), { source: 'daily', sessionId: 'daily:' + localDateKey(new Date()), modes: sessionModes.value }) } catch (error) { reportPersistenceError(error) }
   if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer)
   pendingCorrectTimer = setTimeout(() => {
     hasAnswered.value = true
@@ -314,12 +307,11 @@ function handleNext() {
   touchActive()
   resetQuestionState()
   advanceToNextIncomplete()
-  let nextTask: any = allTasksInterleaved.value[currentTaskIndex.value]
-  if (nextTask === undefined) nextTask = null
+  const nextTask = allTasksInterleaved.value[currentTaskIndex.value] ?? null
   if (nextTask) {
-    try { dailyProgressStore.setCurrentCharacter(nextTask.character.id) } catch {}
+    try { dailyProgressStore.setCurrentCharacter(nextTask.character.id) } catch (error) { reportPersistenceError(error) }
   } else {
-    try { dailyProgressStore.setCurrentCharacter(null) } catch {}
+    try { dailyProgressStore.setCurrentCharacter(null) } catch (error) { reportPersistenceError(error) }
   }
   if (!nextTask) {
     if (isDayComplete.value) {
@@ -336,7 +328,7 @@ function handleNext() {
             }
           },
         })
-      } catch {}
+      } catch (error) { reportPersistenceError(error) }
     }
   }
 }
@@ -355,13 +347,13 @@ onBackPress((event) => {
 })
 
 function openSearch(){
-  try{ uni.navigateTo({ url: "/pages/search/index" }) }catch{}
+  try{ uni.navigateTo({ url: "/pages/search/index" }) }catch(error){reportPersistenceError(error)}
 }
 function toggleFavorite(){
   const ch=currentCharacter.value
   if(!ch) return
   learningStore.toggleFavorite(ch.id)
-  try{ uni.showToast({ title: learningStore.isFavorite(ch.id) ? "已收藏" : "已取消收藏", icon: "none" }) }catch{}
+  try{ uni.showToast({ title: learningStore.isFavorite(ch.id) ? "已收藏" : "已取消收藏", icon: "none" }) }catch(error){reportPersistenceError(error)}
 }
 onBeforeUnmount(() => { if (pendingCorrectTimer) clearTimeout(pendingCorrectTimer) })
 const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.value) && !isDayComplete.value,
