@@ -47,6 +47,8 @@ App-vue 使用 HTML5+ `plus.sqlite`，数据库路径为 `_doc/font-learning.db`
 
 App 打开数据库前通过 `plus.sqlite.isOpenDatabase` 同时检查名称和路径，复用已打开的原生连接，避免 HBuilderX 重载后 JS 缓存重置导致 `Same Name Already Open`。打开失败时也会重新确认目标连接，未确认打开的错误仍正常上报；结构初始化失败会等待原生连接关闭完成后再返回错误，确保后续重试不与关闭操作竞争。
 
+App 的初始化、快照及批量写入统一用 `plus.sqlite.transaction` 的 `begin` / `commit` / `rollback` 控制原生事务；不再将事务边界当作普通 SQL 传给 `executeSql`。写入失败保留待提交队列，重试成功才清除。失败提示同时展示具体错误，保存进行中禁止重复点击。该桥接契约与真实 SQLite 回滚已由本地测试覆盖，Android 设备上的原始失败仍需更新 App 资源后实机核对。
+
 ## 备份恢复
 
 设置页提供导出和恢复：H5 下载 / 选择 JSON 文件；App 保存独立文件到 `_doc` 并显示路径，可填写可访问的备份路径恢复。App 内备份需要另存副本才能用于卸载、清除数据或换机后的恢复。

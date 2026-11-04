@@ -4,7 +4,7 @@ import { openSqlite } from './sqlite'
 import { DATABASE_VERSION } from './schema'
 
 afterEach(() => vi.unstubAllGlobals())
-function nativeBridge(initiallyOpen = false) {
+function nativeBridge(initiallyOpen = false, requiresTransactionApi = false) {
   const backing = createTestDatabase()
   let isOpen = initiallyOpen
   const isOpenDatabase = vi.fn((options: PlusSqliteIsOpenDatabaseOptions) =>
@@ -22,9 +22,23 @@ function nativeBridge(initiallyOpen = false) {
   vi.stubGlobal('plus', { sqlite: {
     isOpenDatabase,
     openDatabase,
+    transaction(options: PlusSqliteTransactionOptions) {
+      queueMicrotask(() => {
+        try {
+          backing.native.exec(options.operation === 'begin' ? 'BEGIN IMMEDIATE' : options.operation!.toUpperCase())
+          options.success?.(undefined)
+        } catch (error) { options.fail?.(error) }
+      })
+    },
     executeSql(options: PlusSqliteExecuteSqlOptions) {
       queueMicrotask(() => {
-        try { for (const sql of options.sql ?? []) backing.native.exec(sql); options.success?.(undefined) }
+        try {
+          for (const sql of options.sql ?? []) {
+            if (requiresTransactionApi && /^(BEGIN|COMMIT|ROLLBACK)\b/i.test(sql)) throw new Error('原生事务须使用 transaction 接口')
+            backing.native.exec(sql)
+          }
+          options.success?.(undefined)
+        }
         catch (error) { options.fail?.(error) }
       })
     },
@@ -36,6 +50,20 @@ function nativeBridge(initiallyOpen = false) {
   return { backing, isOpenDatabase, openDatabase, closeDatabase }
 }
 describe('App SQLite 桥接', () => {
+  it('通过原生事务接口保存，失败完整回滚后可重试并重新读取', async () => {
+    const { backing } = nativeBridge(false, true)
+    const db = await openSqlite()
+    await db.commit([{ table: 'settings', row: { id: 'saved', value: '原值' } }])
+    // 让第二条 SQL 在真实 SQLite 内失败，验证第一条已执行的更新也会回滚。
+    backing.native.exec("CREATE TRIGGER reject_invalid BEFORE INSERT ON settings WHEN NEW.id = 'invalid' BEGIN SELECT RAISE(ABORT, '模拟原生写入失败'); END")
+    await expect(db.commit([
+      { table: 'settings', row: { id: 'saved', value: '未提交值' } },
+      { table: 'settings', row: { id: 'invalid', value: '触发写入失败' } },
+    ])).rejects.toThrow('模拟原生写入失败')
+    expect(await db.query('settings', { where: { id: 'saved' } })).toEqual([{ id: 'saved', value: '原值' }])
+    await db.commit([{ table: 'settings', row: { id: 'saved', value: '重试成功' } }])
+    expect(await db.query('settings', { where: { id: 'saved' } })).toEqual([{ id: 'saved', value: '重试成功' }])
+  })
   it('多表快照与后续提交串行，返回同一事务中的组织与成员',async()=>{
     nativeBridge();const db=await openSqlite()
     const snapshot=db.snapshot(['collections','collection_items'])

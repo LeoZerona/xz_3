@@ -4,6 +4,7 @@ import { applicationReady } from '../../database/application'
 import { useDatabaseTask } from '../../database/useDatabaseTask'
 import { getCharacter } from '../../database/catalog'
 import { useLevelReviewStore } from '../../stores/levelReview'
+import type { ReviewAnswerReceipt } from '../../stores/levelReview'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { orderReviewIds } from '../../study/levelReview'
 import type { ReviewFilter } from '../../study/levelReview'
@@ -16,6 +17,8 @@ export function useLevelReview() {
   const learning = useCharacterLearningStore()
   const filter = ref<ReviewFilter>('all')
   const character = ref<StudyCharacterEntry | null>(null)
+  const answer = ref<ReviewAnswerReceipt | null>(null)
+  const answerError = ref('')
   const isLoading = ref(true)
   const loadError = ref('')
   const now = ref(Date.now())
@@ -55,7 +58,7 @@ export function useLevelReview() {
     isVisible = true
     if (!initialized || !applicationReady.value) return
     now.value = Date.now()
-    void loadNext(true)
+    if (!answer.value) void loadNext(true)
     startClock()
   })
   onHide(() => { isVisible = false; if (timer) clearInterval(timer); timer = undefined })
@@ -88,18 +91,33 @@ export function useLevelReview() {
   async function switchFilter(value: ReviewFilter): Promise<void> {
     if (isLoading.value || value === filter.value) return
     filter.value = value
+    answer.value = null
+    answerError.value = ''
     isEarlyReview.value = false
     answeredIds.clear()
     await loadNext(true)
   }
   async function handleAnswer(known: boolean): Promise<void> {
     const current = character.value
-    if (!current || isLoading.value || loadError.value) return
+    if (!current || answer.value || isLoading.value || loadError.value) return
     try {
-      store.answer(current.id, known)
+      answerError.value = ''
+      answer.value = store.answer(current.id, known)
       answeredIds.add(current.id)
-      await loadNext(false)
-    } catch (error) { loadError.value = error instanceof Error ? error.message : '复习记录保存失败，请重试' }
+    } catch (error) { answerError.value = error instanceof Error ? error.message : '复习记录保存失败，请重试' }
+  }
+  function handleCorrection(known: boolean): void {
+    if (!answer.value || isLoading.value) return
+    try {
+      answerError.value = ''
+      answer.value = store.correctAnswer(answer.value, known)
+    } catch (error) { answerError.value = error instanceof Error ? error.message : '更正失败，请重试' }
+  }
+  async function handleNext(): Promise<void> {
+    if (!answer.value || isLoading.value) return
+    answer.value = null
+    answerError.value = ''
+    await loadNext(false)
   }
   async function startEarlyReview(): Promise<void> {
     isEarlyReview.value = true
@@ -109,5 +127,5 @@ export function useLevelReview() {
   function retry(): void { void loadNext(true) }
   useActivityClock('review', () => Boolean(character.value) && !isLoading.value && !loadError.value,
     () => `review:${localDateKey(new Date())}`)
-  return { filter, character, isLoading, loadError, dueCount, totalCount, nextDueLabel, switchFilter, handleAnswer, startEarlyReview, retry }
+  return { filter, character, answer, answerError, isLoading, loadError, dueCount, totalCount, nextDueLabel, switchFilter, handleAnswer, handleCorrection, handleNext, startEarlyReview, retry }
 }

@@ -24,7 +24,8 @@ async function refresh(now:Date):Promise<number>{
   const db=await getDatabase();const events=(await readActivities({kind:'completed'})).filter(event=>event.source==='daily'||event.source==='level');const existing=new Set((await db.query('local_messages')).map(row=>row.id));const changes:Change[]=[]
   const deleted=readStored('font-learning-deleted-messages');if(Array.isArray(deleted))for(const id of deleted)if(typeof id==='string')existing.add(id)
   const days=[...new Set(events.filter(event=>event.kind==='completed'&&(event.source==='daily'||event.source==='level')).map(event=>event.dateKey))]
-  for(const day of days){const id=`learning:${day}`;if(existing.has(id))continue;const completed=events.filter(event=>event.kind==='completed'&&event.dateKey===day);changes.push({table:'local_messages',ifAbsent:true,row:{id,title:'学习进展',body:`${day} 完成了 ${new Set(completed.map(event=>event.characterId)).size} 个文字的正式学习。`,kind:'learning',relatedId:day,at:completed.at(-1)!.at,readAt:null}})}
+  // 部分 Android 运行环境不支持 Array.at；日期来自已有完成事件，分组一定非空。
+  for(const day of days){const id=`learning:${day}`;if(existing.has(id))continue;const completed=events.filter(event=>event.kind==='completed'&&event.dateKey===day);changes.push({table:'local_messages',ifAbsent:true,row:{id,title:'学习进展',body:`${day} 完成了 ${new Set(completed.map(event=>event.characterId)).size} 个文字的正式学习。`,kind:'learning',relatedId:day,at:completed[completed.length-1]!.at,readAt:null}})}
   const today=localDateKey(now);const completedToday=new Set(events.filter(event=>event.dateKey===today).map(event=>event.characterId)).size>=readPlanDailyCount(now)||(await db.query('daily_sessions',{where:{id:today}})).some(row=>Boolean(row.completedAt))
   for(const reminder of await listReminders()){
     if(reminder.skipCompleted&&completedToday)continue

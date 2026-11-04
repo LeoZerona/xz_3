@@ -108,6 +108,8 @@ for (const width of [320, 390, 1440]) {
 
 test('跨分类仅预览也更新最近选择，已完成的上次关卡仍保持高亮', async ({ page }) => {
   await prepareRecent(page, 2, 'radical')
+  await expect(page.getByRole('tab', { name: '一级汉字' })).toHaveAttribute('aria-selected', 'true')
+  await page.getByRole('button', { name: '回到上次选择的偏旁部首关卡 02' }).click()
   await expect(page.getByRole('tab', { name: '偏旁部首' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.locator('.stage-card.is-current')).toHaveAttribute('id', 'stage-radical-stage-02')
   await page.getByRole('tab', { name: '一级汉字' }).click()

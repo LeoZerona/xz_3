@@ -16,7 +16,7 @@ for (const output of ['build', 'dev']) {
       window.Worker = class { constructor() { throw new Error('Unexpected worker') } } as typeof Worker
     })
     await page.goto(`${pathToFileURL(path.resolve('e2e/fixtures/pdf-webview.html')).href}?output=${output}`)
-    for (const file of ['sample-english.pdf', '《曾国藩家书》全集.pdf']) {
+    for (const file of ['sample-english.pdf', 'zeng-guofan-family-letters.pdf']) {
       const base64 = (await readFile(path.resolve('src/static/books', file))).toString('base64')
       const result = await page.evaluate(async (base64) => {
         const view = window as unknown as {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted } from 'vue'
-import { onBackPress } from '@dcloudio/uni-app'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { onBackPress, onShow } from '@dcloudio/uni-app'
 import { storeToRefs } from 'pinia'
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
 import CharacterComparisonTray from '../../components/CharacterComparisonTray.vue'
@@ -11,15 +11,42 @@ import { comparisonAdditionMessage } from '../../comparison/characterComparison'
 import { SEARCH_MODES as modes, useCharacterSearch } from './useCharacterSearch'
 import type { CharacterEntry } from '../../search/characterSearch'
 import ContentSearchPanel from '../../library/ContentSearchPanel.vue'
+import { consumeSearchReturnUrl } from '../../search/navigation'
 
 const { themeStyle } = storeToRefs(useThemeStore())
 const comparisonStore = useCharacterComparisonStore()
 const { selectedIds } = storeToRefs(comparisonStore)
 const { query, activeMode, searchHistory, results, totalResults, isSearching, searchError, missingCharacters, trimmedQuery, isCharacterMode, batchCharacters, resultSummary, loadResults, saveSearch, clearHistory } = useCharacterSearch()
 const contentMode = computed(() => activeMode.value === 'character' ? 'word' : activeMode.value)
+const returnDetailUrl = ref<string | null>(null)
+let previousSearchQuery = ''
+let previousSearchMode: typeof activeMode.value = 'character'
+onShow(() => {
+  const previousDetail = consumeSearchReturnUrl()
+  if (!previousDetail) return
+  previousSearchQuery = query.value
+  previousSearchMode = activeMode.value
+  query.value = ''
+  activeMode.value = 'character'
+  returnDetailUrl.value = previousDetail
+})
+// 搜索随输入执行；新查询开始后，旧详情不再是本次搜索的返回目标。
+watch(trimmedQuery, value => { if (value) returnDetailUrl.value = null }, { flush: 'sync' })
 function handleContentOpen(url: string): void { void saveSearch(); uni.navigateTo({url,fail:()=>uni.showToast({title:'内容页面打开失败，请重试',icon:'none'})}) }
 
 function goBack(): void {
+  if (returnDetailUrl.value) {
+    uni.navigateTo({
+      url: returnDetailUrl.value,
+      success: () => {
+        query.value = previousSearchQuery
+        activeMode.value = previousSearchMode
+        returnDetailUrl.value = null
+      },
+      fail: () => uni.showToast({ title: '暂时无法返回文字详情，请重试', icon: 'none' }),
+    })
+    return
+  }
   if (getCurrentPages().length > 1) uni.navigateBack({ delta: 1, fail: () => uni.reLaunch({ url: '/pages/index/index' }) })
   else uni.reLaunch({ url: '/pages/index/index' })
 }
@@ -155,8 +182,8 @@ onMounted(async () => {
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .clear-button, .cancel-button, .mode-tab, .text-button, .history-chip { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; line-height: normal; }
 .clear-button::after, .cancel-button::after, .mode-tab::after, .text-button::after, .history-chip::after { border: 0; }
-.clear-button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; color: var(--color-text-secondary); }
-.cancel-button { width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 1; }
+.clear-button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: var(--control-radius); color: var(--color-text-secondary); }
+.cancel-button { width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; border-radius: var(--control-radius); font-size: 13px; line-height: 1; }
 .mode-tabs { padding: 7px 16px 10px; display: flex; align-items: center; justify-content: space-around; border-bottom: 1px solid var(--color-border); background: var(--color-topbar); }
 .mode-tab { position: relative; min-width: 58px; min-height: 44px; color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
 .mode-tab.is-active { color: var(--color-primary); font-weight: 600; }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CharacterFontComparison from '../../../components/CharacterFontComparison.vue'
+import CharacterFavoriteButton from '../../../components/CharacterFavoriteButton.vue'
 import type { LearningFont } from '../../../fonts/types'
 import type { StudyCharacterEntry } from '../../../study/types'
 
@@ -7,9 +8,12 @@ interface Props {
   character: StudyCharacterEntry
   learningFont: LearningFont
   referenceFont: LearningFont
+  canFavorite?: boolean
+  isFavorite?: boolean
 }
 
 defineProps<Props>()
+const emit = defineEmits<{ (event: 'toggle-favorite'): void }>()
 </script>
 
 <template>
@@ -27,11 +31,16 @@ defineProps<Props>()
   </view>
 
   <view class="detail-content">
-    <view class="info-card">
-      <text class="card-title">基本释义</text>
-      <text class="definition">{{ character.semantics.definition }}</text>
-      <view class="word-list" aria-label="常用词语">
-        <text v-for="word in character.semantics.words" :key="word" class="word-chip">{{ word }}</text>
+    <view class="definition-section">
+      <view v-if="canFavorite" class="definition-actions">
+        <CharacterFavoriteButton :is-favorite="Boolean(isFavorite)" @toggle-favorite="emit('toggle-favorite')" />
+      </view>
+      <view class="info-card">
+        <text class="card-title">基本释义</text>
+        <text class="definition">{{ character.semantics.definition }}</text>
+        <view class="word-list" aria-label="常用词语">
+          <text v-for="word in character.semantics.words" :key="word" class="word-chip">{{ word }}</text>
+        </view>
       </view>
     </view>
 
@@ -71,6 +80,8 @@ defineProps<Props>()
 .detail-content { padding: 10px 14px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
 .info-card { padding: 17px 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--color-border); border-radius: 12px; background: color-mix(in srgb, var(--color-surface) 90%, transparent); box-shadow: 0 6px 20px var(--color-shadow); }
 .card-title { font-size: 13px; font-weight: 700; }
+.definition-section { display: flex; flex-direction: column; gap: 4px; }
+.definition-actions { display: flex; justify-content: flex-end; }
 .definition { color: var(--color-text-secondary); font-size: 13px; line-height: 1.65; }
 .word-list, .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .word-chip, .tag { padding: 6px 10px; border-radius: 14px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 10px; }

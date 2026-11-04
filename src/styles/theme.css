@@ -19,6 +19,7 @@
   --color-cover-one: #17b684;
   --color-cover-two: #4476e8;
   --color-shadow: #20242d0d;
+  --control-radius: 8px;
   /* 顶部安全区：状态栏约30px + 刘海 inset，兼容 env() / constant() */
   --app-top-safe-area: calc(30px + env(safe-area-inset-top, 0px));
   --app-safe-mask-height: calc(30px + env(safe-area-inset-top, 0px));
@@ -71,8 +72,7 @@ body { transition: background-color .2s ease, color .2s ease; }
   z-index: 9999;
   height: var(--app-safe-mask-height);
   height: calc(30px + env(safe-area-inset-top, 0px));
-  background: var(--color-page);
-  background: var(--color-surface);
+  background: var(--color-topbar);
   pointer-events: none;
 }
 @supports (top: constant(safe-area-inset-top)) {

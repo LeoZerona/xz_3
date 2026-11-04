@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CharacterSlashMark from './CharacterSlashMark.vue'
 import { computed, ref } from 'vue'
 import type { LearningFont } from '../fonts/types'
 import type { StudyCharacterEntry } from '../study/types'
@@ -11,12 +12,20 @@ interface Props {
   description: string
   canSlash?: boolean
   excludedIds?: string[]
+  canFavorite?: boolean
+  favoriteIds?: string[]
 }
 
-const props = withDefaults(defineProps<Props>(), { canSlash: false, excludedIds: () => [] })
+const props = withDefaults(defineProps<Props>(), {
+  canSlash: false,
+  excludedIds: () => [],
+  canFavorite: false,
+  favoriteIds: () => [],
+})
 const emit = defineEmits<{
   (event: 'open-detail', characterId: string): void
   (event: 'slash-character', characterId: string): void
+  (event: 'toggle-favorite', characterId: string): void
 }>()
 
 const coveredFont = ref<'learning' | 'reference'>('reference')
@@ -36,6 +45,10 @@ function isRevealed(characterId: string): boolean {
 
 function isExcluded(characterId: string): boolean {
   return props.excludedIds.includes(characterId)
+}
+
+function isFavorite(characterId: string): boolean {
+  return props.favoriteIds.includes(characterId)
 }
 
 function toggleCharacterCover(characterId: string) {
@@ -75,7 +88,7 @@ function toggleAllCovers() {
         <text class="font-kind">对照字体</text>
         <text class="font-name">{{ referenceFont.name }}</text>
       </view>
-      <view class="detail-heading">{{ canSlash ? '操作' : '详情' }}</view>
+      <view class="detail-heading">{{ canSlash || canFavorite ? '操作' : '详情' }}</view>
     </view>
 
     <scroll-view class="character-scroll" scroll-y :show-scrollbar="false" :bounces="false" :enhanced="false">
@@ -92,6 +105,18 @@ function toggleAllCovers() {
             <text v-if="isRevealed(entry.id)" class="character" :style="{ fontFamily: learningFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
             <text v-else class="cover-hint">点击显示</text>
           </button>
+          <button
+            v-else-if="canFavorite"
+            class="character-cell detail-cell"
+            role="button"
+            tabindex="0"
+            :aria-label="`查看${entry.script_forms.simplified}的文字详情`"
+            @click="emit('open-detail', entry.id)"
+            @keydown.enter.prevent="emit('open-detail', entry.id)"
+            @keydown.space.prevent="emit('open-detail', entry.id)"
+          >
+            <text class="character" :style="{ fontFamily: learningFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
+          </button>
           <view v-else class="character-cell">
             <text class="character" :style="{ fontFamily: learningFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
           </view>
@@ -107,6 +132,18 @@ function toggleAllCovers() {
             <text v-if="isRevealed(entry.id)" class="character" :style="{ fontFamily: referenceFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
             <text v-else class="cover-hint">点击显示</text>
           </button>
+          <button
+            v-else-if="canFavorite"
+            class="character-cell detail-cell"
+            role="button"
+            tabindex="0"
+            :aria-label="`查看${entry.script_forms.simplified}的文字详情`"
+            @click="emit('open-detail', entry.id)"
+            @keydown.enter.prevent="emit('open-detail', entry.id)"
+            @keydown.space.prevent="emit('open-detail', entry.id)"
+          >
+            <text class="character" :style="{ fontFamily: referenceFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
+          </button>
           <view v-else class="character-cell">
             <text class="character" :style="{ fontFamily: referenceFont.fontFamily }">{{ entry.script_forms.simplified }}</text>
           </view>
@@ -119,8 +156,23 @@ function toggleAllCovers() {
             :aria-label="isExcluded(entry.id) ? `取消斩${entry.script_forms.simplified}，恢复关卡学习` : `斩掉${entry.script_forms.simplified}，后续关卡学习不再出现`"
             :aria-pressed="isExcluded(entry.id)"
             @click="emit('slash-character', entry.id)"
-          >{{ isExcluded(entry.id) ? '已斩' : '斩' }}</button>
+          ><CharacterSlashMark :active="isExcluded(entry.id)" /></button>
           <button
+            v-if="canFavorite"
+            class="detail-button favorite-button"
+            :class="{ 'is-active': isFavorite(entry.id) }"
+            role="button"
+            tabindex="0"
+            :aria-label="isFavorite(entry.id) ? `取消收藏${entry.script_forms.simplified}` : `收藏${entry.script_forms.simplified}`"
+            :aria-pressed="isFavorite(entry.id)"
+            @click="emit('toggle-favorite', entry.id)"
+            @keydown.enter.prevent="emit('toggle-favorite', entry.id)"
+            @keydown.space.prevent="emit('toggle-favorite', entry.id)"
+          >
+            <van-icon :name="isFavorite(entry.id) ? 'star' : 'star-o'" size="21" aria-hidden="true" />
+          </button>
+          <button
+            v-else
             class="detail-button"
             role="button"
             :aria-label="`查看${entry.script_forms.simplified}的文字详情`"
@@ -161,12 +213,14 @@ function toggleAllCovers() {
 .empty-characters { min-height: 220px; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--color-text-muted); font-size: 11px; text-align: center; }
 .character-row { min-height: 74px; padding: 10px 10px 10px 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px; align-items: stretch; gap: 10px; border-bottom: 1px solid var(--color-border); }
 .character-cell { min-width: 0; min-height: 54px; display: grid; place-items: center; border-radius: 7px; background: var(--color-surface-muted); }
-.toggle-cell { cursor: pointer; }
+.toggle-cell, .detail-cell { cursor: pointer; }
+.detail-cell:active { background: var(--color-primary-soft); }
 .character { font-size: 30px; font-weight: 600; line-height: 1; }
 .cover-cell { position: relative; overflow: hidden; background: color-mix(in srgb, var(--color-text-muted) 18%, var(--color-surface)); cursor: pointer; }
 .cover-cell::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--color-text-muted) 8%, transparent) 8px 16px); }
 .cover-hint { position: relative; z-index: 1; color: var(--color-text-muted); font-size: 8px; }
 .detail-button { width: 46px; min-height: 54px; display: grid; place-items: center; background: transparent; color: var(--color-text-muted); }
+.favorite-button.is-active { color: var(--color-primary); }
 @media (max-width: 360px) {
   .preview-summary { padding-right: 12px; padding-left: 12px; }
   .swap-button, .cover-toggle-button { width: 40px; height: 36px; }

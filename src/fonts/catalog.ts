@@ -6,13 +6,21 @@ export interface BuiltinFont extends LearningFont {
 }
 
 const FONT_TONES: FontCoverTone[] = ['green', 'blue', 'orange', 'rose', 'teal']
+// 物理文件名满足 App 打包限制，原名称继续用于显示及生成持久化字体 ID。
+const BUILTIN_FONT_FILE_NAMES: Readonly<Record<string, string>> = {
+  'fz-teya-song.TTF': '方正特雅宋简体.TTF',
+  'fz-xiaozhuan.ttf': '方正小篆体.ttf',
+  'hanyi-kaiti-fan.ttf': '汉仪楷体繁.ttf',
+  'youshe-title-black.ttf': '优设标题黑.ttf',
+}
 const builtinFontModules = import.meta.glob(
   ['../static/fronts/*.ttf', '../static/fronts/*.TTF'],
   { eager: true, import: 'default', query: '?url' },
 ) as Record<string, string>
 
 function getFileName(path: string): string {
-  return path.split('/').pop() ?? path
+  const fileName = path.split('/').pop() ?? path
+  return BUILTIN_FONT_FILE_NAMES[fileName] ?? fileName
 }
 
 function getFontName(path: string): string {
@@ -34,7 +42,8 @@ export function buildFontCatalog(fontModules: Record<string, string>): BuiltinFo
     .sort(([left], [right]) => getFileName(left).localeCompare(getFileName(right), 'zh-CN'))
     .map(([path, fontSource], index) => {
       const name = getFontName(path)
-      const suffix = createStableSuffix(path)
+      const originalPath = path.slice(0, path.lastIndexOf('/') + 1) + getFileName(path)
+      const suffix = createStableSuffix(originalPath)
       return {
         id: `builtin-${suffix}`,
         name,

@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { onBackPress } from '@dcloudio/uni-app'
 import DatabaseStatus from '../../components/DatabaseStatus.vue'
+import ReviewAnswerPanel from '../../components/ReviewAnswerPanel.vue'
 import { useFontStore } from '../../stores/fonts'
 import { useThemeStore } from '../../stores/theme'
 import type { ReviewFilter } from '../../study/levelReview'
@@ -9,7 +10,7 @@ import { useLevelReview } from './useLevelReview'
 
 const { currentFont } = storeToRefs(useFontStore())
 const { themeStyle } = storeToRefs(useThemeStore())
-const { filter, character, isLoading, loadError, dueCount, totalCount, nextDueLabel, switchFilter, handleAnswer, startEarlyReview, retry } = useLevelReview()
+const { filter, character, answer, answerError, isLoading, loadError, dueCount, totalCount, nextDueLabel, switchFilter, handleAnswer, handleCorrection, handleNext, startEarlyReview, retry } = useLevelReview()
 const filters: Array<{ id: ReviewFilter; label: string }> = [
   { id: 'all', label: '全部' }, { id: 'slashed', label: '斩列表' }, { id: 'favorites', label: '收藏列表' },
 ]
@@ -32,9 +33,11 @@ onBackPress((event) => { if (event.from === 'navigateBack') return false; handle
       <button v-for="item in filters" :id="'review-filter-' + item.id" :key="item.id" class="filter-button review-control" role="tab" tabindex="0" :aria-selected="filter === item.id" aria-controls="review-content" :class="{ 'is-active': filter === item.id }" :disabled="isLoading" @click="switchFilter(item.id)" @keydown.enter.prevent="switchFilter(item.id)" @keydown.space.prevent="switchFilter(item.id)">{{ item.label }}</button>
     </view>
     <view class="review-summary"><text>间隔复习 · 最早到期优先</text><text>待复习 {{ dueCount }} 字</text></view>
+    <view v-if="answerError" class="review-answer-error" role="alert">{{ answerError }}</view>
     <view id="review-content" class="review-content" role="tabpanel" :aria-labelledby="'review-filter-' + filter" :aria-busy="isLoading">
       <view v-if="loadError" class="review-state" role="alert"><text>{{ loadError }}</text><button class="state-button review-control" role="button" tabindex="0" @click="retry" @keydown.enter.prevent="retry" @keydown.space.prevent="retry">重试</button></view>
       <view v-else-if="isLoading" class="review-state" role="status"><text>正在准备复习…</text></view>
+      <ReviewAnswerPanel v-else-if="character && answer" :character="character" :known="answer.known" @correct-answer="handleCorrection" @next="handleNext" />
       <template v-else-if="character">
         <view class="review-glyph" :style="{ fontFamily: currentFont.fontFamily }" aria-label="待复习字形">{{ character.script_forms.simplified }}</view>
         <view class="review-actions">
@@ -65,6 +68,7 @@ onBackPress((event) => { if (event.from === 'navigateBack') return false; handle
 .review-filters .is-active { background: var(--color-surface); color: var(--color-text); font-weight: 600; }
 .review-summary { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 16px 20px; color: var(--color-text-secondary); font-size: 13px; }
 .review-content { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+.review-answer-error { flex: none; padding: 0 20px 12px; color: var(--color-text); font-size: 14px; line-height: 1.5; }
 .review-glyph { flex: 1; min-height: 0; display: grid; place-items: center; margin: 0 20px; font-size: clamp(100px, 36vw, 190px); line-height: 1.2; user-select: none; }
 .review-actions { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px 20px calc(24px + env(safe-area-inset-bottom)); }
 .answer-button { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border-radius: 12px; font-size: 17px; font-weight: 600; line-height: 1.4; }

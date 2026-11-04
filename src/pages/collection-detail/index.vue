@@ -7,6 +7,7 @@ import { getCharacters } from '../../database/catalog'
 import { deleteCollection, readCollection } from '../../collections/repository'
 import { useCharacterLearningStore } from '../../stores/characterLearning'
 import { confirmFeature, openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 import type { CollectionDetail } from '../../collections/types'
 import type { StudyCharacterEntry } from '../../study/types'
 
@@ -16,7 +17,7 @@ const entries = ref<StudyCharacterEntry[]>([])
 const pageSize = ref(50)
 const learning = useCharacterLearningStore()
 const { busy, actionError, perform } = useFeatureAction()
-onLoad((options) => { id.value = typeof options?.id === 'string' ? options.id : '' })
+onLoad((options) => { id.value = readFeatureId(options?.id) })
 const { loading, error, reload } = useFeatureTask(async () => {
   collection.value = await readCollection(id.value)
   entries.value = await getCharacters(collection.value.characterIds)

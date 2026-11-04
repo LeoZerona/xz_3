@@ -31,7 +31,6 @@ onMounted(() => { void profileStore.initialize() })
 const menuSections = computed<MenuItem[][]>(() => [
   [
     { label: '我的日历', icon: 'calendar-o', url: '/pages/learning-calendar/index' },
-    { label: '关卡复习', icon: 'replay', url: '/pages/level-review/index' },
     { label: '我的学习', icon: 'play-circle-o', url: '/pages/learning-records/index' },
     { label: '我的词汇量', icon: 'chart-trending-o', url: '/pages/literacy/index' },
   ],
@@ -158,7 +157,6 @@ function openPersonalProfile() {
 
     <AppBottomNavigation
       active-tab="profile"
-      fixed
       @unavailable="showPlaceholder"
     />
   </view>
@@ -186,9 +184,9 @@ function openPersonalProfile() {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-  padding-bottom: calc(88px + env(safe-area-inset-bottom));
-  /* 内容高度 ≤视口时，禁用滚动回弹由 overscroll-behavior 保证 */
+  /* 底栏参与 flex 布局，滚动区无需再重复预留底栏高度。 */
 }
+.profile-page > :deep(.bottom-navigation) { flex: none; }
 .profile-header {
   padding: calc(8px + var(--app-top-safe-area)) 20px 18px;
   background: var(--color-topbar);
@@ -212,11 +210,12 @@ function openPersonalProfile() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--control-radius);
   background: transparent;
   color: var(--color-text);
 }
 .header-action::after { border: 0; }
+.header-action:active { background: var(--color-primary-soft); }
 .identity {
   min-width: 0;
   margin-top: 16px;
@@ -316,7 +315,7 @@ function openPersonalProfile() {
 }
 .menu-section + .menu-section { margin-top: 10px; }
 .menu-item {
-  min-height: 58px;
+  min-height: 62px;
   margin: 0 18px;
   display: flex;
   align-items: center;
@@ -331,7 +330,7 @@ function openPersonalProfile() {
   align-items: center;
   color: var(--color-primary);
 }
-.menu-label { flex: 1; font-size: 13px; font-weight: 500; }
+.menu-label { flex: 1; font-size: 14px; font-weight: 500; }
 .menu-note {
   margin-right: 7px;
   color: var(--color-text-muted);

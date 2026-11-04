@@ -29,7 +29,7 @@ export function useLevelStages() {
   const locationRequest = ref(0)
   let stageLoadRequestId = 0
   let initialized = false
-  let isReturningFromStudy = false
+  let shouldPreserveDirectory = false
 
   const currentMeta = computed(() => LEVEL_CATEGORIES.find((category) => category.key === activeCategory.value)!)
   const completedCount = computed(() => levelProgressStore.completedCountByCategory[activeCategory.value] ?? 0)
@@ -54,18 +54,15 @@ export function useLevelStages() {
   useDatabaseTask(async () => {
     if (!initialized) {
       initialized = true
-      if (lastStudiedStage.value) await locateLastStage(false)
-      else await loadCurrentStages(true)
+      await loadDefaultCategory()
     } else await loadCurrentStages(false)
   })
   onShow(() => {
     isNavigating.value = false
     levelProgressStore.hydrate()
     if (!applicationReady.value || !initialized || isLoadingStages.value) return
-    if (isReturningFromStudy) { isReturningFromStudy = false; return }
-    const recent = lastStudiedStage.value
-    if (recent) void locateLastStage(false)
-    else void loadCurrentStages(false)
+    if (shouldPreserveDirectory) { shouldPreserveDirectory = false; return }
+    void loadDefaultCategory()
   })
   onBeforeUnmount(() => { stageLoadRequestId++ })
 
@@ -98,6 +95,16 @@ export function useLevelStages() {
       return false
     } finally { if (requestId === stageLoadRequestId) isLoadingStages.value = false }
   }
+  async function loadDefaultCategory(): Promise<void> {
+    if (lastStudiedStage.value?.category === 'level1') {
+      await locateLastStage(false)
+      return
+    }
+    if (activeCategory.value !== 'level1') currentStages.value = []
+    activeCategory.value = 'level1'
+    scrollTargetId.value = ''
+    await loadCurrentStages(true)
+  }
   async function locateLastStage(shouldFocus: boolean): Promise<void> {
     const recent = lastStudiedStage.value
     if (!recent || isLocating.value) return
@@ -129,18 +136,32 @@ export function useLevelStages() {
     const stage = currentStages.value.find((item) => item.id === stageId)
     if (stage) levelActivityStore.recordSelection(stage)
   }
+  function handleOpenReview(): void {
+    if (isNavigating.value) return
+    isNavigating.value = true
+    shouldPreserveDirectory = true
+    uni.navigateTo({
+      url: '/pages/level-review/index',
+      animationType: 'slide-in-right', animationDuration: 220,
+      fail: () => {
+        isNavigating.value = false
+        shouldPreserveDirectory = false
+        uni.showToast({ title: '暂时无法打开关卡复习，请重试', icon: 'none' })
+      },
+    })
+  }
   function handleStageTap(stageId: string, isPlaceholder: boolean): void {
     if (isPlaceholder) { uni.showToast({ title: '该关卡敬请期待', icon: 'none' }); return }
     if (isNavigating.value) return
     isNavigating.value = true
-    isReturningFromStudy = true
+    shouldPreserveDirectory = true
     handleStageSelection(stageId)
     uni.navigateTo({
       url: '/pages/level-study/index?category=' + activeCategory.value + '&stageId=' + stageId,
       animationType: 'slide-in-right', animationDuration: 220,
       fail: () => {
         isNavigating.value = false
-        isReturningFromStudy = false
+        shouldPreserveDirectory = false
         uni.showToast({ title: '暂时无法进入学习', icon: 'none' })
       },
     })
@@ -149,6 +170,6 @@ export function useLevelStages() {
     activeCategory, currentMeta, visibleStages, displayStages: visibleStages, featuredStage,
     completedCount, totalCount, hasMoreStages, isLoadingStages, stageLoadError,
     lastStudiedStage, lastStudyCategoryLabel, isLocating, scrollTargetId, locationRequest,
-    switchCategory, loadMoreStages, loadCurrentStages, handleStageTap, handleStageSelection, handleLocateLastStage,
+    switchCategory, loadMoreStages, loadCurrentStages, handleStageTap, handleStageSelection, handleLocateLastStage, handleOpenReview,
   }
 }

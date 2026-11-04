@@ -101,7 +101,7 @@
       "style": {
         "navigationStyle": "custom",
         "navigationBarTitleText": "",
-        "disableScroll": false,
+        "disableScroll": true,
         "app-plus": {
           "bounce": "none"
         }

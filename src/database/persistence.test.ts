@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { createTestDatabase, setupTestDatabase } from './testSupport'
 import { setDatabaseForTests } from './connection'
-import { flushPersistence, initializePersistence, readStored, resetPersistenceForTests, saveStored } from './persistence'
+import { flushPersistence, hasPendingWrites, initializePersistence, persistenceError, readStored, resetPersistenceForTests, saveStored } from './persistence'
 import { useCharacterLearningStore } from '../stores/characterLearning'
 import { addCustomBook, readBookChunks, readCustomBooks, readCustomBookText, removeCustomBook } from '../reading/customBooks'
 import { changeSql, selectSql, sqlValue } from './sqlite'
@@ -10,6 +10,20 @@ import { compound } from './records'
 
 afterEach(() => vi.unstubAllGlobals())
 describe('本地数据库迁移与持久化', () => {
+  it('保存失败保留待写队列，重试后清除提示且重启仍读到新值', async () => {
+    const db = await setupTestDatabase()
+    db.failNextCommit = true
+    saveStored('font-learning-search-history', ['一'])
+    await vi.waitFor(() => expect(persistenceError.value).toContain('模拟磁盘写入失败'))
+    expect(hasPendingWrites()).toBe(true)
+    expect(await db.query('settings', { where: { id: 'font-learning-search-history' } })).toEqual([])
+    await flushPersistence()
+    expect(hasPendingWrites()).toBe(false)
+    expect(persistenceError.value).toBe('')
+    resetPersistenceForTests()
+    await initializePersistence()
+    expect(readStored('font-learning-search-history')).toEqual(['一'])
+  })
   it('迁移旧数据后按记录保存，重启不再读取旧 Storage', async () => {
     const legacy = new Map<string, unknown>([
       ['font-learning-character-preferences', { favoriteIds: ['char-0001'], excludedIds: ['char-0002'] }],

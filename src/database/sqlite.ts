@@ -49,10 +49,19 @@ export async function openSqlite(): Promise<Database> {
     }
   }
   const execute = (sql: string[]) => new Promise<void>((resolve, reject) => plus.sqlite.executeSql({ name, sql, success: () => resolve(), fail: (error: unknown) => reject(failure(error)) }))
+  // 原生桥接通过专用接口管理事务，不能假定 executeSql 的原始事务语句具有相同语义。
+  const transaction = (operation: 'begin' | 'commit' | 'rollback') => new Promise<void>((resolve, reject) => plus.sqlite.transaction({ name, operation, success: () => resolve(), fail: (error: unknown) => reject(failure(error)) }))
   try {
     const version = await new Promise<number>((resolve, reject) => plus.sqlite.selectSql({ name, sql: 'PRAGMA user_version', success: (rows: unknown) => resolve(Array.isArray(rows) ? Number((rows[0] as { user_version?: unknown } | undefined)?.user_version ?? 0) : 0), fail: (error: unknown) => reject(failure(error)) }))
     if (version > DATABASE_VERSION) throw new Error('数据库来自更新版本的应用，请升级应用后重试')
-    await execute(['BEGIN IMMEDIATE', ...schemaSql(), `PRAGMA user_version=${DATABASE_VERSION}`, 'COMMIT'])
+    await transaction('begin')
+    try {
+      await execute([...schemaSql(), `PRAGMA user_version=${DATABASE_VERSION}`])
+      await transaction('commit')
+    } catch (error) {
+      try { await transaction('rollback') } catch (rollbackError) { console.error('SQLite 初始化回滚失败', rollbackError) }
+      throw error
+    }
   } catch (error) {
     // 关闭也是异步操作；先等清理完成，避免立即重试时复用正在关闭的连接。
     await new Promise<void>((resolve) => plus.sqlite.closeDatabase({
@@ -67,21 +76,22 @@ export async function openSqlite(): Promise<Database> {
   const select=(table:Table,query?:Query)=>new Promise<Row[]>((resolve,reject)=>plus.sqlite.selectSql({name,sql:selectSql(table,query),success:(rows:unknown)=>{if(!Array.isArray(rows)){reject(new Error('SQLite 查询结果无效'));return}resolve(rows as Row[])},fail:(error:unknown)=>reject(failure(error))}))
   return {
     snapshot(requestedTables){return serialize(async()=>{
-      await execute(['BEGIN'])
-      try{const result=new Map<Table,Row[]>();for(const table of requestedTables)result.set(table,await select(table));await execute(['COMMIT']);return result}
-      catch(error){try{await execute(['ROLLBACK'])}catch(rollbackError){console.error('SQLite 快照回滚失败',rollbackError)}throw error}
+      await transaction('begin')
+      try{const result=new Map<Table,Row[]>();for(const table of requestedTables)result.set(table,await select(table));await transaction('commit');return result}
+      catch(error){try{await transaction('rollback')}catch(rollbackError){console.error('SQLite 快照回滚失败',rollbackError)}throw error}
     })},
     query(table, query) {
       return serialize(()=>select(table,query))
     },
     commit(changes) {
+      if (!changes.length) return Promise.resolve()
       return serialize(async () => {
-        await execute(['BEGIN IMMEDIATE'])
+        await transaction('begin')
         try {
           for (let start = 0; start < changes.length; start += 200) await execute(changes.slice(start, start + 200).map(changeSql))
-          await execute(['COMMIT'])
+          await transaction('commit')
         } catch (error) {
-          try { await execute(['ROLLBACK']) } catch (rollbackError) { console.error('SQLite 回滚失败', rollbackError) }
+          try { await transaction('rollback') } catch (rollbackError) { console.error('SQLite 回滚失败', rollbackError) }
           throw error
         }
       })

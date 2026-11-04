@@ -5,6 +5,7 @@ import { flushPersistence, initializePersistence, resetPersistenceForTests } fro
 import { createReviewRecord, orderReviewIds, reviewAnswer, REVIEW_INTERVALS_MS } from '../study/levelReview'
 import { useLevelReviewStore } from './levelReview'
 import { LEVEL_PROGRESS_STORAGE_KEY } from './levelProgress'
+import { listMistakes } from '../review/mistakes'
 
 const at = '2026-11-01T01:00:00.000Z'
 describe('关卡复习排期与恢复', () => {
@@ -30,6 +31,43 @@ describe('关卡复习排期与恢复', () => {
     expect(queue[0]).toBe('old')
     expect(new Set(queue).size).toBe(3502)
     expect(orderReviewIds(records, ['old', 'forgotten'], Date.parse(at))).toEqual(['old'])
+  })
+  it('更正本次认识判断时从作答前排期计算，并覆盖原事件而非新增次数', async () => {
+    const db = await setupTestDatabase()
+    const store = useLevelReviewStore()
+    store.registerCharacters(['one'], at)
+    store.answer('one', false, at)
+    store.answer('one', true, at)
+    const before = { ...store.records.one! }
+    const receipt = store.answer('one', true, at)!
+    const corrected = store.correctAnswer(receipt, false)
+    expect(store.records.one).toEqual(reviewAnswer(before, false, at))
+    expect(store.records.one).toMatchObject({ reviewCount: 3, forgottenCount: 2, step: 0 })
+    const restored = store.correctAnswer(corrected, true)
+    expect(store.records.one).toEqual(reviewAnswer(before, true, at))
+    store.correctAnswer(restored, false)
+    await flushPersistence()
+    const events = await db.query('activity_events', { where: { characterId: 'one', kind: 'answer' } })
+    expect(events).toHaveLength(3)
+    expect(events.find(event => event.id === 'review:one:3')?.correct).toBe(0)
+    expect((await listMistakes({ characterId: 'one' }))[0]?.mistakes).toBe(2)
+    resetPersistenceForTests(); await initializePersistence(); setActivePinia(createPinia())
+    expect(useLevelReviewStore().records.one).toEqual(reviewAnswer(before, false, at))
+  })
+  it('不认识更正为认识时移除本次遗忘与错题，但不覆盖之后的作答', async () => {
+    const db = await setupTestDatabase()
+    const store = useLevelReviewStore()
+    store.registerCharacters(['one'], at)
+    const receipt = store.answer('one', false, at)!
+    store.correctAnswer(receipt, true)
+    await flushPersistence()
+    expect(store.records.one).toMatchObject({ reviewCount: 1, forgottenCount: 0, step: 1 })
+    expect(await listMistakes({ characterId: 'one' })).toEqual([])
+    expect((await db.query('activity_events', { where: { characterId: 'one' } }))[0]?.correct).toBe(1)
+    store.answer('one', false, at)
+    const latest = { ...store.records.one! }
+    expect(() => store.correctAnswer(receipt, false)).toThrow('本次答案已过期')
+    expect(store.records.one).toEqual(latest)
   })
   it('逐范围保存当前字，重启后恢复并保留复习次数', async () => {
     const db = await setupTestDatabase()

@@ -16,6 +16,39 @@ async function openSettings(page: Page) {
   return settings
 }
 
+test('reader toolbar puts settings first and search last with matching icon and button sizes', async ({ page }, testInfo) => {
+  await openReader(page)
+  const toolbar = page.locator('.top-overlay-actions')
+  const search = toolbar.getByRole('button', { name: '搜索', exact: true })
+  const settings = toolbar.getByRole('button', { name: '更多设置', exact: true })
+
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect(search).toBeInViewport()
+    await expect(settings).toBeInViewport()
+    const searchBox = await search.boundingBox()
+    const settingsBox = await settings.boundingBox()
+    expect.soft(settingsBox!.x).toBeLessThan(searchBox!.x)
+    expect.soft(searchBox!.width).toBe(settingsBox!.width)
+    expect.soft(searchBox!.height).toBe(settingsBox!.height)
+    const settingsIconSize = await settings.locator('.top-icon-text').evaluate((element) => getComputedStyle(element).fontSize)
+    await expect.soft(search.locator('.van-icon')).toHaveCSS('font-size', settingsIconSize, { timeout: 1000 })
+    for (const property of ['background-color', 'border-radius', 'border-width'] as const) {
+      const value = await settings.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property)
+      await expect.soft(search).toHaveCSS(property, value, { timeout: 1000 })
+    }
+    await page.screenshot({ path: testInfo.outputPath(`reader-toolbar-${width}.png`) })
+  }
+
+  await settings.click()
+  await expect(page.getByRole('dialog', { name: '阅读设置', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '关闭设置', exact: true }).click()
+  await search.click()
+  await expect(page).toHaveURL(/pages\/search\/index/)
+  await page.getByRole('button', { name: '取消搜索', exact: true }).click()
+  await expect(page.locator('.reading-page-stage')).toHaveClass(/is-ready/)
+})
+
 test('settings opens from the bottom with names only and expands one section at a time', async ({ page }) => {
   await openReader(page)
   await expect(page.locator('.bottom-actions-row').getByRole('button', { name: '自动翻页', exact: true })).toHaveCount(0)

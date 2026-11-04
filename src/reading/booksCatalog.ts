@@ -1,7 +1,17 @@
 import type { BookFileType, BookMeta } from "./types"
 
+// 资源路径使用 ASCII；保留原始文件名以延续书籍 ID、阅读进度和书签关联。
+const BUILTIN_BOOK_FILE_NAMES: Readonly<Record<string, string>> = {
+  'a-jin-gu-niang-1.txt': '(阿)(槿)(姑)(娘)1.txt',
+  'a-man-1.txt': '(阿)(满)1.txt',
+  'a-ming-a-ming-1.txt': '(阿)(茗)(阿)(茗)1.txt',
+  'a-wan-a-wan-1.txt': '(阿)(婉)(阿)(婉)1.txt',
+  'zeng-guofan-family-letters.pdf': '《曾国藩家书》全集.pdf',
+}
+
 function getFileName(path: string): string {
-  return path.split("/").pop() ?? path
+  const fileName = path.split("/").pop() ?? path
+  return BUILTIN_BOOK_FILE_NAMES[fileName] ?? fileName
 }
 
 function getExt(fileName: string): BookFileType | null {

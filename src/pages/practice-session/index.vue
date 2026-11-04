@@ -9,6 +9,7 @@ import { advancePractice, answerPractice, readPractice } from '../../practice/re
 import { useFontStore } from '../../stores/fonts'
 import { useActivityClock } from '../../learning/useActivityClock'
 import { openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 import type { PracticeSession } from '../../practice/types'
 import type { StudyCharacterEntry } from '../../study/types'
 
@@ -19,7 +20,7 @@ const input = ref('')
 const selected = ref<string | null>(null)
 const { currentFont, referenceFont } = storeToRefs(useFontStore())
 const { busy, actionError, perform } = useFeatureAction()
-onLoad((options) => { id.value = typeof options?.id === 'string' ? options.id : '' })
+onLoad((options) => { id.value = readFeatureId(options?.id) })
 const { loading, error, reload } = useFeatureTask(async () => {
   session.value = await readPractice(id.value)
   if (session.value.status === 'completed') { await openFeature(`/pages/practice-result/index?id=${encodeURIComponent(id.value)}`, true); return }

@@ -9,6 +9,7 @@ import { readActivities } from '../../learning/activity'
 import { createPractice, readPractice } from '../../practice/repository'
 import { practiceResult } from '../../practice/questions'
 import { openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 import type { PracticeSession } from '../../practice/types'
 import type { StudyCharacterEntry } from '../../study/types'
 
@@ -18,7 +19,7 @@ const mistakes = ref<StudyCharacterEntry[]>([])
 const seconds = ref(0)
 const savedCollection = ref('')
 const { busy, actionError, perform } = useFeatureAction()
-onLoad((options) => { id.value = typeof options?.id === 'string' ? options.id : '' })
+onLoad((options) => { id.value = readFeatureId(options?.id) })
 const result = computed(() => practiceResult(session.value?.questions ?? []))
 const { loading, error, reload } = useFeatureTask(async () => {
   session.value = await readPractice(id.value)

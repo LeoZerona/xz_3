@@ -17,7 +17,7 @@ import LevelBoardDock from './components/LevelBoardDock.vue'
 
 const { themeStyle, currentTheme } = storeToRefs(useThemeStore())
 const { currentLayoutId } = storeToRefs(useLevelLayoutStore())
-const { activeCategory, currentMeta, visibleStages, displayStages, featuredStage, completedCount, totalCount, hasMoreStages, isLoadingStages, stageLoadError, lastStudiedStage, lastStudyCategoryLabel, isLocating, scrollTargetId, locationRequest, switchCategory, loadMoreStages, loadCurrentStages, handleStageTap, handleStageSelection, handleLocateLastStage } = useLevelStages()
+const { activeCategory, currentMeta, visibleStages, displayStages, featuredStage, completedCount, totalCount, hasMoreStages, isLoadingStages, stageLoadError, lastStudiedStage, lastStudyCategoryLabel, isLocating, scrollTargetId, locationRequest, switchCategory, loadMoreStages, loadCurrentStages, handleStageTap, handleStageSelection, handleLocateLastStage, handleOpenReview } = useLevelStages()
 const boardStageId = ref<string>()
 const selectedBoardStage = computed(() => visibleStages.value.find((item) => item.stage.id === boardStageId.value) ?? featuredStage.value ?? visibleStages.value[0])
 const isDirectoryLayout = computed(() => currentLayoutId.value === 'cards' || currentLayoutId.value === 'notebook')
@@ -45,6 +45,20 @@ function showPlaceholder(label: string) {
           <LevelCategoryTabs :model-value="activeCategory" :appearance="currentLayoutId" @update:model-value="switchCategory" />
           <CharacterSearchButton />
         </view>
+        <view class="levels-progress-row">
+          <LevelOverview
+            :category="currentMeta"
+            :appearance="currentLayoutId"
+            :total-count="totalCount"
+            :completed-count="completedCount"
+          />
+          <button class="level-review-entry" role="button" tabindex="0" hover-class="none"
+            @click="handleOpenReview" @keydown.enter.stop.prevent="handleOpenReview"
+            @keydown.space.stop.prevent="handleOpenReview" @keyup.space.stop.prevent>
+            <van-icon name="replay" size="16" aria-hidden="true" />
+            <text>关卡复习</text>
+          </button>
+        </view>
         <view v-if="lastStudiedStage" class="last-study-bar">
           <button
             class="locate-last-study"
@@ -62,15 +76,12 @@ function showPlaceholder(label: string) {
               <text class="last-study-label">最近选择</text>
               <text class="last-study-title">{{ lastStudyCategoryLabel }} · {{ lastStudiedStage.title }}</text>
             </view>
-            <text class="last-study-action">{{ isLocating ? '定位中…' : '回到该关' }}</text>
+            <text class="last-study-action">{{ isLocating ? '定位中…' : '继续学习' }}</text>
             <van-icon name="arrow" size="14" aria-hidden="true" />
           </button>
         </view>
       </view>
 
-      <navigator class="review-entry" url="/pages/level-review/index" hover-class="none" role="button" aria-label="关卡复习">
-        <text>关卡复习</text><text>复习已学文字 <van-icon name="arrow" size="12" aria-hidden="true" /></text>
-      </navigator>
       <scroll-view
         :key="activeCategory + currentLayoutId"
         id="level-stage-panel"
@@ -87,12 +98,6 @@ function showPlaceholder(label: string) {
         @scrolltolower="handleScrollLower"
       >
         <view class="levels-content">
-          <LevelOverview
-            :category="currentMeta"
-            :appearance="currentLayoutId"
-            :total-count="totalCount"
-            :completed-count="completedCount"
-          />
           <view v-if="isLoadingStages && visibleStages.length === 0" class="stage-load-state" role="status">
             <text class="stage-load-title">正在加载关卡…</text>
           </view>
@@ -217,6 +222,11 @@ function showPlaceholder(label: string) {
   gap: 12px;
 }
 .header-top :deep(.category-tabs) { min-width: 0; }
+.levels-progress-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.levels-progress-row :deep(.level-overview) { flex: 1; min-width: 0; margin-top: 0; }
+.level-review-entry { display: flex; align-items: center; justify-content: center; gap: 6px; flex: none; min-height: 44px; margin: 0; padding: 0 10px; border: 1px solid var(--color-border); border-radius: var(--control-radius); background: var(--color-surface); color: var(--level-accent-ink); font-size: 12px; font-weight: 600; line-height: 1.4; white-space: nowrap; }
+.level-review-entry::after { border: 0; }
+.level-review-entry:active { background: var(--color-primary-soft); }
 .last-study-bar { margin-top: 8px; }
 .last-study-copy { display: flex; align-items: center; flex: 1; min-width: 0; gap: 8px; }
 .last-study-label { flex: none; color: var(--color-text-secondary); font-size: 12px; }
@@ -229,9 +239,6 @@ function showPlaceholder(label: string) {
   height: 100%;
   min-height: 0;
 }
-.review-entry { display: flex; justify-content: space-between; align-items: center; flex: none; min-height: 44px; margin-bottom: 12px; color: var(--color-text); font-size: 14px; }
-.review-entry > :last-child { color: var(--color-text-secondary); font-size: 12px; }
-.review-entry:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
 .levels-content {
   padding: 4px 0 32px;
 }
@@ -284,6 +291,7 @@ function showPlaceholder(label: string) {
   color: var(--color-text-secondary);
 }
 .locate-last-study:focus-visible,
+.level-review-entry:focus-visible,
 .stage-retry:focus-visible,
 .load-more-stages:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -320,7 +328,6 @@ function showPlaceholder(label: string) {
   background: var(--color-surface);
 }
 .layout-flashcards :deep(.category-tab),
-.layout-flashcards :deep(.overview-description),
 .layout-flashcards :deep(.overview-caption) {
   color: var(--color-text);
 }

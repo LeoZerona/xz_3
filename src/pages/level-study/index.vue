@@ -129,9 +129,17 @@ function handleToggleCharacterSlash(characterId: string) {
   });
 }
 
+function handleToggleCharacterFavorite(characterId: string): void {
+  learningStore.toggleFavorite(characterId);
+  uni.showToast({ title: learningStore.isFavorite(characterId) ? "已收藏" : "已取消收藏", icon: "none" });
+}
+
 function openCharacterDetail(characterId: string) {
   reviewStore.registerCharacters([characterId]);
-  uni.navigateTo({ url: `/pages/character-detail/index?id=${encodeURIComponent(characterId)}&category=${queryCategory.value}&stageId=${encodeURIComponent(queryStageId.value)}` });
+  uni.navigateTo({
+    url: `/pages/character-detail/index?id=${encodeURIComponent(characterId)}&category=${queryCategory.value}&stageId=${encodeURIComponent(queryStageId.value)}`,
+    fail: () => uni.showToast({ title: "文字详情打开失败，请重试", icon: "none" }),
+  });
 }
 
 const effectiveModes = computed(() => getEffectiveStudyModes());
@@ -508,11 +516,7 @@ onBeforeUnmount(()=>{
         <text style="display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ categoryLabel }} · {{ stageTitle }}</text>
         <text class="training-count">已完成 {{ levelProgressStore.getTrainingCount(queryStageId) }} 次训练 · 本轮 {{ stageProgressText }}</text>
       </view>
-      <view class="topbar-actions">
-        <button class="topbar-button" aria-label="收藏" @click="toggleFavorite">
-          <van-icon :name="currentCharacter && learningStore.isFavorite(currentCharacter.id) ? 'star' : 'star-o'" size="20" />
-        </button>
-      </view>
+      <view aria-hidden="true" />
     </view>
 
     <view v-if="!isCorrect" class="progress-card" aria-label="关卡进度">
@@ -550,7 +554,10 @@ onBeforeUnmount(()=>{
         :description="previewDescription"
         can-slash
         :excluded-ids="learningStore.excludedIds"
+        can-favorite
+        :favorite-ids="learningStore.favoriteIds"
         @slash-character="handleToggleCharacterSlash"
+        @toggle-favorite="handleToggleCharacterFavorite"
         @open-detail="openCharacterDetail"
       />
       <view class="preview-start-wrap">
@@ -568,6 +575,9 @@ onBeforeUnmount(()=>{
       :is-last-mode="isLastMode"
       :is-last-character="isLastCharacter"
       :mode-position="modePosition"
+      can-favorite
+      :is-favorite="learningStore.isFavorite(currentQuestion.character.id)"
+      @toggle-favorite="toggleFavorite"
       :hint-level="hintLevel"
       :force-detail="forceDetail"
       :is-correct-animating="isCorrectAnimating"
@@ -590,7 +600,8 @@ onBeforeUnmount(()=>{
 .study-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; color: var(--color-text); background: radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%), linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%); }
 .study-topbar { min-height: calc(64px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 14px 4px; display: grid; grid-template-columns: 88px 1fr 88px; align-items: center; }
 .topbar-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--color-text); line-height: 1; }
+.topbar-button { width: 44px; height: 44px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; border-radius: var(--control-radius); background: transparent; color: var(--color-text); line-height: 1; }
+.topbar-button:active { background: var(--color-primary-soft); }
 .topbar-button::after { border: 0; }
 .back-icon { font-size: 27px; font-weight: 300; }
 .training-count { display: block; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }

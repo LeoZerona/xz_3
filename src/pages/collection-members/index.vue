@@ -8,6 +8,7 @@ import { findCharactersByText, getCharacters, searchCatalog } from '../../databa
 import { parseCollectionText } from '../../collections/model'
 import { readCollection, setCollectionMembers } from '../../collections/repository'
 import { confirmFeature, finishFeatureEdit, openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 import type { StudyCharacterEntry } from '../../study/types'
 
 const id = ref('')
@@ -24,7 +25,7 @@ const hasPreview = ref(false)
 const pageSize = ref(50)
 let searchSequence = 0
 const { busy, actionError, perform } = useFeatureAction()
-onLoad((options) => { id.value = typeof options?.id === 'string' ? options.id : ''; isAdding.value = options?.mode === 'add' })
+onLoad((options) => { id.value = readFeatureId(options?.id); isAdding.value = options?.mode === 'add' })
 const { loading, error, reload } = useFeatureTask(async () => {
   const current = await readCollection(id.value)
   name.value = current.name; originalIds.value = [...current.characterIds]; selectedIds.value = [...current.characterIds]

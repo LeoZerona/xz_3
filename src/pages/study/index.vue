@@ -377,9 +377,6 @@ const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.v
         <button class="topbar-button" role="button" aria-label="搜索" @click="openSearch">
           <span class="search-icon" aria-hidden="true" />
         </button>
-        <button class="topbar-button" role="button" :disabled="!currentCharacter" :aria-label="currentCharacter && learningStore.isFavorite(currentCharacter.id) ? '取消收藏当前文字' : '收藏当前文字'" @click="toggleFavorite">
-          <span class="favorite-icon" aria-hidden="true">{{ currentCharacter && learningStore.isFavorite(currentCharacter.id) ? '★' : '☆' }}</span>
-        </button>
       </view>
     </view>
 
@@ -412,6 +409,9 @@ const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.v
       :is-last-mode="isLastMode"
       :is-last-character="isLastCharacter"
       :mode-position="modePosition"
+      can-favorite
+      :is-favorite="learningStore.isFavorite(currentQuestion.character.id)"
+      @toggle-favorite="toggleFavorite"
       @answer-choice="handleChoiceAnswer"
       @update:input-answer="handleInputAnswer"
       @submit-input="submitInputAnswer"
@@ -429,13 +429,13 @@ const activityClock = useActivityClock('daily', () => Boolean(currentCharacter.v
 .study-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; display: flex; flex-direction: column; color: var(--color-text); background: radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%), linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%); }
 .study-topbar { min-height: calc(64px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 14px 4px; display: grid; grid-template-columns: 88px 1fr 88px; align-items: center; }
 .topbar-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.topbar-button { width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--color-text); line-height: 1; }
+.topbar-button { width: 44px; height: 44px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; border-radius: var(--control-radius); background: transparent; color: var(--color-text); line-height: 1; }
+.topbar-button:active { background: var(--color-primary-soft); }
 .topbar-button::after { border: 0; }
 .topbar-button[disabled] { color: var(--color-text-muted); opacity: .5; }
-.back-icon, .favorite-icon, .search-icon { pointer-events: none; }
+.back-icon, .search-icon { pointer-events: none; }
 .back-icon { font-size: 27px; font-weight: 300; }
 .back-icon-svg { display:block; width:20px; height:20px; }
-.favorite-icon { font-size: 31px; line-height: 1; }
 .search-icon { position: relative; width: 21px; height: 21px; border: 2px solid currentColor; border-radius: 50%; }
 .search-icon::after { content: ''; position: absolute; right: -5px; bottom: -3px; width: 8px; height: 2px; border-radius: 2px; background: currentColor; transform: rotate(48deg); transform-origin: left center; }
 .progress-card { margin: 2px 16px 0; padding: 15px 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent); border-radius: 18px; background: var(--color-surface); box-shadow: 0 10px 28px color-mix(in srgb, var(--color-shadow) 88%, transparent); }

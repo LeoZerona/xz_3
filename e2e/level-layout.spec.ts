@@ -96,7 +96,7 @@ test('四种布局共用已完成进度、进行中关卡，并可切换完整�
     await expect(page.locator(action)).toHaveAttribute('aria-label', /继续学习/)
     await expect(page.locator('.last-study-title')).toHaveText('一级汉字 · 关卡 02')
     await page.getByRole('tab', { name: '偏旁部首' }).click()
-    await expect(page.locator('.overview-title')).toHaveText('偏旁部首')
+    await expect(page.getByRole('progressbar', { name: '偏旁部首已完成关卡' })).toHaveAttribute('aria-valuemax', '3')
     await page.getByRole('tab', { name: '二级汉字' }).click()
     await expect(page.locator('.overview-pending')).toHaveCount(0)
     await expect(page.locator('.overview-caption')).toHaveText('已完成 0 / 300 关')

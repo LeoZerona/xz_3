@@ -11,6 +11,12 @@ import { readReviewSources, REVIEW_SOURCES_KEY } from '../review/sources'
 import type { ReviewSource } from '../review/sources'
 
 interface ReviewSession { filter: ReviewFilter; currentIds: Partial<Record<ReviewFilter, string>>; currentReviewCounts: Partial<Record<ReviewFilter, number>> }
+export interface ReviewAnswerReceipt {
+  characterId: string
+  previous: LevelReviewRecord
+  known: boolean
+  at: string
+}
 function readRecords(): Record<string, LevelReviewRecord> {
   const records: Record<string, LevelReviewRecord> = {}
   for (const [id, value] of Object.entries(object(readStored(LEVEL_REVIEW_KEY)))) {
@@ -79,17 +85,33 @@ export const useLevelReviewStore = defineStore('levelReview', () => {
     }
     saveStored(REVIEW_SESSION_KEY, session.value)
   }
-  function answer(characterId: string, known: boolean, at = new Date().toISOString()): void {
-    const record = records.value[characterId]
-    if (!record) return
-    const next = reviewAnswer(record, known, at)
+  function saveAnswer(receipt: ReviewAnswerReceipt, replace = false): void {
+    const { characterId, known, at } = receipt
+    const next = reviewAnswer(receipt.previous, known, at)
     const date = new Date(at)
-    saveLevelReviewRecords({ [characterId]: next }, [{ table: 'activity_events', ifAbsent: true, row: activityRow({
+    saveLevelReviewRecords({ [characterId]: next }, [{ table: 'activity_events', ifAbsent: !replace, row: activityRow({
       id: `review:${characterId}:${next.reviewCount}`, sessionId: `review:${localDateKey(date)}`, source: 'review', kind: 'answer',
       characterId, mode: null, correct: known, at, dateKey: localDateKey(date), seconds: 0, timezoneOffset: date.getTimezoneOffset(),
     }) }])
     records.value[characterId] = next
     activityRevision.value++
   }
-  return { records, sources, hasSource, session, hydrate, registerCharacters, migrateLearnedCharacters, setCurrent, answer }
+  function answer(characterId: string, known: boolean, at = new Date().toISOString()): ReviewAnswerReceipt | null {
+    const record = records.value[characterId]
+    if (!record) return null
+    const receipt = { characterId, previous: { ...record }, known, at }
+    saveAnswer(receipt)
+    return receipt
+  }
+  function correctAnswer(receipt: ReviewAnswerReceipt, known: boolean): ReviewAnswerReceipt {
+    const current = records.value[receipt.characterId]
+    if (!current || current.reviewCount !== receipt.previous.reviewCount + 1 || current.lastReviewedAt !== receipt.at) {
+      throw new Error('本次答案已过期，请继续复习')
+    }
+    // 基于作答前的排期重算，覆盖同一活动事件，避免更正被计为新一轮复习。
+    const corrected = { ...receipt, known }
+    saveAnswer(corrected, true)
+    return corrected
+  }
+  return { records, sources, hasSource, session, hydrate, registerCharacters, migrateLearnedCharacters, setCurrent, answer, correctAnswer }
 })

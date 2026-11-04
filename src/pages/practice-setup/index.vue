@@ -11,6 +11,7 @@ import { createPractice, listPractices } from '../../practice/repository'
 import { listMistakes } from '../../review/mistakes'
 import { getEffectiveStudyModes, STUDY_MODES, STUDY_MODE_LABELS } from '../../study/modes'
 import { openFeature, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 import type { StudyMode } from '../../study/modes'
 import type { PracticeSession, PracticeSource } from '../../practice/types'
 
@@ -26,7 +27,7 @@ const { busy, actionError, perform } = useFeatureAction()
 onLoad((options) => {
   const allowed: PracticeSource[] = ['favorites', 'slashed', 'collection', 'mistakes', 'custom']
   if (typeof options?.source === 'string' && allowed.includes(options.source as PracticeSource)) source.value = options.source as PracticeSource
-  sourceId.value = typeof options?.id === 'string' ? options.id : ''
+  sourceId.value = readFeatureId(options?.id)
 })
 const labels: Record<PracticeSource, string> = { favorites: '收藏字', slashed: '已斩文字', collection: '自定义字单', mistakes: '错题文字', custom: '输入汉字' }
 const active = computed(() => history.value.filter((session) => session.status === 'active'))

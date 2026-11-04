@@ -5,13 +5,14 @@ import FeaturePage from '../../components/FeaturePage.vue'
 import FeatureTextField from '../../components/FeatureTextField.vue'
 import { readCollection, saveCollection } from '../../collections/repository'
 import { confirmFeature, finishFeatureEdit, useFeatureAction, useFeatureTask } from '../../features/useFeatureTask'
+import { readFeatureId } from '../../features/routeParams'
 
 const id = ref('')
 const name = ref('')
 const description = ref('')
 const original = ref('')
 const { busy, actionError, perform } = useFeatureAction()
-onLoad((options) => { id.value = typeof options?.id === 'string' ? options.id : '' })
+onLoad((options) => { id.value = readFeatureId(options?.id) })
 const value = computed(() => JSON.stringify([name.value, description.value]))
 const { loading, error, reload } = useFeatureTask(async () => {
   if (id.value) { const current = await readCollection(id.value); name.value = current.name; description.value = current.description }

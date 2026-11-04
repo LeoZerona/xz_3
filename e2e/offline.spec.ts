@@ -28,7 +28,7 @@ test('生产版准备后断网刷新与新页可学习，失败更新保留旧�
   await context.setOffline(true);await page.reload()
   await expect(page.getByText('当前资源已可离线启动',{exact:true})).toBeVisible()
   const second=await context.newPage();await second.goto(base+'/#/pages/levels/index')
-  await expect(second.getByRole('heading',{name:'一级汉字',exact:true})).toBeVisible()
+  await expect(second.getByRole('tab',{name:'一级汉字',exact:true})).toHaveAttribute('aria-selected','true')
   await second.goto(base+'/#/pages/study-preview/index');await expect(second.locator('.character-row')).toHaveCount(15)
   await second.goto(base+'/#/pages/reading/index');await second.getByRole('button',{name:'最近阅读入口，点击继续阅读'}).click()
   await expect(second.locator('.reading-page-stage')).toHaveClass(/is-ready/)

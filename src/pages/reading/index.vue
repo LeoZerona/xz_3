@@ -1278,10 +1278,10 @@ function handleKeydown(e: KeyboardEvent) {
           </view>
         </view>
         <view class="top-overlay-actions">
-          <CharacterSearchButton />
+          <view class="top-icon-btn top-icon-btn--more" role="button" tabindex="0" aria-label="更多设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings"><text class="top-icon-text">⋯</text></view>
           <view class="top-icon-btn" role="button" tabindex="0" aria-label="目录" @click="handleCatalogToggle" @keydown.enter="handleCatalogToggle" @keydown.space.prevent="handleCatalogToggle"><text class="top-icon-text">≡</text></view>
           <view class="top-icon-btn" role="button" tabindex="0" aria-label="交换字体" @click="handleSwapFonts" @keydown.enter="handleSwapFonts" @keydown.space.prevent="handleSwapFonts"><text class="top-icon-text">⇄</text></view>
-          <view class="top-icon-btn top-icon-btn--more" role="button" tabindex="0" aria-label="更多设置" @click="handleOpenSettings" @keydown.enter="handleOpenSettings" @keydown.space.prevent="handleOpenSettings"><text class="top-icon-text">⋯</text></view>
+          <CharacterSearchButton class="top-icon-btn" :icon-size="14" />
         </view>
       </view>
 
@@ -2116,8 +2116,9 @@ function handleKeydown(e: KeyboardEvent) {
 .top-title { font-size: 14px; font-weight: 800; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top-subtitle { font-size: 10px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top-overlay-actions { flex: none; display: flex; gap: 8px; align-items: center; }
-.top-icon-btn {
+.top-overlay-actions .top-icon-btn {
   width: 34px; height: 34px;
+  min-width: 34px; min-height: 34px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 8px;
   background: var(--color-surface-muted);

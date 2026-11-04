@@ -101,7 +101,6 @@ function openMessages(): void { uni.navigateTo({url:'/pages/messages/index',fail
             role="button"
             aria-label="开始学习"
           >开始学习</navigator>
-          <navigator class="action-button action-secondary" url="/pages/level-review/index" hover-class="none" role="button">关卡复习</navigator>
         </view>
       </view>
     </scroll-view>
@@ -177,10 +176,9 @@ function openMessages(): void { uni.navigateTo({url:'/pages/messages/index',fail
 .stat-label { color: var(--color-text-secondary); font-size: 10px; white-space: nowrap; }
 .stat-value { font-size: 24px; line-height: 1.2; font-weight: 700; letter-spacing: -.03em; }
 .stat-time { font-size: 20px; white-space: nowrap; }
-.plan-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 28px; }
+.plan-actions { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 28px; }
 .action-button { width: 100%; min-width: 0; height: 58px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 9px; font-size: 17px; font-weight: 600; line-height: 1; }
 .action-primary { background: var(--color-primary); color: var(--color-on-primary); }
-.action-secondary { background: var(--color-primary-soft); color: var(--color-primary); }
 @media (max-width: 360px) { .font-row { min-height: 98px; gap: 14px; } .stat-label { font-size: 8px; } .stat-value { font-size: 20px; } .stat-time { font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .home-scroll { scroll-behavior: auto; } }
 </style>

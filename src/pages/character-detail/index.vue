@@ -12,6 +12,8 @@ import { useThemeStore } from '../../stores/theme'
 import type { StudyCharacterEntry } from '../../study/types'
 import type { LevelCategory } from '../../study/levelData'
 import CharacterDetailContent from './components/CharacterDetailContent.vue'
+import CharacterSlashMark from '../../components/CharacterSlashMark.vue'
+import { openCharacterSearch } from '../../search/navigation'
 
 const characterId = ref('')
 const preferencesStore = useCharacterLearningStore()
@@ -66,7 +68,9 @@ onBackPress((event) => {
 })
 
 function openSearch() {
-  uni.navigateTo({ url: '/pages/search/index' })
+  let returnUrl = `/pages/character-detail/index?id=${encodeURIComponent(characterId.value)}`
+  if (stageContext.value) returnUrl += `&category=${stageContext.value.category}&stageId=${encodeURIComponent(stageContext.value.stageId)}`
+  openCharacterSearch(returnUrl)
 }
 
 function toggleFavorite() {
@@ -108,45 +112,48 @@ onLoad((options) => {
         <button class="header-button" role="button" aria-label="搜索" @click="openSearch">
           <van-icon name="search" size="22" aria-hidden="true" />
         </button>
-        <button class="header-button favorite-button" :class="{ 'is-active': isFavorite }" role="button" :disabled="!character" :aria-label="isFavorite ? '取消收藏当前文字' : '收藏当前文字'" :aria-pressed="isFavorite" @click="toggleFavorite">
-          <text aria-hidden="true">{{ isFavorite ? '★' : '☆' }}</text>
-        </button>
         <button class="header-button exclude-button" :class="{ 'is-active': isExcluded }" role="button" :disabled="!character" :aria-label="isExcluded ? '恢复当前文字到学习列表' : '斩掉当前文字，后续学习不再出现'" :aria-pressed="isExcluded" @click="toggleExcluded">
-          <text aria-hidden="true">斩</text>
+          <CharacterSlashMark :active="isExcluded" />
         </button>
       </view>
     </view>
 
-    <CharacterDetailContent
-      v-if="character"
-      :character="character"
-      :learning-font="currentFont"
-      :reference-font="referenceFont"
-    />
+    <scroll-view class="character-detail-scroll" scroll-y :bounces="false" role="region" tabindex="0" aria-label="文字详情内容">
+      <CharacterDetailContent
+        v-if="character"
+        :character="character"
+        :learning-font="currentFont"
+        :reference-font="referenceFont"
+        can-favorite
+        :is-favorite="isFavorite"
+        @toggle-favorite="toggleFavorite"
+      />
 
-    <view v-else class="empty-state" role="status">
-      <van-icon name="warning-o" size="34" color="var(--color-text-muted)" aria-hidden="true" />
-      <text class="empty-title">{{ isCharacterLoading ? '正在加载文字详情' : '没有找到这个文字' }}</text>
-      <text v-if="characterLoadError">{{ characterLoadError }}</text>
-      <button v-if="characterLoadError" class="return-button" role="button" @click="loadCharacterDetail">重试</button>
-      <button class="return-button" role="button" @click="goBack">返回预览</button>
-    </view>
+      <view v-else class="empty-state" role="status">
+        <van-icon name="warning-o" size="34" color="var(--color-text-muted)" aria-hidden="true" />
+        <text class="empty-title">{{ isCharacterLoading ? '正在加载文字详情' : '没有找到这个文字' }}</text>
+        <text v-if="characterLoadError">{{ characterLoadError }}</text>
+        <button v-if="characterLoadError" class="return-button" role="button" @click="loadCharacterDetail">重试</button>
+        <button class="return-button" role="button" @click="goBack">返回预览</button>
+      </view>
+    </scroll-view>
   </view>
 </template>
 
 <style scoped lang="scss">
-.detail-page { width: min(100%, 560px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%), linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%); color: var(--color-text); }
-.detail-header { min-height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 44px minmax(0, 1fr) 132px; align-items: center; }
+/* 全局锁定外层滚动，长详情须由视口内有明确高度的 scroll-view 承担。 */
+.detail-page { width: min(100%, 560px); height: 100vh; height: 100dvh; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 90% 0, var(--color-primary-soft) 0, transparent 34%), linear-gradient(180deg, var(--color-topbar) 0, var(--color-page) 48%, var(--color-surface-muted) 100%); color: var(--color-text); }
+.detail-header { flex: none; min-height: calc(58px + var(--app-top-safe-area)); padding: var(--app-top-safe-area) 12px 0; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+.character-detail-scroll { flex: 1; min-height: 0; overflow: hidden; }
 .header-actions { display: flex; justify-content: flex-end; gap: 4px; }
 .header-button, .return-button { margin: 0; padding: 0; border: 0; color: inherit; line-height: normal; }
 .header-button::after, .return-button::after { border: 0; }
-.header-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 22px; background: transparent; }
+.header-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: var(--control-radius); background: transparent; }
 .header-button.is-active { background: var(--color-primary-soft); color: var(--color-primary); }
 .header-button:active { background: var(--color-primary-soft); }
 .header-button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
 .header-button[disabled] { color: var(--color-text-muted); opacity: .48; }
 .back-button { font-size: 38px; font-weight: 300; }
-.favorite-button { font-size: 27px; }
 .exclude-button { font-size: 13px; font-weight: 700; }
 .empty-state { min-height: calc(100vh - 100px); padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .empty-title { font-size: 14px; font-weight: 600; }

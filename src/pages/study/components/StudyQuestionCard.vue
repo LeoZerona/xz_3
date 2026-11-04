@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import CharacterFontComparison from '../../../components/CharacterFontComparison.vue'
+import CharacterFavoriteButton from '../../../components/CharacterFavoriteButton.vue'
 import type { LearningFont } from '../../../fonts/types'
 import { getEffectiveStudyModes, INPUT_STUDY_MODE } from '../../../study/modes'
 import type { StudyMode } from '../../../study/modes'
@@ -32,6 +33,8 @@ interface Props {
   detailAnimated?: boolean
   completionLabel?: string
   modePosition: number
+  isFavorite?: boolean
+  canFavorite?: boolean
 }
 
 const props = defineProps<Props>()
@@ -42,6 +45,7 @@ const emit = defineEmits<{
   (event: 'update:input-answer', value: string): void
   (event: 'submit-input', value: string): void
   (event: 'next'): void
+  (event: 'toggle-favorite'): void
 }>()
 
 const isInputMode = computed(() => props.question.mode === INPUT_STUDY_MODE)
@@ -125,6 +129,10 @@ function handleChoiceAnswer(character: string) {
         </view>
       </view>
 
+      <view v-if="canFavorite" class="question-actions answer-actions">
+        <CharacterFavoriteButton :is-favorite="Boolean(isFavorite)" @toggle-favorite="emit('toggle-favorite')" />
+      </view>
+
       <template v-if="!isInputMode">
         <view class="choice-grid" role="group" aria-label="请选择相同的文字">
           <button v-for="option in question.options"
@@ -172,7 +180,10 @@ function handleChoiceAnswer(character: string) {
 
       <view class="detail-content">
         <view class="info-card">
-          <text class="card-title">基本释义</text>
+          <view class="definition-header">
+            <text class="card-title">基本释义</text>
+            <CharacterFavoriteButton v-if="canFavorite" :is-favorite="Boolean(isFavorite)" @toggle-favorite="emit('toggle-favorite')" />
+          </view>
           <text class="definition">{{ question.character.semantics.definition }}</text>
           <view class="word-list" aria-label="常用词语">
             <text v-for="word in question.character.semantics.words" :key="word" class="word-chip">{{ word }}</text>
@@ -233,6 +244,13 @@ function handleChoiceAnswer(character: string) {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
+}
+
+.question-actions { display: flex; justify-content: flex-end; flex: none; margin-top: 8px; }
+
+.answer-actions + .choice-grid,
+.answer-actions + .input-panel {
+  margin-top: 8px;
 }
 
 .mode-status {
@@ -486,6 +504,13 @@ function handleChoiceAnswer(character: string) {
   border-radius: 12px;
   background: var(--color-surface);
   box-shadow: 0 6px 20px var(--color-shadow);
+}
+
+.definition-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .card-title {
